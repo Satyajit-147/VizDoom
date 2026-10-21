@@ -23,6 +23,8 @@ risk a CUDA mismatch. Exact versions are recorded per run in `runs/<id>/manifest
 ### D4. Python 3.12 locally instead of 3.11
 Only 3.12 is installed on the dev machine. `requires-python = ">=3.11"`, so the package also
 works on whatever interpreter the Kaggle image ships. Nothing in the plan depends on 3.11.
+Kaggle image as of 2026-10-21: Python 3.13.15, torch 2.11.0+cu128, 2 CUDA devices, 4 CPUs.
+So the code must run on 3.12 (local) and 3.13 (Kaggle); target 3.11+ syntax only.
 
 ### D5. IWAD: use the freedoom2.wad bundled with the vizdoom wheel
 The vizdoom 1.3.2 wheel ships `freedoom2.wad` inside the package, so the plan's
@@ -38,7 +40,8 @@ fewer moving parts and no output-directory magic interfering with Kaggle paths.
 `tests/test_smoke.py` loads the stock `basic.cfg` but overrides resolution (160x120),
 format (GRAY8), window/sound/console (off) and uses frame skip 4, so that the 300 steps/s
 gate measures the configuration we actually train with.
-Local result: 1130 steps/s. Kaggle result: TBD (run `notebooks/kaggle_m0_smoke.ipynb`).
+Local result: 1130 steps/s. Kaggle result (GPU T4 x2 session, 4 vCPU): 2067 steps/s,
+4/4 tests passed. **M0 accepted 2026-10-21.**
 
 ### D8. `test_no_groundtruth_leak.py` added at M0
 Hard rules 1 and 2 are enforced from the first commit. The test checks both
