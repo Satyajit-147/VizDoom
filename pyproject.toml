@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qatester"
+version = "0.1.0"
+description = "RL-based QA tester for games — Phase 1 (ViZDoom)"
+readme = "README.md"
+requires-python = ">=3.11"
+# Light core: everything needed for the map compiler, oracles, reporting and
+# local CPU tests. Torch and the RL stack live in the [train] extra so the
+# local dev machine never pulls them (see docs/decisions.md, 2026-10-21).
+dependencies = [
+    "vizdoom>=1.3.0",        # 1.3.0 gives the notifications buffer and set_config(dict)
+    "gymnasium>=0.29",
+    "numpy",
+    "scipy",
+    "pandas",
+    "pyarrow",
+    "pydantic>=2.6",
+    "scikit-learn",          # DBSCAN, calibration
+    "matplotlib",
+    "jinja2",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# Installed only on Kaggle. Kaggle preinstalls a CUDA-matched torch, which
+# satisfies the lower bound without a reinstall.
+train = [
+    "torch>=2.2",
+    "stable-baselines3>=2.3",
+    "sb3-contrib>=2.3",      # RecurrentPPO
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "mypy",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+include = ["qatester*"]
+
+[tool.setuptools.package-data]
+qatester = ["templates/*.j2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+
+[[tool.mypy.overrides]]
+module = ["qatester.mapgen.*", "qatester.oracles.*"]
+strict = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
