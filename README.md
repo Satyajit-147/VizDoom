@@ -1,6 +1,6 @@
 # rl-qa-tester
 
-RL-based QA tester for games, Phase 1 (ViZDoom). Team 19, IIITDM Kancheepuram.
+RL-based QA tester for games, Phase 1 (ViZDoom). Team 19.
 
 The build specification is [docs/PLAN.md](docs/PLAN.md) and is normative. Deviations from it
 are recorded in [docs/decisions.md](docs/decisions.md).
