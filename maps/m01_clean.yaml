@@ -1,0 +1,22 @@
+# M1 placeholder: the single room from PLAN Appendix A, used to prove the
+# WAD pipeline end to end. M2 replaces it with the full 4-room, 1200x900 CLEAN map.
+name: CLEAN
+slot: 1
+cell_size: 64
+seed: 101
+
+rooms:
+  - {id: start, x0: -320, y0: -320, x1: 0, y1: 0, floor: 0, ceiling: 128}
+
+portals: []
+
+things:
+  - {id: spawn, type: player_start, room: start, pos: [-160, -160]}
+
+goal:
+  kind: survive
+  target: null
+  requires: []
+  time_limit_tics: 2100
+
+defects: []

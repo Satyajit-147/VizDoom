@@ -38,6 +38,7 @@ dev = [
     "pytest-cov",
     "mypy",
     "ruff",
+    "types-PyYAML",
 ]
 
 [tool.setuptools.packages.find]

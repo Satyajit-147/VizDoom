@@ -71,3 +71,31 @@ before the milestone named.
    the plan adopts elsewhere. Proposal: follow the budget table and state it in the report.
 5. **[M6] Report example uses 2M steps.** The `report.json` example has `env_steps: 2000000`
    while runs are 1M. Illustrative only, so no action needed.
+
+## 2026-10-21 — M1
+
+### D9. Appendix A's minimal TEXTMAP has reversed linedef winding (plan error)
+Appendix A lists the room corners counter-clockwise ((-320,-320) → (0,-320) → (0,0) →
+(-320,0)), which puts every linedef's front (right) side **outside** the room. Verified
+empirically in ViZDoom 1.3.2: built verbatim, the map loads and collision works, but the
+depth buffer is all zeros, so no wall renders from inside. Clockwise order renders correctly.
+The compiler emits room corners clockwise (`cli.room_vertices`), and `tests/test_m1_load.py`
+asserts that the depth buffer is non-empty so a winding regression fails loudly.
+
+### D10. Config file names for the two build variants
+PLAN names configs `build/MAPnn.cfg` but builds two variants into the same directory.
+Buggy variant: `MAPnn.cfg`; fixed variant: `MAPnn.fixed.cfg`. They differ only in
+`doom_scenario_path`, as the plan requires. `doom_scenario_path` is relative to the
+`.cfg` location, which ViZDoom resolves correctly (tested from a temp directory).
+
+### D11. Spec models landed in M1; validation rules stay in M2
+`qatester/mapgen/spec.py` has the Pydantic models with the normative field names (plus
+`union_with` from the validation rules and `key_yellow`, which the observation's key slots
+and Appendix A both use). The six loader validation rules and `check_reachable()` are M2.
+`maps/m01_clean.yaml` is the Appendix A single room as an M1 placeholder; M2 replaces it
+with the full 4-room CLEAN map. `build()` accepts a spec directory or a single file.
+
+### D12. M1 accepted 2026-10-21
+`scripts/build_maps.py maps/m01_clean.yaml -o build/`: ViZDoom loads MAP01, the player
+spawns at (-160, -160), POSITION_X stays finite through 500 random steps. 16/16 tests,
+`mypy --strict qatester/mapgen/` clean.
