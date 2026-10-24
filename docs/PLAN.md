@@ -1,6 +1,4 @@
 # RL-Based QA Tester for Games — Phase 1 Implementation Plan (ViZDoom)
-Team 19 · CS24B1102, CS24B1073, CS24B1107, CS24B1078 · IIITDM Kancheepuram
-
   Oct 21, 2026        · @Boss
 
 ## How to use this document
