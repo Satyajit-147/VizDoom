@@ -55,8 +55,12 @@ pythonpath = ["tests"]
 python_version = "3.11"
 
 [[tool.mypy.overrides]]
-module = ["qatester.mapgen.*", "qatester.oracles.*"]
+module = ["qatester.mapgen.*", "qatester.oracles.*", "qatester.env.*", "qatester.coverage"]
 strict = true
+
+[[tool.mypy.overrides]]
+module = ["vizdoom", "vizdoom.*", "pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100

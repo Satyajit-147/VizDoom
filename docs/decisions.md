@@ -319,6 +319,76 @@ detected by their expected family in hand-authored positive traces.
 `tests/test_oracles_engine.py`: silent on recorded real play of all 8 fixed maps; every
 defect found in recorded real play by its expected family, with no stray family.
 
+## 2026-10-24 — M5
+
+### D29. QADoomEnv: what the plan leaves open, and where it deviates
+- **Keys held.** ViZDoom has no game variable for keys. A key, or any pickup, counts as
+  taken once no pickup object stands within 24 mu of its spawn point (`env/world.py`).
+  This also holds after `load_state`, which parsing "Red passcard secured!" would not.
+  Notifications still go on the trace.
+- **Actions.** The plan's 12 combinations, with binary turn buttons. A held turn gives 7°
+  on the first step, then about 14° per step. There is no turn in place, as the plan
+  specifies: watch for this in M6. A tenth button, `TURN_LEFT_RIGHT_DELTA`, exists only
+  for the test-only `warp` reset option, which needs `cheats=True`. No action sets it,
+  and training never enables cheats.
+- **"The first time each …".** Entity, portal and goal-precondition rewards are paid
+  once per episode, not once per run: a per-run first would stop paying early in
+  training. The oracle reward is paid once per (family, cluster) per episode. A cluster
+  is the Bug Book matching rule: same family, within 96 mu, and the same invariant name.
+  The Bug Book term exists but stays 0 until M7.
+- **Goal preconditions.** The required keys, plus the "gates": non-open portals that
+  every spawn-to-goal route must pass (critical portals in the intended portal graph).
+  A gate counts as met when it is traversed.
+- **Novelty churn.** Entering a cell disarms it. It re-arms once the agent is at least 2
+  cells away (Chebyshev distance). An abstract state (cell, keys, open doors) is counted
+  on a counted cell entry or on a key or door change. A door counts as open when its
+  sector's live ceiling is more than 8 mu above its floor.
+- **Shared counts.** One `multiprocessing.shared_memory` block per run. Increments are
+  not atomic across workers; a lost count only makes novelty very slightly larger.
+  Abstract states hash into a table of 2^20 buckets. `coverage=None` turns novelty off,
+  which makes the env deterministic for a given seed.
+- **Observation details.** Slot 6 is displacement / (7.5 mu/tic × tics), and 1.0 when
+  no movement is commanded. Slot 16 counts pickup classes in the labels buffer. Slot 17
+  uses the intended level's doors, lifts and switches with Doom's 64 mu USE ray. The env
+  reads intent; the agent code never does.
+- **Oracles in the loop.** Families 1, 2, 3 and 5 stream: they are paid on the step
+  they fire and put on the queue. Families 4 and 6 judge across episodes, so their
+  findings come from `finalize_oracles()`, which `close()` calls. They are not rewarded,
+  because no step is left to pay them on. An episode cut short by `reset` or
+  `load_state` is closed for the oracles with a final `done` copy of its last record.
+  That way an excursion or a wedge still in progress is still reported.
+- **Demos.** The plan re-runs an episode that found something, with recording on. We
+  record every episode instead (about 65 KB per full episode). This is simpler, and it
+  does not depend on re-runs being deterministic. A `.lmp` only replays from the map
+  start, so episodes started by `load_state` keep no demo. Parquet traces are kept per
+  episode: for episodes with a streamed finding by default (`trace_policy="findings"`),
+  or for all episodes (`"all"`, for evaluation).
+- **Save lands 2 tics late.** `DoomGame.save` takes effect 2 tics after the call, and
+  the state is not refreshed until the next action. A save made while the player is
+  moving therefore captures a point up to about 16 mu past the last record (the test
+  bounds the drift). M8 must take a cell's position from the state after `load_state`,
+  not from the record at save time.
+- **Supervisor.** Engine exceptions become a `crash` finding. A watchdog thread kills
+  the engine's child process once a call passes `crash.step_timeout_s` (30 s), which
+  becomes a `hang` finding. Either way the episode is truncated and the engine restarts.
+  Init is retried 5 times, with backoff 2, 4, 8 and 16 s. A crash is paid like any other
+  finding.
+- **Gymnasium checker.** It runs with `coverage=None`, because shared novelty depends on
+  history by design. The episode counter is `env.episode`, not part of `info`: the
+  checker requires the same info for the same seed.
+- **Goal kinds.** Only `reach_exit` is supported. The corpus uses nothing else, and the
+  env raises an error on any other kind.
+
+### D30. M5 status 2026-10-24: local acceptance passed; the Kaggle benchmark is pending
+`tests/test_env_contract.py` covers Gymnasium's `check_env`, spaces, keys, the USE flag,
+the exit, live oracles with a trace and a demo, demo replay, determinism, save/load,
+crash and hang. `tests/test_reward_hacking.py` covers the three scripted adversarial
+policies, each held under its bound. `tests/test_env_units.py` covers the parts that need
+no engine. Local bench (12 cores, MAP07): 850–975 steps/s per worker, against
+1,240–2,030 for bare ViZDoom; about 45% of a step is our Python. M5 is accepted once
+`scripts/bench_env.py` reports more than 400 steps/s for 1 worker on a Kaggle T4 session
+(`notebooks/kaggle_m5_bench.ipynb`).
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.
@@ -330,10 +400,6 @@ Each must be decided before the milestone named.
    (a) use `RecurrentPPO` + `MultiInputLstmPolicy` with LSTM and one value head on the
    combined reward (simplest, deviates from the architecture section); or (b) write a small
    custom PPO with GRU and dual heads (matches the spec, more code to test).
-2. **[M5/M6] Worker counts.** The `train.py` sketch uses `n_envs=16`, the config and Kaggle
-   budget use `n_envs=2`, and the M5 prompt asks for benchmarks at 1, 4 and 16 workers.
-   Kaggle has 4 vCPUs, so the 16-worker bench is meaningless there. Proposal: bench 1, 2
-   and 4 on Kaggle.
 3. **[M8] Archive cap.** The M8 prompt says LRU eviction at 20,000 cells; the Kaggle rules
    and `t4_goexplore.yaml` say 5,000. Proposal: configurable `max_cells`, default 5,000.
 4. **[M9] Seed count.** "Do not cut … the 10-seed protocol" and R10 ("keep 10 for E1 and
@@ -349,3 +415,4 @@ Each must be decided before the milestone named.
 8. **[M4] `health_cap` would excuse the Soulsphere:** D25. Only spec-declared powerups excuse it.
 9. **[M4] Oracles must not read `defects`:** D25. Intent-only view, enforced by tests.
 10. **[M4] Vertical-trap check needs live floors:** D25. Live engine floors against the intended topology.
+11. **[M5] Worker counts for the bench:** `bench_env.py` runs 1, 2, 4 and 16 workers. Treat 16 as indicative only on Kaggle's 4 vCPUs; training uses 2 per job.
