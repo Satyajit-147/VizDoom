@@ -1,5 +1,4 @@
 # RL-Based QA Tester for Games — Phase 1 Implementation Plan (ViZDoom)
-  Oct 21, 2026        · @Boss
 
 ## How to use this document
 
