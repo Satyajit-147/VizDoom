@@ -100,18 +100,19 @@ def opens_without_key(d: Driver, cm: CompiledMap, defect: Defect) -> bool:
 
 
 def traps(d: Driver, cm: CompiledMap, defect: Defect) -> bool:
-    """Start inside the room and try to walk and jump out through its open portal."""
+    """Walk into the room from its neighbour, then try to walk and jump back out."""
     room = cm.spec.room(defect.target)
     out = _neighbour_via_open(cm.spec, room)
     wall = shared_wall(room, out)
     assert wall is not None
     along = (wall.lo + wall.hi) / 2
-    x, y, angle = approach(room, wall.axis, wall.at, along, min(
-        96.0, (room.x1 - room.x0 if wall.axis == "x" else room.y1 - room.y0) - WALL - 8
-    ))  # fmt: skip
+    x, y, angle = approach(out, wall.axis, wall.at, along, 64)
     d.reset()
     d.warp(x, y)
     d.face(angle)
+    assert d.walk_until(inside_room(room), 120), "could not even enter the room"
+    d.forward(10)
+    d.face(angle + 180)
     escaped = inside_room(out)
     for _ in range(4):  # several runs at the ledge, jumping all the way
         d.forward(40, jump=True)

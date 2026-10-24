@@ -129,9 +129,15 @@ def ground_truth(spec: MapSpec, intended: CompiledMap, built: CompiledMap,
         },
         "portals": [
             {"id": p.id, "a": p.a, "b": p.b, "kind": p.kind, "requires": p.requires,
-             "switch": switches.get(p.id), "area": _portal_area(intended, p.id)}
+             "switch": switches.get(p.id), "area": _portal_area(intended, p.id),
+             "dest": list(intended.teleport_dests[p.id]) if p.kind == "teleport" else None}
             for p in spec.portals
         ],
+        # Wall switches and exits as built in the intended level: thing id -> segment.
+        "switch_lines": {
+            m.source: [m.lo, m.at, m.hi, m.at] if m.axis == "y" else [m.at, m.lo, m.at, m.hi]
+            for m in intended.marks
+        },
         "portal_graph": edges,
         "things": [
             {"id": t.id, "type": t.type, "room": t.room, "pos": list(t.pos),
@@ -160,7 +166,13 @@ class GroundTruth:
 
     @property
     def defects(self) -> list[dict[str, Any]]:
+        if "defects" not in self.data:
+            raise PermissionError("this is an intent-only view: oracles may not read defects")
         return list(self.data["defects"])
+
+    def intent_only(self) -> GroundTruth:
+        """The view oracles get: everything except the defect list (the answer key)."""
+        return GroundTruth({k: v for k, v in self.data.items() if k != "defects"})
 
     def sector_at(self, x: float, y: float) -> int:
         """Index of the intended sector containing (x, y); -1 outside the level."""

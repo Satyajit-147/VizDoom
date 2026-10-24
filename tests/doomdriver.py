@@ -31,12 +31,18 @@ class Driver:
         g.set_seed(0)
         g.init()
         self.game = g
+        self.keys: set[str] = set()
+
+    def _act(self, buttons: list[float], tics: int = 1) -> None:
+        """Every action goes through here, so a subclass can record it."""
+        self.game.make_action(buttons, tics)
 
     def close(self) -> None:
         self.game.close()
 
     def reset(self) -> None:
         self.game.new_episode()
+        self.keys = set()
 
     def pos(self) -> tuple[float, float, float]:
         g = self.game
@@ -55,6 +61,7 @@ class Driver:
 
     def give(self, key_type: str) -> None:
         self.game.send_game_command(f"give {KEY_ITEMS[key_type]}")
+        self.keys.add(key_type)
         self.idle(2)
 
     def face(self, angle: float) -> None:
@@ -62,7 +69,7 @@ class Driver:
         A positive TURN_LEFT_RIGHT_DELTA turns clockwise."""
         current = self.game.get_game_variable(GV.ANGLE)
         delta = (current - angle + 180.0) % 360.0 - 180.0
-        self.game.make_action([0, 0, delta, 0], 1)
+        self._act([0, 0, delta, 0], 1)
 
     def face_point(self, x: float, y: float) -> None:
         px, py, _ = self.pos()
@@ -72,14 +79,14 @@ class Driver:
         for _ in range(tics):
             if self.game.is_episode_finished():
                 return
-            self.game.make_action([1, 0, 0, int(jump)], 1)
+            self._act([1, 0, 0, int(jump)], 1)
 
     def use(self) -> None:
-        self.game.make_action([0, 1, 0, 0], 1)
-        self.game.make_action(NOOP, 1)
+        self._act([0, 1, 0, 0], 1)
+        self._act(NOOP, 1)
 
     def idle(self, tics: int) -> None:
-        self.game.make_action(NOOP, tics)
+        self._act(NOOP, tics)
 
     def walk_until(self, inside: Callable[[float, float], bool], tics: int) -> bool:
         """Walk forward until `inside(x, y)` is true, for at most `tics` tics."""
@@ -89,7 +96,7 @@ class Driver:
             x, y, _ = self.pos()
             if inside(x, y):
                 return True
-            self.game.make_action([1, 0, 0, 0], 1)
+            self._act([1, 0, 0, 0], 1)
         x, y, _ = self.pos()
         return inside(x, y)
 

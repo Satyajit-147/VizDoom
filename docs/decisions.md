@@ -1,6 +1,6 @@
 # Decisions and deviations from PLAN.md
 
-Every deviation from `docs/PLAN.md` is recorded here with its date. Newest last.
+Every deviation from `docs/PLAN.md` is recorded here with its date, in order.
 
 ## 2026-10-21 — M0
 
@@ -47,6 +47,35 @@ Local result: 1130 steps/s. Kaggle result (GPU T4 x2 session, 4 vCPU): 2067 step
 Hard rules 1 and 2 are enforced from the first commit. The test checks both
 `qatester.mapgen.groundtruth` (hard rules) and `qatester.groundtruth` (architecture
 section), since the plan uses both names.
+
+## 2026-10-21 — M1
+
+### D9. Appendix A's minimal TEXTMAP has reversed linedef winding (plan error)
+Appendix A lists the room corners counter-clockwise ((-320,-320) → (0,-320) → (0,0) →
+(-320,0)), which puts every linedef's front (right) side **outside** the room. Verified
+empirically in ViZDoom 1.3.2: built verbatim, the map loads and collision works, but the
+depth buffer is all zeros, so no wall renders from inside. Clockwise order renders correctly.
+The compiler orients every linedef with its front sector on the right (`geometry.py`),
+`validate.check_winding` asserts it, and `tests/test_maps_engine.py` asserts the depth
+buffer is non-empty so a winding regression fails loudly.
+
+### D10. Config file names for the two build variants
+PLAN names configs `build/MAPnn.cfg` but builds two variants into the same directory.
+Buggy variant: `MAPnn.cfg`; fixed variant: `MAPnn.fixed.cfg`. They differ only in
+`doom_scenario_path`, as the plan requires. `doom_scenario_path` is relative to the
+`.cfg` location, which ViZDoom resolves correctly (tested from a temp directory).
+
+### D11. Spec models landed in M1; validation rules stay in M2
+`qatester/mapgen/spec.py` has the Pydantic models with the normative field names (plus
+`union_with` from the validation rules and `key_yellow`, which the observation's key slots
+and Appendix A both use). The six loader validation rules and `check_reachable()` are M2.
+`maps/m01_clean.yaml` is the Appendix A single room as an M1 placeholder; M2 replaces it
+with the full 4-room CLEAN map. `build()` accepts a spec directory or a single file.
+
+### D12. M1 accepted 2026-10-21
+`scripts/build_maps.py maps/m01_clean.yaml -o build/`: ViZDoom loads MAP01, the player
+spawns at (-160, -160), POSITION_X stays finite through 500 random steps. 16/16 tests,
+`mypy --strict qatester/mapgen/` clean.
 
 ## 2026-10-24 — M2
 
@@ -106,6 +135,30 @@ lifts carry the player up and let them walk back down; teleports arrive; the exi
 ends the episode. Uses GZDoom cheats (`warp`, `give`) in tests only. Verified to catch
 three injected compiler bugs (lock 0, lift with no trigger, dead switch).
 
+### D19. M2 accepted 2026-10-24
+All 8 specs compile; `tests/test_geometry_invariants.py`, `tests/test_spec_validation.py`
+and `tests/test_maps_engine.py` green (189 tests); every map walked once by hand in
+SPECTATOR mode (`scripts/walk_map.py`) with no issues reported.
+
+## 2026-10-24 — Requirement: find bugs on unseen maps
+
+### D18. Generalisation is a hard requirement, tested on many unseen maps
+Team requirement: the tester must find the 7 bug classes on maps it has never seen, not
+only on MAP01–07. In this architecture the oracles label bugs; the policy has to learn
+*where to go and what to try* (push walls, USE locked doors, ride lifts, enter dead ends).
+Both halves must transfer. The plan's single holdout map (MAP08) and 7 fixed training maps
+are not enough evidence. Added work:
+1. **After M3:** `qatester/mapgen/procgen.py`, a seeded random MapSpec generator: random
+   room layouts and portal kinds, plus 0–3 defects drawn from the 7 classes at random valid
+   targets. Not the Phase-2 adversarial generator: no feedback loop.
+2. **Training (M6–M8):** the curriculum mixes generated maps (train seeds) with MAP01–07.
+3. **Evaluation (M9, E6 expanded):** a held-out test set of 30–50 generated maps (unseen
+   seeds) plus MAP08. The headline result is per-class recall on unseen maps. Random defect
+   placement also shows the oracles have no map-specific assertions (objective O2).
+   Evaluation is CPU-only, so it costs no GPU quota.
+4. Existing guards stay: no absolute position in the observation, agents cannot import
+   ground truth, and the E5 absolute-position ablation shows what happens without them.
+
 ## 2026-10-24 — M3
 
 ### D20. Defects mutate the compiled map; how each one is built
@@ -153,10 +206,122 @@ fixed variant of every map passes `check_reachable()`; ground truth checks.
 fixed build, using one generic scenario per defect kind; every exit still works.
 220 tests total, `mypy --strict qatester/mapgen/` clean.
 
-## Open issues found in PLAN.md (not yet resolved)
+## 2026-10-24 — M4
 
-These are internal contradictions or wrong assumptions in the plan. Each must be decided
-before the milestone named.
+### D25. Oracle layer: how each family deviates from or sharpens the plan
+Protocol as planned: `reset(episode)`, `observe(step)`, `finalize()`. One set of oracles
+per map per run (Families 4 and 6 accumulate across episodes). Oracles get
+`GroundTruth.intent_only()`; `level.Level` refuses anything with a defect list, and a
+test checks oracle code never mentions defects (resolves open issue 9).
+- **Crash (1):** as planned, plus `tic_stall` (game time frozen for 3 steps).
+- **Stuck (2):** *wedge* counts escape attempts in **world** directions (N/E/S/W from
+  commanded move + facing), and only **sustained** pushes count: a direction held for
+  >= 16 tics with < 8 mu progress. Found by recording real random play: a jittery agent
+  turning in a corner faces 3–4 directions for a tic each and was flagged; the plan's
+  agent-frame count misses a wedged agent that turns while pushing. *Vertical trap*
+  compares the engine's live floors with the intended neighbours and lifts (resolves
+  open issue 10).
+- **Out of bounds (3):** the three planned tests. An excursion is reported once, at its
+  end, with exit point and depth. Wall traversal excuses moves that start on a teleport
+  pad (teleports are Family 6's) and uses a 32 mu/tic speed limit.
+- **Unreachable (4):** works on connected components of unvisited room *sectors*, so
+  `union_with` rooms are one space (bug found on MAP08). "Pressed USE >= 5 times" is
+  replaced by >= 5 **proper attempts that failed** (`level.AttemptTracker`): the USE ray
+  must actually reach the door (Doom's 64 mu use range), a locked door needs its key
+  held, a switch door counts presses of its switch, and the door or lift must then not
+  move within 35 tics. Only a traversal *after* an attempt clears it: a one-way lift was
+  traversed on the way down. Without these rules, random play raised false alarms on
+  clean MAP02 and MAP07.
+- **Invariants (5):** `z_in_sector` dropped (duplicates Family 3's z_clip); `lift_returns`
+  dropped (linedef triggers are not observable, and Family 6 covers it). `had_powerup` is
+  true only for spec-declared powerups, none in the corpus, so the Soulsphere still breaks
+  `health_cap` (resolves open issue 8).
+- **Softlock (6):** *confined* needs a timed-out episode whose final stay of >= 40% is in
+  one non-goal room where **every exit had a proper attempt that failed**. The plan's
+  version flagged random agents idling in the spawn room (9 false alarms in the first
+  soak). *Teleport loop* = >= 4 alternating teleport hops each within 70 tics; the plan's
+  position autocorrelation is near 1 for any smooth walk.
+- **Matching rule** for scoring (resolves open issue 7 for M4's tests): same family, and
+  within 128 mu of the defect's position **or** inside one of its region rectangles. The
+  final M9 evaluation uses the same rule.
+
+### D26. Process notes for the write-up
+- The oracles were written before their trace fixtures; the plan asks for fixtures
+  first. Mitigation: beyond the synthetic fixtures, the oracles were validated on
+  gameplay recorded from ViZDoom (`tests/test_oracles_engine.py`) and on random-play
+  soaks: 2 x 5 seeds x 6000 tics on every fixed map, **0 findings**. The same busy random
+  policy on the buggy maps produced 25 findings, **all on injected defects**, covering 7
+  of 15 defects (none on MAP07, whose defects sit behind the key task).
+- Defects and oracles were written by the same author (Claude), against the plan's
+  intent that two people do this. The plan's thresholds are kept where they work; every
+  added threshold is listed below. A teammate review of this block is recommended
+  before E1.
+- ViZDoom exposes no game variable for keys held. M5's environment must derive keys from
+  pickup notifications or disappearing key actors.
+
+### D27. Frozen oracle thresholds (2026-10-24, end of M4)
+Copied from `OracleConfig()`; `tests/test_oracles.py` fails if code and block disagree.
+Never edit in response to a result. A genuine change is a new, named experiment, re-run
+from scratch, with both versions reported. Additions beyond PLAN Appendix B: `crash.*`,
+`stuck.push_tics`, `stuck.push_progress_mu`, `stuck.vertical_*`,
+`bounds.player_height_mu`, `bounds.max_speed_mu_per_tic`, `reach.confidence_*`,
+`softlock.min_loop_hops`, `softlock.teleport_jump_mu`, `softlock.*confidence`, `attempts.*`.
+Removed: `softlock.autocorr_threshold` (D25).
+
+<!-- frozen-oracle-thresholds -->
+```yaml
+oracles:
+  crash:
+    step_timeout_s: 30.0
+    stall_steps: 3
+  stuck:
+    window_tics: 70
+    intent_threshold: 0.8
+    displacement_mu: 24.0
+    min_escape_directions: 3
+    push_tics: 16
+    push_progress_mu: 8.0
+    conf_saturation_tics: 350
+    vertical_drop_mu: 24.0
+    vertical_confidence: 0.9
+  bounds:
+    player_radius_mu: 16.0
+    z_tolerance_mu: 8.0
+    player_height_mu: 56.0
+    max_speed_mu_per_tic: 32.0
+  reach:
+    use_attempts_for_broken_trigger: 5
+    confidence_graph: 0.95
+    confidence_trigger: 0.85
+  softlock:
+    tail_fraction: 0.4
+    max_lag_tics: 70
+    min_loop_hops: 4
+    teleport_jump_mu: 200.0
+    confidence: 0.8
+    repeat_confidence: 0.95
+    loop_confidence: 0.9
+  attempts:
+    use_range_mu: 64.0
+    window_tics: 35
+    throat_mu: 32.0
+    throat_push_tics: 16
+    stall_mu_per_tic: 1.0
+    face_cone_deg: 45.0
+    player_radius_mu: 16.0
+```
+
+### D28. M4 accepted 2026-10-24
+`tests/test_oracles.py`: zero findings on the MAP01 CLEAN corpus (7 traces, alone and as
+one run) and on idling at spawn on all 8 fixed maps; every family fires on its positives
+with the expected kinds only; every near-miss is silent; all 15 injected defects are
+detected by their expected family in hand-authored positive traces.
+`tests/test_oracles_engine.py`: silent on recorded real play of all 8 fixed maps; every
+defect found in recorded real play by its expected family, with no stray family.
+
+## Open issues found in PLAN.md
+
+Each must be decided before the milestone named.
 
 1. **[M6/M7] RecurrentPPO cannot express the specified network.** The plan specifies a GRU
    trunk and two value heads (extrinsic γ=0.995, intrinsic γ=0.99), and says this is "a
@@ -177,76 +342,10 @@ before the milestone named.
 5. **[M6] Report example uses 2M steps.** The `report.json` example has `env_steps: 2000000`
    while runs are 1M. Illustrative only, so no action needed.
 
-## 2026-10-21 — M1
+## Resolved issues
 
-### D9. Appendix A's minimal TEXTMAP has reversed linedef winding (plan error)
-Appendix A lists the room corners counter-clockwise ((-320,-320) → (0,-320) → (0,0) →
-(-320,0)), which puts every linedef's front (right) side **outside** the room. Verified
-empirically in ViZDoom 1.3.2: built verbatim, the map loads and collision works, but the
-depth buffer is all zeros, so no wall renders from inside. Clockwise order renders correctly.
-The compiler orients every linedef with its front sector on the right (`geometry.py`),
-`validate.check_winding` asserts it, and `tests/test_maps_engine.py` asserts the depth
-buffer is non-empty so a winding regression fails loudly.
-
-### D10. Config file names for the two build variants
-PLAN names configs `build/MAPnn.cfg` but builds two variants into the same directory.
-Buggy variant: `MAPnn.cfg`; fixed variant: `MAPnn.fixed.cfg`. They differ only in
-`doom_scenario_path`, as the plan requires. `doom_scenario_path` is relative to the
-`.cfg` location, which ViZDoom resolves correctly (tested from a temp directory).
-
-### D11. Spec models landed in M1; validation rules stay in M2
-`qatester/mapgen/spec.py` has the Pydantic models with the normative field names (plus
-`union_with` from the validation rules and `key_yellow`, which the observation's key slots
-and Appendix A both use). The six loader validation rules and `check_reachable()` are M2.
-`maps/m01_clean.yaml` is the Appendix A single room as an M1 placeholder; M2 replaces it
-with the full 4-room CLEAN map. `build()` accepts a spec directory or a single file.
-
-### D12. M1 accepted 2026-10-21
-`scripts/build_maps.py maps/m01_clean.yaml -o build/`: ViZDoom loads MAP01, the player
-spawns at (-160, -160), POSITION_X stays finite through 500 random steps. 16/16 tests,
-`mypy --strict qatester/mapgen/` clean.
-6. **[M3] `missing_blocking` as specified injects nothing.** Appendix A's mutation clears
-   `blocking` on a one-sided wall. Verified on MAP03's hall (2026-10-24): the player still
-   stops at the wall, because GZDoom treats every one-sided line as solid. A real
-   missing-collision defect needs the wall segment emitted as a **two-sided, non-blocking
-   line with a wall texture**, backed by a hidden pocket sector outside every room
-   rectangle. The player walks "through the wall" into space no room claims, which is what
-   the out-of-bounds oracle tests. To decide at the start of M3.
-
-## 2026-10-24 — Requirement: find bugs on unseen maps
-
-### D18. Generalisation is a hard requirement, tested on many unseen maps
-Team requirement: the tester must find the 7 bug classes on maps it has never seen, not
-only on MAP01–07. In this architecture the oracles label bugs; the policy has to learn
-*where to go and what to try* (push walls, USE locked doors, ride lifts, enter dead ends).
-Both halves must transfer. The plan's single holdout map (MAP08) and 7 fixed training maps
-are not enough evidence. Added work:
-1. **After M3:** `qatester/mapgen/procgen.py`, a seeded random MapSpec generator: random
-   room layouts and portal kinds, plus 0–3 defects drawn from the 7 classes at random valid
-   targets. Not the Phase-2 adversarial generator: no feedback loop.
-2. **Training (M6–M8):** the curriculum mixes generated maps (train seeds) with MAP01–07.
-3. **Evaluation (M9, E6 expanded):** a held-out test set of 30–50 generated maps (unseen
-   seeds) plus MAP08. The headline result is per-class recall on unseen maps. Random defect
-   placement also shows the oracles have no map-specific assertions (objective O2).
-   Evaluation is CPU-only, so it costs no GPU quota.
-4. Existing guards stay: no absolute position in the observation, agents cannot import
-   ground truth, and the E5 absolute-position ablation shows what happens without them.
-
-### D19. M2 accepted 2026-10-24
-All 8 specs compile; `tests/test_geometry_invariants.py`, `tests/test_spec_validation.py`
-and `tests/test_maps_engine.py` green (189 tests); every map walked once by hand in
-SPECTATOR mode (`scripts/walk_map.py`) with no issues reported.
-7. **[M4/M9] Matching rule is too narrow for room-sized defects.** "Within 128 mu of the
-   recorded position" works for a leak or a pickup, but an unreachable wing, a trapped
-   room or a softlock pit is 400+ mu across. Proposal: a cluster is true when its family
-   matches and its representative is within 128 mu of `position` **or** inside one of the
-   defect's `region` rects (both are in the ground truth). Decide before thresholds freeze.
-8. **[M4] `health_cap` would excuse the Soulsphere.** The plan's invariant is
-   `health <= 100 or had_powerup`. A Soulsphere *is* a powerup, so MAP05/08's bad pickup
-   would be excused. Proposal: `had_powerup` means a pickup the spec declares as a powerup;
-   the corpus declares none.
-9. **[M4] Oracles must not read `defects` from the ground truth.** That list is the answer
-   key. Proposal: oracles get a ground-truth view without it, enforced by a test.
-10. **[M4] The vertical-trap check needs live floors.** The intended sectors in the ground
-   truth have no traps by construction. Proposal: compare the engine's live sector floors
-   (sectors info) against the intended topology (`neighbours`, `lift_trigger`).
+6. **[M3] `missing_blocking` as specified injects nothing:** fixed by D20 (passable fake wall into a pocket sector).
+7. **[M4/M9] Matching rule too narrow for room-sized defects:** D25. Within 128 mu of the position **or** inside the defect's region.
+8. **[M4] `health_cap` would excuse the Soulsphere:** D25. Only spec-declared powerups excuse it.
+9. **[M4] Oracles must not read `defects`:** D25. Intent-only view, enforced by tests.
+10. **[M4] Vertical-trap check needs live floors:** D25. Live engine floors against the intended topology.
