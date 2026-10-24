@@ -49,6 +49,7 @@ qatester = ["templates/*.j2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 
 [tool.mypy]
 python_version = "3.11"

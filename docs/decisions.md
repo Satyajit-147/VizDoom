@@ -48,6 +48,64 @@ Hard rules 1 and 2 are enforced from the first commit. The test checks both
 `qatester.mapgen.groundtruth` (hard rules) and `qatester.groundtruth` (architecture
 section), since the plan uses both names.
 
+## 2026-10-24 — M2
+
+### D13. MapSpec extensions and extra loader checks
+- New thing type `switch` with `opens: <door portal id>`: a wall switch that opens a remote
+  door. MAP04's defect ("the switch intended to open the door to the east wing") cannot be
+  expressed in the plan's schema without it. A door opened by a switch gets no USE trigger on
+  its own faces. MAP07 uses one too.
+- `union_with` rooms count as connected in `check_reachable()` (one walkable space).
+- Extra checks beyond the six rules: ids unique across rooms/portals/things (defect targets
+  need this); `requires` only on `locked_door`; lifts join rooms at different floors;
+  teleports need `at` inside room a; things lie inside their room; a `reach_exit` goal targets
+  an `exit_switch`.
+
+### D14. How rooms, walls and portals become Doom geometry
+The plan says shared walls become "two-sided linedefs ... given an impassable flag". That
+gives an invisible wall, and a door with `tag=0` would act on the whole of room b. Instead:
+- A wall shared by two rooms is a 16 mu (`WALL`) strip of void straddling the shared edge,
+  so each room has an ordinary one-sided wall.
+- `open`: the opening (width x 16) is cut out of the strip and joined to room a.
+- `door` / `locked_door`: the opening is its own door sector, emitted closed, with
+  `Door_Raise` / `Door_LockedRaise` on both faces (`playeruse`, `repeatspecial` so it can
+  be reused). Doors and open portals refuse floor steps > 24 mu (unwalkable).
+- `lift`: a platform sector over the opening plus 64 mu (`LIFT_DEPTH`) into the lower room,
+  floor at the upper height, `Plat_DownWaitUpStay` on every face that borders a room.
+- `teleport`: a 64x64 pad sector centred on `at` in room a whose edges carry `Teleport`
+  (`playercross`); the `TeleportDest` sits at room b's centre. Things may not stand within
+  32 mu of a pad.
+- `exit_switch` / `switch`: a 64 mu special on the one-sided wall of the thing's room
+  nearest to its `pos`.
+The compiler cuts the plane along every rectangle edge, gives each grid cell its
+highest-priority owner (rooms < void strips < portal sectors), emits a linedef wherever
+neighbouring owners differ, and merges collinear pieces.
+
+### D15. MAP03: the plan's balcony cannot be reached by its lift (plan error)
+The worked example puts `balcony` at x 0..320, y 64..256: 64 mu from `start` and touching it
+at a single corner point at most. Its own validation rule (portal rooms must share a wall at
+least `width` long) rejects the `lift` portal. The balcony now spans x -320..0, y 0..256,
+directly north of `start`. `exitsw` moved to (900, -160) so its nearest wall is unambiguous.
+
+### D16. Corpus details the plan leaves open
+- MAP01 (CLEAN) uses open, door and locked-door portals but no lift or teleport. Those are
+  covered false-positive-wise by the `fixed` variants of MAP03/06/07/08.
+- MAP04's "1 secret" is not modelled: the schema has no secret field. Add one if the
+  secret count turns out to matter for an oracle.
+- Monsters: one imp, in MAP07 r13 only, so monsters are present but not dominant.
+- Time limits: 10500 tics (5 min) for every map except MAP07 at 21000.
+- MAP08 HOLDOUT uses shapes absent from MAP01–07 (an L-shaped `union_with` corridor, a
+  teleport pair guarding the key) and gets its defects in M3.
+
+### D17. Engine-level tests replace `tests/test_m1_load.py`
+`tests/test_maps_engine.py` loads all eight maps in ViZDoom and checks: the engine's
+sectors and linedefs equal the compiler's; spawn position and floor; walls render; 500
+random steps stay inside the level; open portals and doors work both ways; locked doors
+stay shut without the key and open with it; remote doors open only from their switch;
+lifts carry the player up and let them walk back down; teleports arrive; the exit switch
+ends the episode. Uses GZDoom cheats (`warp`, `give`) in tests only. Verified to catch
+three injected compiler bugs (lock 0, lift with no trigger, dead switch).
+
 ## Open issues found in PLAN.md (not yet resolved)
 
 These are internal contradictions or wrong assumptions in the plan. Each must be decided
@@ -79,8 +137,9 @@ Appendix A lists the room corners counter-clockwise ((-320,-320) → (0,-320) �
 (-320,0)), which puts every linedef's front (right) side **outside** the room. Verified
 empirically in ViZDoom 1.3.2: built verbatim, the map loads and collision works, but the
 depth buffer is all zeros, so no wall renders from inside. Clockwise order renders correctly.
-The compiler emits room corners clockwise (`cli.room_vertices`), and `tests/test_m1_load.py`
-asserts that the depth buffer is non-empty so a winding regression fails loudly.
+The compiler orients every linedef with its front sector on the right (`geometry.py`),
+`validate.check_winding` asserts it, and `tests/test_maps_engine.py` asserts the depth
+buffer is non-empty so a winding regression fails loudly.
 
 ### D10. Config file names for the two build variants
 PLAN names configs `build/MAPnn.cfg` but builds two variants into the same directory.
@@ -99,3 +158,10 @@ with the full 4-room CLEAN map. `build()` accepts a spec directory or a single f
 `scripts/build_maps.py maps/m01_clean.yaml -o build/`: ViZDoom loads MAP01, the player
 spawns at (-160, -160), POSITION_X stays finite through 500 random steps. 16/16 tests,
 `mypy --strict qatester/mapgen/` clean.
+6. **[M3] `missing_blocking` as specified injects nothing.** Appendix A's mutation clears
+   `blocking` on a one-sided wall. Verified on MAP03's hall (2026-10-24): the player still
+   stops at the wall, because GZDoom treats every one-sided line as solid. A real
+   missing-collision defect needs the wall segment emitted as a **two-sided, non-blocking
+   line with a wall texture**, backed by a hidden pocket sector outside every room
+   rectangle. The player walks "through the wall" into space no room claims, which is what
+   the out-of-bounds oracle tests. To decide at the start of M3.

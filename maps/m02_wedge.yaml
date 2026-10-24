@@ -1,0 +1,35 @@
+# MAP02 WEDGE — geometry traps for the stuck oracle (PLAN: bug corpus).
+# 6 rooms + a 40 mu alcove. M3 adds: alcove floor dropped 48 (can drop in, cannot climb
+# out) and the pit room's floor dropped 96 with no lift.
+name: WEDGE
+slot: 2
+cell_size: 64
+seed: 202
+
+rooms:
+  - {id: start,    x0: 0,    y0: 0,    x1: 448,  y1: 448, floor: 0, ceiling: 128}
+  - {id: gallery,  x0: 448,  y0: 0,    x1: 1088, y1: 256, floor: 0, ceiling: 128}
+  - {id: alcove,   x0: 704,  y0: -192, x1: 744,  y1: 0,   floor: 0, ceiling: 128}
+  - {id: hall2,    x0: 1088, y0: 0,    x1: 1536, y1: 448, floor: 0, ceiling: 160}
+  - {id: pit,      x0: 1088, y0: 448,  x1: 1536, y1: 704, floor: 0, ceiling: 160}
+  - {id: storage,  x0: 0,    y0: 448,  x1: 448,  y1: 832, floor: 0, ceiling: 128}
+  - {id: exitroom, x0: 448,  y0: 256,  x1: 1088, y1: 640, floor: 0, ceiling: 128}
+
+portals:
+  - {id: p_start_gallery,    a: start,   b: gallery,  kind: open, width: 128}
+  - {id: p_gallery_alcove,   a: gallery, b: alcove,   kind: open, width: 40}
+  - {id: p_gallery_hall2,    a: gallery, b: hall2,    kind: open, width: 128}
+  - {id: p_hall2_pit,        a: hall2,   b: pit,      kind: open, width: 128}
+  - {id: p_start_storage,    a: start,   b: storage,  kind: door, width: 96}
+  - {id: p_gallery_exitroom, a: gallery, b: exitroom, kind: door, width: 96}
+
+things:
+  - {id: spawn,  type: player_start, room: start,    pos: [224, 224]}
+  - {id: medkit, type: health,       room: storage,  pos: [224, 640],  interactive: true}
+  - {id: armour, type: armour,       room: gallery,  pos: [900, 128],  interactive: true}
+  - {id: ammo,   type: ammo,         room: pit,      pos: [1312, 600], interactive: true}
+  - {id: exitsw, type: exit_switch,  room: exitroom, pos: [768, 620],  interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [], time_limit_tics: 10500}
+
+defects: []

@@ -1,0 +1,50 @@
+# MAP07 SPRAWL — scale test and coverage headline (PLAN: bug corpus). 12 rooms,
+# 1792x1344 mu. Everything past the red locked door (rows 1-2) is gated by the key task.
+# M3 adds one of each: missing_blocking, wrong_tag (switch in r10 -> door into r13),
+# geometry_trap (r23), one_way_lift (r10 -> pit r20).
+name: SPRAWL
+slot: 7
+cell_size: 64
+seed: 707
+
+rooms:
+  - {id: r00, x0: 0,    y0: 0,   x1: 448,  y1: 448,  floor: 0,   ceiling: 128}
+  - {id: r01, x0: 448,  y0: 0,   x1: 896,  y1: 448,  floor: 0,   ceiling: 128}
+  - {id: r02, x0: 896,  y0: 0,   x1: 1344, y1: 448,  floor: 0,   ceiling: 160}
+  - {id: r03, x0: 1344, y0: 0,   x1: 1792, y1: 448,  floor: 0,   ceiling: 128}
+  - {id: r10, x0: 0,    y0: 448, x1: 448,  y1: 896,  floor: 0,   ceiling: 128}
+  - {id: r11, x0: 448,  y0: 448, x1: 896,  y1: 896,  floor: 0,   ceiling: 144}
+  - {id: r12, x0: 896,  y0: 448, x1: 1344, y1: 896,  floor: 0,   ceiling: 128}
+  - {id: r13, x0: 1344, y0: 448, x1: 1792, y1: 896,  floor: 0,   ceiling: 128}
+  - {id: r20, x0: 0,    y0: 896, x1: 448,  y1: 1344, floor: -64, ceiling: 64}
+  - {id: r21, x0: 448,  y0: 896, x1: 896,  y1: 1344, floor: 0,   ceiling: 128}
+  - {id: r22, x0: 896,  y0: 896, x1: 1344, y1: 1344, floor: 0,   ceiling: 160}
+  - {id: r23, x0: 1344, y0: 896, x1: 1792, y1: 1344, floor: 0,   ceiling: 128}
+
+portals:
+  - {id: p00_01, a: r00, b: r01, kind: open,        width: 128}
+  - {id: p01_02, a: r01, b: r02, kind: door,        width: 96}
+  - {id: p02_03, a: r02, b: r03, kind: open,        width: 128}
+  - {id: p01_11, a: r01, b: r11, kind: locked_door, width: 96, requires: key_red}
+  - {id: p11_10, a: r11, b: r10, kind: open,        width: 128}
+  - {id: p11_12, a: r11, b: r12, kind: door,        width: 96}
+  - {id: p12_13, a: r12, b: r13, kind: door,        width: 96}   # remote: switch sw13
+  - {id: p10_20, a: r10, b: r20, kind: lift,        width: 96}
+  - {id: p11_21, a: r11, b: r21, kind: open,        width: 128}
+  - {id: p21_22, a: r21, b: r22, kind: open,        width: 128}
+  - {id: p22_23, a: r22, b: r23, kind: open,        width: 128}
+
+things:
+  - {id: spawn,  type: player_start, room: r00, pos: [224, 224]}
+  - {id: medkit, type: health,       room: r01, pos: [672, 224],   interactive: true}
+  - {id: redkey, type: key_red,      room: r03, pos: [1568, 224],  interactive: true}
+  - {id: sw13,   type: switch,       room: r10, pos: [40, 672], opens: p12_13, interactive: true}
+  - {id: ammo,   type: ammo,         room: r12, pos: [1120, 672],  interactive: true}
+  - {id: imp13,  type: monster_imp,  room: r13, pos: [1568, 672]}
+  - {id: armour, type: armour,       room: r21, pos: [672, 1120],  interactive: true}
+  - {id: ammo20, type: ammo,         room: r20, pos: [224, 1200],  interactive: true}
+  - {id: exitsw, type: exit_switch,  room: r22, pos: [1120, 1320], interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [key_red], time_limit_tics: 21000}
+
+defects: []

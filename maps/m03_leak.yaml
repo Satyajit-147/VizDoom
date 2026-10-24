@@ -1,0 +1,29 @@
+# MAP03 LEAK — missing collision for the out-of-bounds oracle (PLAN: worked example).
+# Deviation (docs/decisions.md D15): the plan's balcony (x 0..320, y 64..256) does not
+# share a wall with `start`, so its lift portal is impossible. It now sits directly
+# north of `start`.
+name: LEAK
+slot: 3
+cell_size: 64
+seed: 1337
+
+rooms:
+  - {id: start,   x0: -320, y0: -320, x1: 0,   y1: 0,   floor: 0,  ceiling: 128}
+  - {id: hall,    x0: 0,    y0: -224, x1: 640, y1: -96, floor: 0,  ceiling: 128}
+  - {id: vault,   x0: 640,  y0: -320, x1: 960, y1: 0,   floor: 0,  ceiling: 128, tag: 10}
+  - {id: balcony, x0: -320, y0: 0,    x1: 0,   y1: 256, floor: 64, ceiling: 192}
+
+portals:
+  - {id: p_start_hall, a: start, b: hall,    kind: open,        width: 128}
+  - {id: p_hall_vault, a: hall,  b: vault,   kind: locked_door, width: 96, requires: key_red}
+  - {id: p_start_balc, a: start, b: balcony, kind: lift,        width: 96}
+
+things:
+  - {id: spawn,  type: player_start, room: start,   pos: [-160, -160]}
+  - {id: redkey, type: key_red,      room: balcony, pos: [-160, 160], interactive: true}
+  - {id: exitsw, type: exit_switch,  room: vault,   pos: [900, -160], interactive: true}
+  - {id: medkit, type: health,       room: hall,    pos: [320, -160], interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [key_red], time_limit_tics: 10500}
+
+defects: []

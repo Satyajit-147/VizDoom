@@ -1,7 +1,6 @@
-"""Build MapSpecs into a WAD plus ViZDoom configs (PLAN: Derived outputs).
+"""Build MapSpecs into a WAD, ViZDoom configs and preview SVGs (PLAN: Derived outputs).
 
-M1 scope: single-room maps only. Multi-room geometry, portals, ground truth and
-preview SVGs are M2/M3; they raise NotImplementedError here until then.
+Ground truth JSON and defect injection arrive in M3.
 
 Usage: python -m qatester.mapgen.cli build <spec dir or file> -o build/ --variant buggy
 """
@@ -13,18 +12,21 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from qatester.mapgen import udmf
-from qatester.mapgen.spec import MapSpec, Room, load_spec
+from qatester.mapgen.geometry import CompiledMap, compile_map
+from qatester.mapgen.preview import render_svg
+from qatester.mapgen.spec import MapSpec, load_spec
+from qatester.mapgen.validate import validate
 from qatester.mapgen.wad import Lump, map_lumps, write_wad
 
 Variant = Literal["buggy", "fixed"]
-WALL_TEXTURE = "BRICK7"
 
 
 @dataclass(frozen=True)
 class BuildResult:
     wad_path: Path
     cfg_paths: dict[str, Path]  # map lump name -> cfg path
+    preview_paths: dict[str, Path]
+    compiled: dict[str, CompiledMap]
 
 
 def wad_name(variant: Variant) -> str:
@@ -34,32 +36,6 @@ def wad_name(variant: Variant) -> str:
 def cfg_name(map_lump: str, variant: Variant) -> str:
     # Both variants share build/; slot numbers are identical across them (PLAN: Build matrix).
     return f"{map_lump}.cfg" if variant == "buggy" else f"{map_lump}.fixed.cfg"
-
-
-def room_vertices(room: Room) -> list[tuple[int, int]]:
-    """Corners in clockwise order, so each linedef's front (right) side faces into the
-    room. Appendix A's counter-clockwise example renders invisible walls; see
-    docs/decisions.md D10."""
-    return [(room.x0, room.y0), (room.x0, room.y1), (room.x1, room.y1), (room.x1, room.y0)]
-
-
-def compile_textmap(spec: MapSpec) -> udmf.TextMap:
-    if len(spec.rooms) != 1 or spec.portals:
-        raise NotImplementedError("multi-room maps and portals arrive in M2")
-    room = spec.rooms[0]
-    tm = udmf.TextMap()
-    tm.vertices = [udmf.Vertex(x, y) for x, y in room_vertices(room)]
-    for i in range(4):
-        tm.linedefs.append(udmf.Linedef(i, (i + 1) % 4, i, flags=frozenset({"blocking"})))
-        tm.sidedefs.append(udmf.Sidedef(0, texturemiddle=WALL_TEXTURE))
-    tm.sectors = [
-        udmf.Sector(room.floor, room.ceiling, lightlevel=room.light, id=room.tag or 0)
-    ]
-    for thing in spec.things:
-        if thing.type == "exit_switch":
-            raise NotImplementedError("exit switches are linedefs; they arrive in M2")
-        tm.things.append(udmf.Thing(thing.pos[0], thing.pos[1], udmf.THING_EDNUMS[thing.type]))
-    return tm
 
 
 def render_cfg(spec: MapSpec, variant: Variant) -> str:
@@ -120,10 +96,17 @@ def _spec_paths(spec_path: Path) -> list[Path]:
     return [spec_path]
 
 
-def build(spec_dir: Path, out_dir: Path, variant: Variant) -> BuildResult:
-    """Writes <out>/qa_scenarios_<variant>.wad and one .cfg per map.
+def compile_checked(spec: MapSpec) -> CompiledMap:
+    """Compile and assert every geometry invariant; raises GeometryError on failure."""
+    cm = compile_map(spec)
+    validate(cm, cm.textmap())
+    return cm
 
-    `spec_dir` may also be a single spec file. Ground truth and preview SVGs are M2/M3.
+
+def build(spec_dir: Path, out_dir: Path, variant: Variant) -> BuildResult:
+    """Writes <out>/qa_scenarios_<variant>.wad, one .cfg and one .preview.svg per map.
+
+    `spec_dir` may also be a single spec file. Ground truth JSON arrives in M3.
     """
     specs = [load_spec(p) for p in _spec_paths(spec_dir)]
     if not specs:
@@ -134,26 +117,33 @@ def build(spec_dir: Path, out_dir: Path, variant: Variant) -> BuildResult:
 
     lumps: list[Lump] = []
     cfg_paths: dict[str, Path] = {}
+    preview_paths: dict[str, Path] = {}
+    compiled: dict[str, CompiledMap] = {}
     out_dir.mkdir(parents=True, exist_ok=True)
     for spec in sorted(specs, key=lambda s: s.slot):
         if variant == "fixed":
             spec = spec.without_defects()
         elif spec.defects:
             raise NotImplementedError("defect injection arrives in M3")
-        lumps += map_lumps(spec.map_lump, compile_textmap(spec).to_text())
+        cm = compile_checked(spec)
+        compiled[spec.map_lump] = cm
+        lumps += map_lumps(spec.map_lump, cm.textmap().to_text())
         cfg_path = out_dir / cfg_name(spec.map_lump, variant)
         cfg_path.write_text(render_cfg(spec, variant), encoding="ascii")
         cfg_paths[spec.map_lump] = cfg_path
+        svg_path = out_dir / f"{spec.map_lump}.preview.svg"
+        svg_path.write_text(render_svg(cm), encoding="utf-8")
+        preview_paths[spec.map_lump] = svg_path
 
     wad_path = out_dir / wad_name(variant)
     write_wad(wad_path, lumps)
-    return BuildResult(wad_path, cfg_paths)
+    return BuildResult(wad_path, cfg_paths, preview_paths, compiled)
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m qatester.mapgen.cli")
     sub = parser.add_subparsers(dest="command", required=True)
-    b = sub.add_parser("build", help="compile MapSpecs into a WAD and configs")
+    b = sub.add_parser("build", help="compile MapSpecs into a WAD, configs and previews")
     b.add_argument("specs", type=Path, help="spec directory or single .yaml file")
     b.add_argument("-o", "--out", type=Path, required=True)
     b.add_argument("--variant", choices=["buggy", "fixed"], default="buggy")
@@ -162,7 +152,11 @@ def main(argv: list[str] | None = None) -> None:
     result = build(args.specs, args.out, args.variant)
     print(f"wrote {result.wad_path}")
     for lump, cfg in result.cfg_paths.items():
-        print(f"  {lump}: {cfg}")
+        cm = result.compiled[lump]
+        print(
+            f"  {lump} {cm.spec.name:9s} rooms={len(cm.spec.rooms):2d} "
+            f"sectors={len(cm.sectors):2d} linedefs={len(cm.lines):3d}  {cfg}"
+        )
 
 
 if __name__ == "__main__":

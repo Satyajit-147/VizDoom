@@ -1,0 +1,31 @@
+# MAP05 PHANTOM — logic defects for the invariant oracle (PLAN: bug corpus).
+# M3 adds: the blue locked door emitted with lock 0 (sequence break) and the medkit
+# replaced by an over-cap health pickup.
+name: PHANTOM
+slot: 5
+cell_size: 64
+seed: 505
+
+rooms:
+  - {id: start,    x0: 0,   y0: 0,   x1: 512,  y1: 512, floor: 0, ceiling: 128}
+  - {id: armory,   x0: 512, y0: 0,   x1: 960,  y1: 512, floor: 0, ceiling: 128}
+  - {id: keyroom,  x0: 0,   y0: 512, x1: 512,  y1: 896, floor: 0, ceiling: 128}
+  - {id: vault,    x0: 512, y0: 512, x1: 960,  y1: 896, floor: 0, ceiling: 128}
+  - {id: exitroom, x0: 960, y0: 512, x1: 1344, y1: 896, floor: 0, ceiling: 128}
+
+portals:
+  - {id: p_start_armory,  a: start,  b: armory,   kind: open,        width: 128}
+  - {id: p_start_keyroom, a: start,  b: keyroom,  kind: door,        width: 96}
+  - {id: p_armory_vault,  a: armory, b: vault,    kind: locked_door, width: 96, requires: key_blue}
+  - {id: p_vault_exit,    a: vault,  b: exitroom, kind: open,        width: 128}
+
+things:
+  - {id: spawn,   type: player_start, room: start,    pos: [256, 256]}
+  - {id: bluekey, type: key_blue,     room: keyroom,  pos: [256, 704],  interactive: true}
+  - {id: medkit,  type: health,       room: armory,   pos: [736, 256],  interactive: true}
+  - {id: ammo,    type: ammo,         room: vault,    pos: [736, 704],  interactive: true}
+  - {id: exitsw,  type: exit_switch,  room: exitroom, pos: [1320, 704], interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [key_blue], time_limit_tics: 10500}
+
+defects: []

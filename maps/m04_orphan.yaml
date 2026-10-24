@@ -1,0 +1,39 @@
+# MAP04 ORPHAN — broken door trigger for the unreachable-region oracle (PLAN: bug corpus).
+# The switch in room c opens the remote door into the 3-room east wing (f, g, h).
+# M3 gives the switch the wrong tag, so the east wing becomes unreachable.
+name: ORPHAN
+slot: 4
+cell_size: 64
+seed: 404
+
+rooms:
+  - {id: a, x0: 0,    y0: 0,   x1: 512,  y1: 512, floor: 0, ceiling: 128}
+  - {id: b, x0: 512,  y0: 0,   x1: 1024, y1: 256, floor: 0, ceiling: 128}
+  - {id: c, x0: 0,    y0: 512, x1: 512,  y1: 896, floor: 0, ceiling: 128}
+  - {id: d, x0: 512,  y0: 256, x1: 1024, y1: 640, floor: 0, ceiling: 144}
+  - {id: e, x0: 512,  y0: 640, x1: 1024, y1: 896, floor: 0, ceiling: 128}
+  - {id: f, x0: 1024, y0: 0,   x1: 1472, y1: 448, floor: 0, ceiling: 128}
+  - {id: g, x0: 1472, y0: 0,   x1: 1856, y1: 448, floor: 0, ceiling: 128}
+  - {id: h, x0: 1024, y0: 448, x1: 1472, y1: 896, floor: 0, ceiling: 128}
+
+portals:
+  - {id: p_a_b, a: a, b: b, kind: open, width: 128}
+  - {id: p_a_c, a: a, b: c, kind: door, width: 96}
+  - {id: p_b_d, a: b, b: d, kind: door, width: 96}
+  - {id: p_d_e, a: d, b: e, kind: open, width: 128}
+  - {id: p_b_f, a: b, b: f, kind: door, width: 96}   # remote: opened by switch east_sw
+  - {id: p_f_g, a: f, b: g, kind: open, width: 128}
+  - {id: p_f_h, a: f, b: h, kind: door, width: 96}
+
+things:
+  - {id: spawn,     type: player_start, room: a, pos: [256, 256]}
+  - {id: east_sw,   type: switch,       room: c, pos: [40, 800], opens: p_b_f, interactive: true}
+  - {id: ammo,      type: ammo,         room: b, pos: [768, 128],  interactive: true}
+  - {id: medkit,    type: health,       room: d, pos: [768, 448],  interactive: true}
+  - {id: yellowkey, type: key_yellow,   room: g, pos: [1664, 224], interactive: true}
+  - {id: armour,    type: armour,       room: h, pos: [1248, 672], interactive: true}
+  - {id: exitsw,    type: exit_switch,  room: e, pos: [768, 880],  interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [], time_limit_tics: 10500}
+
+defects: []

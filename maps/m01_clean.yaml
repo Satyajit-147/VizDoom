@@ -1,22 +1,27 @@
-# M1 placeholder: the single room from PLAN Appendix A, used to prove the
-# WAD pipeline end to end. M2 replaces it with the full 4-room, 1200x900 CLEAN map.
+# MAP01 CLEAN — false-positive control (PLAN: bug corpus). 4 rooms, 1200x900 mu.
+# Any report on this map is a false alarm. Never add defects here.
 name: CLEAN
 slot: 1
 cell_size: 64
 seed: 101
 
 rooms:
-  - {id: start, x0: -320, y0: -320, x1: 0, y1: 0, floor: 0, ceiling: 128}
+  - {id: start, x0: 0,   y0: 0,   x1: 512,  y1: 448, floor: 0, ceiling: 128}
+  - {id: hall,  x0: 512, y0: 0,   x1: 1200, y1: 448, floor: 0, ceiling: 160}
+  - {id: loft,  x0: 0,   y0: 448, x1: 512,  y1: 900, floor: 0, ceiling: 128}
+  - {id: vault, x0: 512, y0: 448, x1: 1200, y1: 900, floor: 0, ceiling: 128}
 
-portals: []
+portals:
+  - {id: p_start_hall, a: start, b: hall,  kind: open,        width: 128}
+  - {id: p_start_loft, a: start, b: loft,  kind: door,        width: 96}
+  - {id: p_hall_vault, a: hall,  b: vault, kind: locked_door, width: 96, requires: key_red}
 
 things:
-  - {id: spawn, type: player_start, room: start, pos: [-160, -160]}
+  - {id: spawn,  type: player_start, room: start, pos: [256, 224]}
+  - {id: redkey, type: key_red,      room: loft,  pos: [256, 700],  interactive: true}
+  - {id: medkit, type: health,       room: hall,  pos: [850, 224],  interactive: true}
+  - {id: exitsw, type: exit_switch,  room: vault, pos: [1180, 700], interactive: true}
 
-goal:
-  kind: survive
-  target: null
-  requires: []
-  time_limit_tics: 2100
+goal: {kind: reach_exit, target: exitsw, requires: [key_red], time_limit_tics: 10500}
 
 defects: []

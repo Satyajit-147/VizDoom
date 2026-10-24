@@ -1,0 +1,35 @@
+# MAP08 HOLDOUT — never trained on; generalisation check for E6 (PLAN: curriculum).
+# Deliberately different shapes from MAP01-07: an L-shaped corridor (union_with), a
+# raised loft reached by lift, a teleport pair, and a yellow key behind the teleport.
+name: HOLDOUT
+slot: 8
+cell_size: 64
+seed: 808
+
+rooms:
+  - {id: start, x0: 0,    y0: 0,    x1: 384,  y1: 384,  floor: 0,  ceiling: 128}
+  - {id: corr1, x0: 384,  y0: 0,    x1: 1152, y1: 192,  floor: 0,  ceiling: 128, union_with: corr2}
+  - {id: corr2, x0: 960,  y0: 0,    x1: 1152, y1: 768,  floor: 0,  ceiling: 128}
+  - {id: upper, x0: 0,    y0: 384,  x1: 384,  y1: 768,  floor: 48, ceiling: 176}
+  - {id: side,  x0: 384,  y0: 384,  x1: 960,  y1: 768,  floor: 0,  ceiling: 128}
+  - {id: end,   x0: 1152, y0: 384,  x1: 1600, y1: 768,  floor: 0,  ceiling: 128}
+  - {id: annex, x0: 1152, y0: 1024, x1: 1600, y1: 1408, floor: 0,  ceiling: 128}
+
+portals:
+  - {id: p_start_corr, a: start, b: corr1, kind: open,        width: 128}
+  - {id: p_start_up,   a: start, b: upper, kind: lift,        width: 96}
+  - {id: p_corr_side,  a: corr2, b: side,  kind: door,        width: 96}
+  - {id: p_corr_end,   a: corr2, b: end,   kind: locked_door, width: 96, requires: key_yellow}
+  - {id: tp_side,      a: side,  b: annex, kind: teleport,    at: [480, 672]}
+  - {id: tp_annex,     a: annex, b: side,  kind: teleport,    at: [1248, 1312]}
+
+things:
+  - {id: spawn,     type: player_start, room: start, pos: [192, 160]}
+  - {id: medkit,    type: health,       room: upper, pos: [192, 600],  interactive: true}
+  - {id: yellowkey, type: key_yellow,   room: annex, pos: [1500, 1100], interactive: true}
+  - {id: ammo,      type: ammo,         room: side,  pos: [800, 480],  interactive: true}
+  - {id: exitsw,    type: exit_switch,  room: end,   pos: [1580, 576], interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [key_yellow], time_limit_tics: 10500}
+
+defects: []

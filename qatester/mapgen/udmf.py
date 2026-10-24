@@ -77,6 +77,7 @@ class Sector:
     lightlevel: int = 160
     id: int = 0  # sector tag
     special: int = 0
+    damageamount: int = 0
 
 
 @dataclass(frozen=True)
@@ -164,6 +165,8 @@ def _sector(s: Sector) -> str:
         fields.append(("id", str(s.id)))
     if s.special:
         fields.append(("special", str(s.special)))
+    if s.damageamount:
+        fields.append(("damageamount", str(s.damageamount)))
     return _block("sector", fields)
 
 

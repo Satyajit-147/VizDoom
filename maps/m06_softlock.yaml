@@ -1,0 +1,33 @@
+# MAP06 SOFTLOCK — trap states for the softlock oracle (PLAN: bug corpus).
+# M3 adds: the start->pit lift loses its return trigger, and the two teleports are
+# pointed at each other's pads.
+name: SOFTLOCK
+slot: 6
+cell_size: 64
+seed: 606
+
+rooms:
+  - {id: start,    x0: 0,    y0: 0,   x1: 512,  y1: 512,  floor: 0,   ceiling: 128}
+  - {id: pit,      x0: 0,    y0: 512, x1: 512,  y1: 896,  floor: -64, ceiling: 64}
+  - {id: hall,     x0: 512,  y0: 0,   x1: 1024, y1: 512,  floor: 0,   ceiling: 128}
+  - {id: tele_a,   x0: 1024, y0: 0,   x1: 1408, y1: 512,  floor: 0,   ceiling: 128}
+  - {id: tele_b,   x0: 1024, y0: 768, x1: 1408, y1: 1152, floor: 0,   ceiling: 128}
+  - {id: exitroom, x0: 512,  y0: 768, x1: 1024, y1: 1152, floor: 0,   ceiling: 128}
+
+portals:
+  - {id: p_start_pit,   a: start,  b: pit,      kind: lift,     width: 96}
+  - {id: p_start_hall,  a: start,  b: hall,     kind: open,     width: 128}
+  - {id: p_hall_tele_a, a: hall,   b: tele_a,   kind: door,     width: 96}
+  - {id: tp_ab,         a: tele_a, b: tele_b,   kind: teleport, at: [1120, 256]}
+  - {id: tp_ba,         a: tele_b, b: tele_a,   kind: teleport, at: [1120, 960]}
+  - {id: p_tele_b_exit, a: tele_b, b: exitroom, kind: open,     width: 128}
+
+things:
+  - {id: spawn,  type: player_start, room: start,    pos: [256, 256]}
+  - {id: ammo,   type: ammo,         room: pit,      pos: [256, 800],  interactive: true}
+  - {id: medkit, type: health,       room: hall,     pos: [768, 256],  interactive: true}
+  - {id: exitsw, type: exit_switch,  room: exitroom, pos: [768, 1130], interactive: true}
+
+goal: {kind: reach_exit, target: exitsw, requires: [], time_limit_tics: 10500}
+
+defects: []
