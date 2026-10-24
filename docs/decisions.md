@@ -165,3 +165,22 @@ spawns at (-160, -160), POSITION_X stays finite through 500 random steps. 16/16 
    line with a wall texture**, backed by a hidden pocket sector outside every room
    rectangle. The player walks "through the wall" into space no room claims, which is what
    the out-of-bounds oracle tests. To decide at the start of M3.
+
+## 2026-10-24 — Requirement: find bugs on unseen maps
+
+### D18. Generalisation is a hard requirement, tested on many unseen maps
+Team requirement: the tester must find the 7 bug classes on maps it has never seen, not
+only on MAP01–07. In this architecture the oracles label bugs; the policy has to learn
+*where to go and what to try* (push walls, USE locked doors, ride lifts, enter dead ends).
+Both halves must transfer. The plan's single holdout map (MAP08) and 7 fixed training maps
+are not enough evidence. Added work:
+1. **After M3:** `qatester/mapgen/procgen.py`, a seeded random MapSpec generator: random
+   room layouts and portal kinds, plus 0–3 defects drawn from the 7 classes at random valid
+   targets. Not the Phase-2 adversarial generator: no feedback loop.
+2. **Training (M6–M8):** the curriculum mixes generated maps (train seeds) with MAP01–07.
+3. **Evaluation (M9, E6 expanded):** a held-out test set of 30–50 generated maps (unseen
+   seeds) plus MAP08. The headline result is per-class recall on unseen maps. Random defect
+   placement also shows the oracles have no map-specific assertions (objective O2).
+   Evaluation is CPU-only, so it costs no GPU quota.
+4. Existing guards stay: no absolute position in the observation, agents cannot import
+   ground truth, and the E5 absolute-position ablation shows what happens without them.
