@@ -2,9 +2,13 @@
 
     python scripts/walk_map.py build/MAP01.fixed.cfg
 
-Controls are GZDoom defaults: arrow keys or WASD to move, mouse to turn, E or Space to
-use (doors, lifts, switches). Close the window or press Esc then quit to stop.
-Prints your position and room once a second.
+Controls (ViZDoom's built-in defaults; WASD and E are NOT bound):
+  Up/Down arrows  move forward/back      Left/Right arrows or mouse  turn
+  , and .         strafe left/right      Shift (hold)                run
+  Space           use: doors, lifts, switches
+  Ctrl / left mouse  fire                F10                         quit
+Prints your position and room once a second. On-screen messages are on, so locked doors
+say which key they need.
 """
 
 from __future__ import annotations
@@ -44,6 +48,7 @@ def main() -> None:
     game.set_render_hud(True)
     game.set_render_weapon(True)
     game.set_render_crosshair(True)
+    game.set_render_messages(True)
     game.set_episode_timeout(0)
     game.init()
     game.new_episode()
