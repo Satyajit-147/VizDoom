@@ -1,5 +1,5 @@
 # MAP06 SOFTLOCK — trap states for the softlock oracle (PLAN: bug corpus).
-# M3 adds: the start->pit lift loses its return trigger, and the two teleports are
+# Defects: the start->pit lift loses its return trigger, and the two teleports are
 # pointed at each other's pads.
 name: SOFTLOCK
 slot: 6
@@ -30,4 +30,21 @@ things:
 
 goal: {kind: reach_exit, target: exitsw, requires: [], time_limit_tics: 10500}
 
-defects: []
+defects:
+  - id: d_oneway_lift
+    kind: one_way_lift
+    target: p_start_pit
+    expected_oracle: softlock
+    severity: high
+    notes: >
+      The lift into the pit has no trigger on the pit side. A player who goes down can
+      never come back up.
+  - id: d_tele_loop
+    kind: teleport_loop
+    target: tp_ab
+    params: {partner: tp_ba}
+    expected_oracle: softlock
+    severity: medium
+    notes: >
+      Each teleport lands the player facing the other's pad, so walking on bounces them
+      between tele_a and tele_b indefinitely.

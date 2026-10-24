@@ -11,17 +11,17 @@ Runs on the `fixed` variant, which must stay fully playable once M3 adds defects
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from pathlib import Path
 
 import numpy as np
 import pytest
 import vizdoom as vzd
-from doomdriver import Driver
+from doomdriver import Driver, approach, inside_room
 
 from qatester.mapgen.cli import BuildResult, build
 from qatester.mapgen.geometry import LIFT_DEPTH, WALL, CompiledMap
-from qatester.mapgen.spec import Portal, Room, shared_wall
+from qatester.mapgen.spec import Portal, shared_wall
 
 REPO = Path(__file__).resolve().parents[1]
 MAPS = [f"MAP{i:02d}" for i in range(1, 9)]
@@ -38,23 +38,6 @@ def driver(request: pytest.FixtureRequest, built: BuildResult) -> Iterator[tuple
     d = Driver(built.cfg_paths[request.param])
     yield d, built.compiled[request.param]
     d.close()
-
-
-def inside_room(room: Room, margin: float = WALL) -> Callable[[float, float], bool]:
-    return lambda x, y: (
-        room.x0 + margin <= x <= room.x1 - margin and room.y0 + margin <= y <= room.y1 - margin
-    )
-
-
-def approach(room: Room, wall_axis: str, wall_at: int, along: float, dist: float) -> tuple[
-    float, float, float
-]:
-    """A point `dist` from the wall inside `room`, and the angle facing the wall."""
-    if wall_axis == "x":
-        sign = -1 if room.x1 == wall_at else 1  # room lies on the low-x side
-        return wall_at + sign * dist, along, 0.0 if sign < 0 else 180.0
-    sign = -1 if room.y1 == wall_at else 1
-    return along, wall_at + sign * dist, 90.0 if sign < 0 else 270.0
 
 
 def cross(d: Driver, cm: CompiledMap, p: Portal, src: str, dst: str, use: bool, tics: int = 140,

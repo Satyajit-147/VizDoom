@@ -137,6 +137,8 @@ def check_things(cm: CompiledMap, tm: udmf.TextMap) -> list[str]:
         placed.append((f"teleport_dest:{portal_id}", (int(x), int(y)), dest_room))
     out = []
     for name, (x, y), sector in placed:
+        if name in cm.exempt:  # deliberately misplaced by a defect
+            continue
         owner = cm.owner_at(x, y)
         if owner != sector:
             out.append(f"{name} at ({x},{y}) stands in {owner}, not {sector}")

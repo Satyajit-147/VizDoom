@@ -26,6 +26,7 @@ DefectKind = Literal[
     "teleport_loop", "bad_pickup",
 ]  # fmt: skip
 Severity = Literal["low", "medium", "high"]
+OracleFamily = Literal["crash", "stuck", "out_of_bounds", "unreachable", "invariant", "softlock"]
 KEY_TYPES = ("key_red", "key_blue", "key_yellow")
 WALL_THING_TYPES = ("exit_switch", "switch")  # emitted as linedefs, not things
 
@@ -94,7 +95,7 @@ class Defect(_Model):
     kind: DefectKind
     target: str
     params: dict[str, object] = Field(default_factory=dict)
-    expected_oracle: str
+    expected_oracle: OracleFamily
     severity: Severity
     notes: str = ""
 
@@ -265,14 +266,15 @@ class MapSpec(_Model):
             if d.target not in targets:
                 raise SpecError(f"defect {d.id}: unknown target {d.target!r}")
 
-    # Rule 4: the intended portal graph connects every room and the goal is reachable.
-    def check_reachable(self) -> set[str]:
-        """BFS over the intended portal graph, ignoring geometry and defects.
+    def reachable_rooms(self, without: Iterable[str] = ()) -> set[str]:
+        """Rooms reachable from spawn in the intended portal graph, ignoring geometry and
+        defects, with the portals in `without` removed.
 
         Doors opened by a switch are passable once the switch's room is reached; locked
-        doors once a matching key's room is reached; teleports are one-way a -> b.
-        Returns the reachable room ids; raises SpecError if any room or the goal is not.
+        doors once a matching key's room is reached; teleports are one-way a -> b;
+        `union_with` pairs are one space.
         """
+        skip = set(without)
         spawn = next(t.room for t in self.things if t.type == "player_start")
         switched = {t.opens: t.room for t in self.things if t.type == "switch"}
         unions = [(r.id, r.union_with) for r in self.rooms if r.union_with is not None]
@@ -280,12 +282,14 @@ class MapSpec(_Model):
         changed = True
         while changed:
             changed = False
-            for a, b in unions:  # a union_with pair is one walkable space
+            for a, b in unions:
                 if (a in reached) != (b in reached):
                     reached |= {a, b}
                     changed = True
             keys = {t.type for t in self.things if t.room in reached and t.type in KEY_TYPES}
             for p in self.portals:
+                if p.id in skip:
+                    continue
                 if p.kind == "locked_door" and p.requires not in keys:
                     continue
                 if p.id in switched and switched[p.id] not in reached:
@@ -297,6 +301,13 @@ class MapSpec(_Model):
                     if src in reached and dst not in reached:
                         reached.add(dst)
                         changed = True
+        return reached
+
+    # Rule 4: the intended portal graph connects every room and the goal is reachable.
+    def check_reachable(self) -> set[str]:
+        """BFS over the intended portal graph (see reachable_rooms). Returns the reachable
+        room ids; raises SpecError if any room or the goal's keys are not reachable."""
+        reached = self.reachable_rooms()
         unreached = sorted({r.id for r in self.rooms} - reached)
         if unreached:
             raise SpecError(f"rooms unreachable from spawn: {unreached}")

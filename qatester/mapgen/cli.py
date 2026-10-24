@@ -1,6 +1,5 @@
-"""Build MapSpecs into a WAD, ViZDoom configs and preview SVGs (PLAN: Derived outputs).
-
-Ground truth JSON and defect injection arrive in M3.
+"""Build MapSpecs into a WAD plus, per map, a ViZDoom config, ground truth JSON and preview
+SVG (PLAN: Derived outputs, Build matrix).
 
 Usage: python -m qatester.mapgen.cli build <spec dir or file> -o build/ --variant buggy
 """
@@ -13,6 +12,7 @@ from pathlib import Path
 from typing import Literal
 
 from qatester.mapgen.geometry import CompiledMap, compile_map
+from qatester.mapgen.groundtruth import ground_truth, write_ground_truth
 from qatester.mapgen.preview import render_svg
 from qatester.mapgen.spec import MapSpec, load_spec
 from qatester.mapgen.validate import validate
@@ -25,17 +25,23 @@ Variant = Literal["buggy", "fixed"]
 class BuildResult:
     wad_path: Path
     cfg_paths: dict[str, Path]  # map lump name -> cfg path
+    groundtruth_paths: dict[str, Path]
     preview_paths: dict[str, Path]
-    compiled: dict[str, CompiledMap]
+    compiled: dict[str, CompiledMap]  # what went into the WAD
 
 
 def wad_name(variant: Variant) -> str:
     return f"qa_scenarios_{variant}.wad"
 
 
+def artefact_name(map_lump: str, variant: Variant, suffix: str) -> str:
+    """Both variants share build/ and slot numbers (PLAN: Build matrix), so the fixed
+    variant's files carry `.fixed`: MAP03.cfg vs MAP03.fixed.cfg."""
+    return f"{map_lump}.{suffix}" if variant == "buggy" else f"{map_lump}.fixed.{suffix}"
+
+
 def cfg_name(map_lump: str, variant: Variant) -> str:
-    # Both variants share build/; slot numbers are identical across them (PLAN: Build matrix).
-    return f"{map_lump}.cfg" if variant == "buggy" else f"{map_lump}.fixed.cfg"
+    return artefact_name(map_lump, variant, "cfg")
 
 
 def render_cfg(spec: MapSpec, variant: Variant) -> str:
@@ -97,17 +103,16 @@ def _spec_paths(spec_path: Path) -> list[Path]:
 
 
 def compile_checked(spec: MapSpec) -> CompiledMap:
-    """Compile and assert every geometry invariant; raises GeometryError on failure."""
+    """Compile (injecting the spec's defects) and assert every geometry invariant;
+    raises GeometryError on failure."""
     cm = compile_map(spec)
     validate(cm, cm.textmap())
     return cm
 
 
 def build(spec_dir: Path, out_dir: Path, variant: Variant) -> BuildResult:
-    """Writes <out>/qa_scenarios_<variant>.wad, one .cfg and one .preview.svg per map.
-
-    `spec_dir` may also be a single spec file. Ground truth JSON arrives in M3.
-    """
+    """Writes <out>/qa_scenarios_<variant>.wad and, per map, a .cfg, a .groundtruth.json
+    and a .preview.svg. `spec_dir` may also be a single spec file."""
     specs = [load_spec(p) for p in _spec_paths(spec_dir)]
     if not specs:
         raise FileNotFoundError(f"no *.yaml specs under {spec_dir}")
@@ -117,27 +122,29 @@ def build(spec_dir: Path, out_dir: Path, variant: Variant) -> BuildResult:
 
     lumps: list[Lump] = []
     cfg_paths: dict[str, Path] = {}
+    gt_paths: dict[str, Path] = {}
     preview_paths: dict[str, Path] = {}
     compiled: dict[str, CompiledMap] = {}
     out_dir.mkdir(parents=True, exist_ok=True)
     for spec in sorted(specs, key=lambda s: s.slot):
         if variant == "fixed":
             spec = spec.without_defects()
-        elif spec.defects:
-            raise NotImplementedError("defect injection arrives in M3")
-        cm = compile_checked(spec)
-        compiled[spec.map_lump] = cm
-        lumps += map_lumps(spec.map_lump, cm.textmap().to_text())
-        cfg_path = out_dir / cfg_name(spec.map_lump, variant)
-        cfg_path.write_text(render_cfg(spec, variant), encoding="ascii")
-        cfg_paths[spec.map_lump] = cfg_path
-        svg_path = out_dir / f"{spec.map_lump}.preview.svg"
-        svg_path.write_text(render_svg(cm), encoding="utf-8")
-        preview_paths[spec.map_lump] = svg_path
+        lump = spec.map_lump
+        intended = compile_checked(spec.without_defects())
+        built = compile_checked(spec) if spec.defects else intended
+        compiled[lump] = built
+        lumps += map_lumps(lump, built.textmap().to_text())
+
+        cfg_paths[lump] = out_dir / cfg_name(lump, variant)
+        cfg_paths[lump].write_text(render_cfg(spec, variant), encoding="ascii")
+        gt_paths[lump] = out_dir / artefact_name(lump, variant, "groundtruth.json")
+        write_ground_truth(gt_paths[lump], ground_truth(spec, intended, built, variant))
+        preview_paths[lump] = out_dir / artefact_name(lump, variant, "preview.svg")
+        preview_paths[lump].write_text(render_svg(built), encoding="utf-8")
 
     wad_path = out_dir / wad_name(variant)
     write_wad(wad_path, lumps)
-    return BuildResult(wad_path, cfg_paths, preview_paths, compiled)
+    return BuildResult(wad_path, cfg_paths, gt_paths, preview_paths, compiled)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -155,7 +162,8 @@ def main(argv: list[str] | None = None) -> None:
         cm = result.compiled[lump]
         print(
             f"  {lump} {cm.spec.name:9s} rooms={len(cm.spec.rooms):2d} "
-            f"sectors={len(cm.sectors):2d} linedefs={len(cm.lines):3d}  {cfg}"
+            f"sectors={len(cm.sectors):2d} linedefs={len(cm.lines):3d} "
+            f"defects={len(cm.defects)}  {cfg}"
         )
 
 

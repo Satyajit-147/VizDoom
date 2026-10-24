@@ -1,6 +1,6 @@
 # MAP04 ORPHAN — broken door trigger for the unreachable-region oracle (PLAN: bug corpus).
 # The switch in room c opens the remote door into the 3-room east wing (f, g, h).
-# M3 gives the switch the wrong tag, so the east wing becomes unreachable.
+# Defect: the switch gets the wrong tag, so the east wing becomes unreachable.
 name: ORPHAN
 slot: 4
 cell_size: 64
@@ -36,4 +36,12 @@ things:
 
 goal: {kind: reach_exit, target: exitsw, requires: [], time_limit_tics: 10500}
 
-defects: []
+defects:
+  - id: d_orphan_switch
+    kind: wrong_tag
+    target: east_sw
+    expected_oracle: unreachable
+    severity: high
+    notes: >
+      The switch meant to open the east-wing door targets a tag no sector carries. It
+      animates and does nothing; rooms f, g and h are permanently unreachable.

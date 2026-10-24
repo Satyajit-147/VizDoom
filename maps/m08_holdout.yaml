@@ -32,4 +32,26 @@ things:
 
 goal: {kind: reach_exit, target: exitsw, requires: [key_yellow], time_limit_tics: 10500}
 
-defects: []
+defects:
+  - id: d08_leak
+    kind: missing_blocking
+    target: annex
+    params: {wall: east, segment: [1152, 1280]}
+    expected_oracle: out_of_bounds
+    severity: high
+    notes: >
+      A segment of the annex's east wall is passable.
+  - id: d08_lock
+    kind: wrong_special
+    target: p_corr_end
+    expected_oracle: invariant
+    severity: high
+    notes: >
+      The yellow locked door opens without the yellow key.
+  - id: d08_health
+    kind: bad_pickup
+    target: medkit
+    expected_oracle: invariant
+    severity: low
+    notes: >
+      The medkit in the loft is a Soulsphere (health above 100).

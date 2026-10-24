@@ -2,7 +2,8 @@
 
 Regions are painted in priority order, which reproduces the compiler's ownership rule:
 rooms, then void strips, then door/lift/pad sectors. Linedefs, things and labels are
-drawn on top. Defect markers arrive with M3.
+drawn on top. Injected defects are red: a cross at the recorded position and a dashed
+outline around the region they occupy or cut off.
 """
 
 from __future__ import annotations
@@ -21,7 +22,8 @@ from qatester.mapgen.geometry import (
 
 SIZE = 900
 MARGIN = 40
-FILL = {"room": "#e8e4d8", "door": "#d9822b", "lift": "#8e6bbf", "pad": "#2fa4b8"}
+FILL = {"room": "#e8e4d8", "door": "#d9822b", "lift": "#8e6bbf", "pad": "#2fa4b8",
+        "pocket": "#f4b6b6"}
 VOID = "#2b2b2b"
 SPECIAL_COLOUR = {
     DOOR_RAISE: "#d9822b",
@@ -106,6 +108,23 @@ def render_svg(cm: CompiledMap) -> str:
         out.append(
             f'<text x="{px(x) + 6}" y="{py(y) - 6}" fill="#000" font-weight="bold">'
             f"{escape(m.source)}</text>"
+        )
+    for rec in cm.defects:
+        for area in rec.region:
+            out.append(
+                f'<rect x="{px(area.x0)}" y="{py(area.y1)}" '
+                f'width="{round((area.x1 - area.x0) * scale, 1)}" '
+                f'height="{round((area.y1 - area.y0) * scale, 1)}" fill="none" stroke="#e00" '
+                'stroke-width="2" stroke-dasharray="6 4"/>'
+            )
+        x, y = px(rec.position[0]), py(rec.position[1])
+        out.append(
+            f'<path d="M{x - 7} {y - 7} L{x + 7} {y + 7} M{x - 7} {y + 7} L{x + 7} {y - 7}" '
+            'stroke="#e00" stroke-width="3"/>'
+        )
+        out.append(
+            f'<text x="{x + 9}" y="{y - 9}" fill="#e00" font-weight="bold">'
+            f"{escape(rec.id)} ({escape(rec.expected_oracle)})</text>"
         )
     legend = [
         ("door", FILL["door"]), ("locked", SPECIAL_COLOUR[DOOR_LOCKED_RAISE]),

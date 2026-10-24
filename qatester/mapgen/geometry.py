@@ -56,7 +56,7 @@ TEX_DOOR = "BIGDOOR2"
 TEX_LIFT = "PLAT1"
 TEX_SWITCH = "SW1COMP"
 
-SectorKind = Literal["room", "door", "lift", "pad"]
+SectorKind = Literal["room", "door", "lift", "pad", "pocket"]  # pocket: defect-only space
 USE_FLAGS = frozenset({"playeruse", "repeatspecial"})
 
 
@@ -99,6 +99,7 @@ class SectorInfo:
     rooms: tuple[str, ...] = ()  # room ids for room sectors
     portal: str | None = None  # owning portal for door/lift/pad sectors
     face: Special | None = None  # on lines where this sector is the back, a room the front
+    face_skip: frozenset[str] = frozenset()  # front sectors that get no face special
 
 
 @dataclass(frozen=True)
@@ -136,6 +137,24 @@ class Line:
     source: str | None
 
 
+@dataclass(frozen=True)
+class DefectRecord:
+    """What an injected defect changed and where, for the ground truth (PLAN rule 3:
+    "a defect you cannot declare is a defect you cannot score")."""
+
+    id: str
+    kind: str
+    target: str
+    expected_oracle: str
+    severity: str
+    params: dict[str, object]
+    notes: str
+    position: tuple[float, float, float]
+    region: tuple[Rect, ...]  # area the defect occupies or cuts off
+    affected_rooms: tuple[str, ...]
+    change: str  # one-line description of the mutation
+
+
 @dataclass
 class CompiledMap:
     spec: MapSpec
@@ -145,12 +164,30 @@ class CompiledMap:
     things: list[udmf.Thing]
     marks: list[WallMark] = field(default_factory=list)
     teleport_dests: dict[str, tuple[float, float]] = field(default_factory=dict)  # portal id
+    teleport_tids: dict[str, int] = field(default_factory=dict)  # portal id -> TID
+    thing_index: dict[str, int] = field(default_factory=dict)  # spec thing id -> things[i]
+    defects: list[DefectRecord] = field(default_factory=list)
+    exempt: set[str] = field(default_factory=set)  # validate.check_things names to skip
 
     def owner_at(self, x: float, y: float) -> str | None:
         return _owner(self.regions, x, y)
 
     def room_sector(self, room_id: str) -> str:
         return next(s.key for s in self.sectors.values() if room_id in s.rooms)
+
+    def region_of(self, sector: str) -> Rect:
+        return next(r.rect for r in self.regions if r.sector == sector)
+
+    def owner_grid(self) -> tuple[list[int], list[int], list[list[str | None]]]:
+        """Grid lines and the owning sector of each cell, owner[i][j] for the cell
+        between xs[i]..xs[i+1] and ys[j]..ys[j+1]."""
+        xs, ys = _grid(self.regions, self.marks)
+        owner = [
+            [_owner(self.regions, (xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2)
+             for j in range(len(ys) - 1)]
+            for i in range(len(xs) - 1)
+        ]  # fmt: skip
+        return xs, ys, owner
 
     def textmap(self) -> udmf.TextMap:
         tm = udmf.TextMap()
@@ -179,12 +216,16 @@ class CompiledMap:
                 back_kind = self.sectors[line.back].kind
                 top = TEX_DOOR if back_kind == "door" else TEX_WALL
                 bottom = TEX_LIFT if back_kind == "lift" else TEX_WALL
+                # A pocket's mouth is a passable line drawn as a solid wall (missing_blocking).
+                middle = TEX_WALL if back_kind == "pocket" else None
                 tm.sidedefs.append(
-                    udmf.Sidedef(index[line.front], texturetop=top, texturebottom=bottom)
-                )
+                    udmf.Sidedef(index[line.front], texturemiddle=middle, texturetop=top,
+                                 texturebottom=bottom)
+                )  # fmt: skip
                 tm.sidedefs.append(
-                    udmf.Sidedef(index[line.back], texturetop=TEX_WALL, texturebottom=TEX_WALL)
-                )
+                    udmf.Sidedef(index[line.back], texturemiddle=middle, texturetop=TEX_WALL,
+                                 texturebottom=TEX_WALL)
+                )  # fmt: skip
                 flags = frozenset({"twosided"})
                 sideback = front + 1
             special, args = 0, tuple[int, ...]()
@@ -255,7 +296,9 @@ def _room_sectors(spec: MapSpec) -> dict[str, SectorInfo]:
     return sectors
 
 
-def compile_map(spec: MapSpec, extra_marks: Sequence[WallMark] = ()) -> CompiledMap:
+def compile_map(spec: MapSpec, apply_defects: bool = True) -> CompiledMap:
+    """Compile a spec. Its defects are injected unless `apply_defects` is False; the
+    `fixed` build variant passes `spec.without_defects()` instead."""
     sectors = _room_sectors(spec)
     room_sector = {rid: s.key for s in sectors.values() for rid in s.rooms}
     regions = [
@@ -265,6 +308,7 @@ def compile_map(spec: MapSpec, extra_marks: Sequence[WallMark] = ()) -> Compiled
     next_tag = max([FIRST_AUTO_TAG - 1, *used_tags]) + 1
     things: list[udmf.Thing] = []
     dests: dict[str, tuple[float, float]] = {}
+    tids: dict[str, int] = {}
 
     # Void strips along every wall shared by two distinct room sectors.
     half = WALL // 2
@@ -296,6 +340,7 @@ def compile_map(spec: MapSpec, extra_marks: Sequence[WallMark] = ()) -> Compiled
             cx, cy = Rect(rb.x0, rb.y0, rb.x1, rb.y1).centre
             things.append(udmf.Thing(cx, cy, udmf.THING_EDNUMS["teleport_dest"], id=tid))
             dests[p.id] = (cx, cy)
+            tids[p.id] = tid
             tid += 1
             continue
 
@@ -350,15 +395,17 @@ def compile_map(spec: MapSpec, extra_marks: Sequence[WallMark] = ()) -> Compiled
                 )
             regions.append(Region(rect, key, 2))
 
+    thing_index: dict[str, int] = {}
     for t in spec.things:
         if t.type in WALL_THING_TYPES:
             continue
+        thing_index[t.id] = len(things)
         things.append(udmf.Thing(t.pos[0], t.pos[1], udmf.THING_EDNUMS[t.type]))
 
     _check_regions(spec, sectors, regions)
 
     # Switch linedefs need the merged walls to find the nearest one, so solve twice.
-    marks = list(extra_marks)
+    marks: list[WallMark] = []
     for t in spec.things:
         if t.type == "exit_switch":
             special = Special(EXIT_NORMAL, (0,), frozenset({"playeruse"}))
@@ -369,8 +416,13 @@ def compile_map(spec: MapSpec, extra_marks: Sequence[WallMark] = ()) -> Compiled
             continue
         marks.append(_place_mark(regions, room_sector[t.room], t.pos, special, t.id))
 
-    lines = _build_lines(regions, sectors, marks)
-    return CompiledMap(spec, sectors, regions, lines, things, marks, dests)
+    cm = CompiledMap(spec, sectors, regions, [], things, marks, dests, tids, thing_index)
+    if apply_defects:
+        from qatester.mapgen.defects import apply_defect  # defects builds on this module
+
+        cm.defects = [apply_defect(cm, d) for d in spec.defects]
+    cm.lines = _build_lines(cm.regions, cm.sectors, cm.marks)
+    return cm
 
 
 def _check_regions(
@@ -467,7 +519,9 @@ def _attrs(
 ) -> tuple[Special | None, str | None, str | None]:  # fmt: skip
     if back is not None:
         face = sectors[back].face
-        if face is not None and sectors[front].kind == "room":
+        if face is not None and sectors[front].kind == "room" and (
+            front not in sectors[back].face_skip
+        ):
             return face, None, sectors[back].portal
         return None, None, None
     for m in marks:

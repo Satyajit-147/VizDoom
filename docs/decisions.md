@@ -106,6 +106,53 @@ lifts carry the player up and let them walk back down; teleports arrive; the exi
 ends the episode. Uses GZDoom cheats (`warp`, `give`) in tests only. Verified to catch
 three injected compiler bugs (lock 0, lift with no trigger, dead switch).
 
+## 2026-10-24 — M3
+
+### D20. Defects mutate the compiled map; how each one is built
+PLAN calls each defect "a spec -> spec mutation", but five of the seven live below the
+MapSpec's abstraction (linedef flags, special arguments, TIDs). `defects.py` therefore
+mutates the compiled draft after rooms, portals and switches are laid out and before
+linedefs are built, and returns a record for the ground truth. Constructions:
+- `missing_blocking`: resolves open issue 6. The wall segment becomes a **two-sided,
+  non-blocking line drawn with a wall texture**, backed by a 128 mu pocket sector outside
+  every room. The player walks "through the wall" into space no room claims. Params:
+  `wall`, `segment` [lo, hi] in absolute map units, optional `depth`.
+- `wrong_tag`: the switch's `Door_Open` arg0 becomes a tag no sector carries.
+- `wrong_special`: `Door_LockedRaise` arg3 (lock) becomes 0 on the door's faces.
+- `geometry_trap`: the room's floor drops by `drop` (> 24); rejected if the room has a lift
+  or teleport, since then it is no trap.
+- `one_way_lift`: the lift's faces bordering the lower room lose their trigger.
+- `teleport_loop`: param `partner`. Each teleport lands the player 56 mu in front of the
+  other's pad, facing it, so walking on bounces between the two rooms.
+- `bad_pickup`: the medikit becomes a Soulsphere (2013): health 200.
+
+### D21. MAP02's 48 mu alcove is escapable by jumping (plan error)
+The plan sizes the alcove trap at 48 mu, "above the 24 mu auto-step height". With JUMP in
+the action set (on purpose, per the plan), a jump (~30 mu) plus the step-up (24 mu) clears
+about 54 mu. Verified in ViZDoom: the player jumps out of a 48 mu alcove but stays trapped
+at 64 and 96. The alcove drop is now 64 mu.
+
+### D22. Ground truth describes intent, plus the defect list
+`build/MAPnn.groundtruth.json` (`MAPnn.fixed.groundtruth.json` for the fixed variant) is
+generated from the spec compiled **without** defects: rooms, the walkable raster at
+`cell_size`, intended walls, intended sectors with neighbours and lift triggers, a
+point-to-sector lookup grid, portals and the portal graph, things, monster count and goal.
+Only `defects` differs between variants (a test enforces this). Each defect carries
+`position` (x, y, z), `region` (rects it occupies or cuts off), `affected_rooms` and a
+one-line `change`. The buggy geometry never appears; oracles must see it through the
+engine and compare it against intent.
+
+### D23. Corpus: 12 defects on MAP02–07 as planned, plus 3 on the holdout
+MAP08 gets `missing_blocking`, `wrong_special` and `bad_pickup`, so the generalisation
+evaluation (E6, D18) has defects to find. MAP01 stays defect-free.
+
+### D24. M3 accepted 2026-10-24
+`tests/test_defects.py`: each defect, applied alone, changes exactly its element; the
+fixed variant of every map passes `check_reachable()`; ground truth checks.
+`tests/test_defects_engine.py`: all 15 defects show in the buggy build and none in the
+fixed build, using one generic scenario per defect kind; every exit still works.
+220 tests total, `mypy --strict qatester/mapgen/` clean.
+
 ## Open issues found in PLAN.md (not yet resolved)
 
 These are internal contradictions or wrong assumptions in the plan. Each must be decided
@@ -184,3 +231,22 @@ are not enough evidence. Added work:
    Evaluation is CPU-only, so it costs no GPU quota.
 4. Existing guards stay: no absolute position in the observation, agents cannot import
    ground truth, and the E5 absolute-position ablation shows what happens without them.
+
+### D19. M2 accepted 2026-10-24
+All 8 specs compile; `tests/test_geometry_invariants.py`, `tests/test_spec_validation.py`
+and `tests/test_maps_engine.py` green (189 tests); every map walked once by hand in
+SPECTATOR mode (`scripts/walk_map.py`) with no issues reported.
+7. **[M4/M9] Matching rule is too narrow for room-sized defects.** "Within 128 mu of the
+   recorded position" works for a leak or a pickup, but an unreachable wing, a trapped
+   room or a softlock pit is 400+ mu across. Proposal: a cluster is true when its family
+   matches and its representative is within 128 mu of `position` **or** inside one of the
+   defect's `region` rects (both are in the ground truth). Decide before thresholds freeze.
+8. **[M4] `health_cap` would excuse the Soulsphere.** The plan's invariant is
+   `health <= 100 or had_powerup`. A Soulsphere *is* a powerup, so MAP05/08's bad pickup
+   would be excused. Proposal: `had_powerup` means a pickup the spec declares as a powerup;
+   the corpus declares none.
+9. **[M4] Oracles must not read `defects` from the ground truth.** That list is the answer
+   key. Proposal: oracles get a ground-truth view without it, enforced by a test.
+10. **[M4] The vertical-trap check needs live floors.** The intended sectors in the ground
+   truth have no traps by construction. Proposal: compare the engine's live sector floors
+   (sectors info) against the intended topology (`neighbours`, `lift_trigger`).

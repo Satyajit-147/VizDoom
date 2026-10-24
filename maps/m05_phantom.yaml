@@ -1,5 +1,5 @@
 # MAP05 PHANTOM — logic defects for the invariant oracle (PLAN: bug corpus).
-# M3 adds: the blue locked door emitted with lock 0 (sequence break) and the medkit
+# Defects: the blue locked door emitted with lock 0 (sequence break) and the medkit
 # replaced by an over-cap health pickup.
 name: PHANTOM
 slot: 5
@@ -28,4 +28,19 @@ things:
 
 goal: {kind: reach_exit, target: exitsw, requires: [key_blue], time_limit_tics: 10500}
 
-defects: []
+defects:
+  - id: d_phantom_lock
+    kind: wrong_special
+    target: p_armory_vault
+    expected_oracle: invariant
+    severity: high
+    notes: >
+      The blue locked door is emitted with lock 0, so it opens without the blue key:
+      a sequence break.
+  - id: d_phantom_health
+    kind: bad_pickup
+    target: medkit
+    expected_oracle: invariant
+    severity: low
+    notes: >
+      The armory medkit is a Soulsphere, taking the player above the 100 health cap.

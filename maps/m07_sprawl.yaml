@@ -1,6 +1,6 @@
 # MAP07 SPRAWL — scale test and coverage headline (PLAN: bug corpus). 12 rooms,
 # 1792x1344 mu. Everything past the red locked door (rows 1-2) is gated by the key task.
-# M3 adds one of each: missing_blocking, wrong_tag (switch in r10 -> door into r13),
+# Defects, one of each: missing_blocking, wrong_tag (switch in r10 -> door into r13),
 # geometry_trap (r23), one_way_lift (r10 -> pit r20).
 name: SPRAWL
 slot: 7
@@ -47,4 +47,35 @@ things:
 
 goal: {kind: reach_exit, target: exitsw, requires: [key_red], time_limit_tics: 21000}
 
-defects: []
+defects:
+  - id: d07_leak
+    kind: missing_blocking
+    target: r21
+    params: {wall: north, segment: [608, 736]}
+    expected_oracle: out_of_bounds
+    severity: high
+    notes: >
+      A segment of r21's north (outer) wall is passable.
+  - id: d07_orphan
+    kind: wrong_tag
+    target: sw13
+    expected_oracle: unreachable
+    severity: high
+    notes: >
+      The r10 switch targets the wrong tag, so the r12 -> r13 door never opens and r13 is
+      unreachable.
+  - id: d07_trap
+    kind: geometry_trap
+    target: r23
+    params: {drop: 64}
+    expected_oracle: stuck
+    severity: medium
+    notes: >
+      r23's floor is 64 mu below r22: the player can drop in but not climb out.
+  - id: d07_oneway
+    kind: one_way_lift
+    target: p10_20
+    expected_oracle: softlock
+    severity: high
+    notes: >
+      The lift into the r20 pit has no trigger on the pit side.

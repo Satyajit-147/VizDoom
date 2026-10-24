@@ -26,4 +26,13 @@ things:
 
 goal: {kind: reach_exit, target: exitsw, requires: [key_red], time_limit_tics: 10500}
 
-defects: []
+defects:
+  - id: d_leak_hall_north
+    kind: missing_blocking
+    target: hall
+    params: {wall: north, segment: [192, 320]}
+    expected_oracle: out_of_bounds
+    severity: high
+    notes: >
+      A 128 mu segment of the hall's north wall looks solid but is passable. The player
+      can walk out of the level into undefined space.

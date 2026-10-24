@@ -1,4 +1,4 @@
-"""Scripted ViZDoom driver for engine-level map tests: warp, face, walk, use.
+"""Scripted ViZDoom driver for engine-level map tests: warp, face, walk, jump, use.
 
 Test-only. Uses GZDoom cheats (warp, give), which the agent never gets.
 """
@@ -11,9 +11,12 @@ from pathlib import Path
 
 import vizdoom as vzd
 
+from qatester.mapgen.spec import Room
+
 GV = vzd.GameVariable
-FORWARD, USE, TURN = 0, 1, 2
 KEY_ITEMS = {"key_red": "RedCard", "key_blue": "BlueCard", "key_yellow": "YellowCard"}
+WALL = 16
+NOOP = [0, 0, 0, 0]  # MOVE_FORWARD, USE, TURN_LEFT_RIGHT_DELTA, JUMP
 
 
 class Driver:
@@ -22,8 +25,9 @@ class Driver:
         g.load_config(str(cfg))
         g.add_game_args("+sv_cheats 1")
         g.set_available_buttons(
-            [vzd.Button.MOVE_FORWARD, vzd.Button.USE, vzd.Button.TURN_LEFT_RIGHT_DELTA]
-        )
+            [vzd.Button.MOVE_FORWARD, vzd.Button.USE, vzd.Button.TURN_LEFT_RIGHT_DELTA,
+             vzd.Button.JUMP]
+        )  # fmt: skip
         g.set_seed(0)
         g.init()
         self.game = g
@@ -42,6 +46,9 @@ class Driver:
             g.get_game_variable(GV.POSITION_Z),
         )
 
+    def health(self) -> float:
+        return self.game.get_game_variable(GV.HEALTH)
+
     def warp(self, x: float, y: float) -> None:
         self.game.send_game_command(f"warp {x} {y}")
         self.idle(2)
@@ -55,24 +62,24 @@ class Driver:
         A positive TURN_LEFT_RIGHT_DELTA turns clockwise."""
         current = self.game.get_game_variable(GV.ANGLE)
         delta = (current - angle + 180.0) % 360.0 - 180.0
-        self.game.make_action([0, 0, delta], 1)
+        self.game.make_action([0, 0, delta, 0], 1)
 
     def face_point(self, x: float, y: float) -> None:
         px, py, _ = self.pos()
         self.face(math.degrees(math.atan2(y - py, x - px)))
 
-    def forward(self, tics: int) -> None:
+    def forward(self, tics: int, jump: bool = False) -> None:
         for _ in range(tics):
             if self.game.is_episode_finished():
                 return
-            self.game.make_action([1, 0, 0], 1)
+            self.game.make_action([1, 0, 0, int(jump)], 1)
 
     def use(self) -> None:
-        self.game.make_action([0, 1, 0], 1)
-        self.game.make_action([0, 0, 0], 1)
+        self.game.make_action([0, 1, 0, 0], 1)
+        self.game.make_action(NOOP, 1)
 
     def idle(self, tics: int) -> None:
-        self.game.make_action([0, 0, 0], tics)
+        self.game.make_action(NOOP, tics)
 
     def walk_until(self, inside: Callable[[float, float], bool], tics: int) -> bool:
         """Walk forward until `inside(x, y)` is true, for at most `tics` tics."""
@@ -82,6 +89,22 @@ class Driver:
             x, y, _ = self.pos()
             if inside(x, y):
                 return True
-            self.game.make_action([1, 0, 0], 1)
+            self.game.make_action([1, 0, 0, 0], 1)
         x, y, _ = self.pos()
         return inside(x, y)
+
+
+def inside_room(room: Room, margin: float = WALL) -> Callable[[float, float], bool]:
+    return lambda x, y: (
+        room.x0 + margin <= x <= room.x1 - margin and room.y0 + margin <= y <= room.y1 - margin
+    )
+
+
+def approach(room: Room, wall_axis: str, wall_at: float, along: float,
+             dist: float) -> tuple[float, float, float]:  # fmt: skip
+    """A point `dist` from the wall inside `room`, and the angle facing the wall."""
+    if wall_axis == "x":
+        sign = -1 if room.x1 == wall_at else 1  # room lies on the low-x side
+        return wall_at + sign * dist, along, 0.0 if sign < 0 else 180.0
+    sign = -1 if room.y1 == wall_at else 1
+    return along, wall_at + sign * dist, 90.0 if sign < 0 else 270.0
