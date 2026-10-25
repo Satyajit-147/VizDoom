@@ -8,6 +8,7 @@ outline around the region they occupy or cut off.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from html import escape
 
 from qatester.mapgen.geometry import (
@@ -40,7 +41,11 @@ THING_COLOUR = {
 }  # fmt: skip
 
 
-def render_svg(cm: CompiledMap) -> str:
+Marker = tuple[float, float, str, str]  # x, y, label, colour
+
+
+def render_svg(cm: CompiledMap, markers: Sequence[Marker] = ()) -> str:
+    """`markers` are drawn on top, e.g. a bug report's findings on the intended map."""
     spec = cm.spec
     x0 = min(r.x0 for r in spec.rooms)
     y0 = min(r.y0 for r in spec.rooms)
@@ -126,6 +131,12 @@ def render_svg(cm: CompiledMap) -> str:
             f'<text x="{x + 9}" y="{y - 9}" fill="#e00" font-weight="bold">'
             f"{escape(rec.id)} ({escape(rec.expected_oracle)})</text>"
         )
+    for mx, my, label, colour in markers:
+        x, y = px(mx), py(my)
+        out.append(f'<circle cx="{x}" cy="{y}" r="9" fill="{colour}" fill-opacity="0.85" '
+                   'stroke="#fff" stroke-width="2"/>')
+        out.append(f'<text x="{x + 12}" y="{y + 4}" fill="#fff" font-weight="bold" '
+                   f'stroke="#000" stroke-width="3" paint-order="stroke">{escape(label)}</text>')
     legend = [
         ("door", FILL["door"]), ("locked", SPECIAL_COLOUR[DOOR_LOCKED_RAISE]),
         ("lift", FILL["lift"]), ("teleport", FILL["pad"]),

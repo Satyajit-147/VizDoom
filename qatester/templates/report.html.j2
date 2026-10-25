@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QA report {{ r.map }} {{ r.run_id }}</title>
+<style>
+  :root { --bg: #fafaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #d9d8d2; --card: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --fg: #ecebe6; --muted: #a3a29c; --line: #34332f; --card: #1f1f1d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 64px; background: var(--bg); color: var(--fg);
+         font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 17px; margin: 32px 0 8px; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+           gap: 8px; margin-top: 16px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+          padding: 10px 12px; }
+  .tile b { display: block; font-size: 20px; }
+  .tile span { color: var(--muted); font-size: 12px; }
+  .map { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; margin-top: 8px; }
+  .map svg { display: block; max-width: 100%; height: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { cursor: pointer; user-select: none; white-space: nowrap; }
+  th:hover { text-decoration: underline; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .wrap { overflow-x: auto; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+            padding: 8px 12px; margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  pre { background: var(--bg); padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+  code { font-size: 13px; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>QA report — {{ r.map }}</h1>
+  <div class="meta">run {{ r.run_id }} · {{ "{:,}".format(r.env_steps) }} env steps ·
+    {{ "%.0f"|format(r.wall_clock_s) }} s · git {{ r.git_sha[:10] }} · WAD {{ r.wad }} ({{ r.map_lump }})</div>
+
+  <div class="tiles">
+    <div class="tile"><b>{{ r.findings|length }}</b><span>candidate defects</span></div>
+    <div class="tile"><b>{{ r.raw_findings }}</b><span>raw oracle findings</span></div>
+    <div class="tile"><b>{{ "%.0f"|format(100 * r.coverage.cell) }}%</b><span>cell coverage</span></div>
+    <div class="tile"><b>{{ "%.0f"|format(100 * r.coverage.entity) }}%</b><span>entity coverage</span></div>
+    <div class="tile"><b>{{ "%.0f"|format(100 * r.coverage.connection) }}%</b><span>connection coverage</span></div>
+    <div class="tile"><b>{{ "{:,}".format(r.coverage.abstract_states) }}</b><span>abstract states</span></div>
+  </div>
+
+  <h2>Map</h2>
+  <div class="map">{{ svg|safe }}</div>
+
+  <h2>Findings, by severity</h2>
+  {% if r.findings %}
+  <div class="wrap"><table id="findings">
+    <thead><tr><th data-k="n">#</th><th>id</th><th>oracle</th><th>kind</th><th data-k="n">severity</th>
+      <th data-k="n">confidence</th><th data-k="n">cluster</th><th>room</th><th data-k="n">first seen (step)</th></tr></thead>
+    <tbody>
+    {% for f in r.findings %}
+      <tr><td>{{ loop.index }}</td><td><a href="#{{ f.id }}">{{ f.id }}</a></td>
+        <td><span class="dot" style="background: {{ colours[f.oracle] }}"></span>{{ f.oracle }}</td>
+        <td>{{ f.kind }}</td><td>{{ "%.2f"|format(f.severity) }}</td>
+        <td>{{ "%.2f"|format(f.confidence_calibrated) }}</td><td>{{ f.cluster_size }}</td>
+        <td>{{ f.room }}</td><td>{{ f.first_seen_step }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  {% for f in r.findings %}
+  <details id="{{ f.id }}" {% if loop.first %}open{% endif %}>
+    <summary>{{ f.id }} — {{ f.summary }}</summary>
+    <p>Severity {{ "%.2f"|format(f.severity) }}, confidence {{ "%.2f"|format(f.confidence_raw) }} raw /
+      {{ "%.2f"|format(f.confidence_calibrated) }} calibrated, {{ f.cluster_size }} raw finding(s) in this cluster,
+      position ({{ "%.0f"|format(f.position[0]) }}, {{ "%.0f"|format(f.position[1]) }}, {{ "%.0f"|format(f.position[2]) }}).</p>
+    {% if f.repro.demo %}
+    <p>Reproduce: <code>python scripts/replay.py {{ f.repro.demo }} --wad {{ r.wad }} --map {{ r.map_lump }}</code>
+      (episode {{ f.repro.episode }}, tics {{ f.repro.tic_range[0] }}–{{ f.repro.tic_range[1] }}).</p>
+    {% else %}<p class="empty">No demo recorded for this finding.</p>{% endif %}
+    <pre>{{ evidence_json[f.id] }}</pre>
+  </details>
+  {% endfor %}
+  {% else %}<p class="empty">No findings.</p>{% endif %}
+
+  <h2>Coverage gaps (not findings)</h2>
+  {% if r.coverage_gaps %}
+  <div class="wrap"><table>
+    <thead><tr><th>room</th><th>cells unvisited</th><th>failed attempts to get in</th></tr></thead>
+    <tbody>{% for g in r.coverage_gaps %}<tr><td>{{ g.room }}</td><td>{{ g.cells_unvisited }}</td><td>{{ g.portals_attempted }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Every room was entered.</p>{% endif %}
+</main>
+<script>
+  document.querySelectorAll("#findings th").forEach((th, i) => {
+    th.addEventListener("click", () => {
+      const body = th.closest("table").tBodies[0];
+      const num = th.dataset.k === "n";
+      const asc = th.dataset.asc !== "1";
+      th.dataset.asc = asc ? "1" : "0";
+      const rows = Array.from(body.rows);
+      rows.sort((a, b) => {
+        const x = a.cells[i].textContent.trim(), y = b.cells[i].textContent.trim();
+        const c = num ? parseFloat(x) - parseFloat(y) : x.localeCompare(y);
+        return asc ? c : -c;
+      });
+      rows.forEach(r => body.appendChild(r));
+    });
+  });
+</script>
+</body>
+</html>

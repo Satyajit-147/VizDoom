@@ -11,9 +11,11 @@
 
 from __future__ import annotations
 
+import atexit
 import contextlib
 import os
 import signal
+import sys
 import threading
 import time
 from collections.abc import Callable
@@ -31,6 +33,12 @@ def engine_errors() -> tuple[type[BaseException], ...]:
              "ViZDoomUnexpectedExitException", "SharedMemoryException",
              "MessageQueueException")  # fmt: skip
     return tuple(getattr(vzd, n) for n in names if hasattr(vzd, n))
+
+
+def exit_on_sigterm() -> None:
+    """Turn SIGTERM into a normal exit, so `finally` blocks and atexit handlers run and
+    the ViZDoom engines (separate processes that outlive a killed parent) are closed."""
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
 
 
 def child_pids(pid: int | None = None) -> set[int]:
@@ -94,6 +102,7 @@ class Supervisor:
                 self.sleep(delay)
                 delay *= 2
         if self._watchdog is None:
+            atexit.register(self.kill_engine)  # a dying worker must not orphan its engine
             self._watchdog = threading.Thread(target=self._watch, daemon=True,
                                               name="vizdoom-watchdog")  # fmt: skip
             self._watchdog.start()

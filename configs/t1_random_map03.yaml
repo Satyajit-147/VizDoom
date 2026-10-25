@@ -1,0 +1,14 @@
+# M6 acceptance run: T1 (uniform random) on MAP03 LEAK for 200k steps. The report must
+# contain at least one out-of-bounds finding with a working demo. No learning, no GPU:
+# run it in a CPU-only Kaggle session.
+run_name: t1_random_map03
+agent: random
+total_steps: 200_000
+n_envs: 4            # a CPU session has 4 cores and no learner to feed
+seed: 0
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 200_000, maps: [MAP03], weights: [1.0]}
+reward:
+  alpha: 0.5

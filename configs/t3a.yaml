@@ -1,0 +1,24 @@
+# T3a on the plan's curriculum (PLAN: Training curriculum), with generated maps mixed in
+# from the core stage on (docs/decisions.md D18). The E1 configuration for T3a.
+run_name: t3a
+agent: ppo
+total_steps: 1_000_000
+n_envs: 2
+seed: 0
+device: auto
+maps:
+  variant: buggy
+  generated: {split: train, count: 64, start: 0}
+  curriculum:
+    - {until: 100_000, maps: [MAP01], weights: [1.0]}
+    - {until: 600_000, maps: [MAP01, MAP02, MAP03, MAP04, MAP05, MAP06],
+       weights: [0.05, 0.09, 0.09, 0.09, 0.09, 0.09], generated_weight: 0.5}
+    - {until: 1_000_000, maps: [MAP01, MAP02, MAP03, MAP04, MAP05, MAP06, MAP07],
+       weights: [0.025, 0.055, 0.055, 0.055, 0.055, 0.055, 0.2], generated_weight: 0.5}
+reward:
+  alpha: 1.0
+eval:
+  every: 100_000
+  episodes: 10
+  maps: [MAP01, MAP07]
+  variant: fixed

@@ -467,17 +467,61 @@ room's centre. The corpus only had switches on outer walls, so the bug never sho
 there. The env and the oracles take switch positions from the ground truth and were
 never affected.
 
+## 2026-10-25 — M6
+
+### D33. Baselines, runs and reports: what the plan leaves open
+- **Network (open issue 1, decided 2026-10-25: option A).** sb3-contrib `RecurrentPPO`
+  with `MultiInputLstmPolicy`. The plan's two-branch encoder (`agents/policy.py`) feeds
+  one LSTM(256) shared by actor and critic, with a 12-way policy head and one value head
+  straight off it. That is an LSTM instead of the GRU, and one value head (γ = 0.995)
+  instead of two. Revisit the second head in M7 only if curiosity training is unstable.
+- **Run layout.** The run id is `<run_name>_seed<seed>`, stable so that a new Kaggle
+  session resumes its own checkpoints. A run builds its own maps into
+  `runs/<id>/build/`, so two jobs never write the same build folder. It writes
+  `findings.jsonl`, `coverage_gaps.jsonl`, `episodes.jsonl`, `metrics.jsonl`,
+  `eval.jsonl` and `manifest.json` (git SHA, WAD SHA-256s, config).
+  `results/<id>/<map>/` holds `report.json`, `report.html`, the representative demos and
+  the WAD, so a results folder replays on its own. Reports are per map, because a
+  curriculum run plays several.
+- **Curriculum.** One ViZDoom instance per worker. A map in the same WAD switches with
+  `set_doom_map` (5 ms); a map in another WAD (a generated pack) restarts the engine.
+  Stage boundaries use worker steps × n_envs, plus the steps done before a resume.
+  Generated maps share a stage's `generated_weight` evenly.
+- **Findings reach the main process on a queue,** tagged with map, env seed and step,
+  and are appended to `findings.jsonl` as they arrive, so nothing is lost when a
+  session dies. `first_seen_step` is worker step × n_envs.
+- **Report pipeline deviations.**
+  - DBSCAN noise points (fewer than 3 neighbours) are grouped among themselves within
+    eps and kept, not dropped: a crash seen once is still a candidate defect, and its
+    small cluster size already lowers its severity.
+  - The blocking factor uses rooms on every spawn-to-goal route of the intended portal
+    graph.
+  - The report's map preview is drawn from the intended map, so injected defects never
+    appear in a report.
+  - Calibration is identity until M9 fits a temperature.
+- **T2 scripted patrol.** Right-hand wall-following on the newest depth frame
+  (7.3 mu per depth unit, measured). USE when anything usable is in reach or a wall is
+  touching. Back off and strafe when the speed ratio says it is pushing without moving.
+  5% random actions.
+- **Evaluation episodes** run in the training process on the fixed variant, with
+  novelty off, and are stochastic by default.
+
+### D34. Two engine problems found in M6, fixed
+- **ViZDoom hangs on long file paths.** `new_episode(path)`, `replay_episode`, `save`
+  and `load` pass the path to the engine as a command. Measured: a path of 108
+  characters works and 118 hangs forever. Pytest's temporary folders are short enough,
+  so M5's tests missed it; a scratch folder exposed it. The env and `scripts/replay.py`
+  now always use a short temporary folder (`/tmp/qaXXXX/…`) and copy or move the file.
+- **Engine processes outlive a killed parent.** The `vizdoom` child process keeps
+  running when Python is killed, using CPU and holding pipes open. Each supervisor now
+  registers an atexit hook that kills its engine. `scripts/train.py` and the rollout
+  workers turn SIGTERM into a normal exit, so those hooks run. A SIGKILL still orphans
+  engines; there is no fix for that from inside Python.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.
 
-1. **[M6/M7] RecurrentPPO cannot express the specified network.** The plan specifies a GRU
-   trunk and two value heads (extrinsic γ=0.995, intrinsic γ=0.99), and says this is "a
-   configuration change, not an implementation" with sb3-contrib's `RecurrentPPO`. It is not:
-   `RecurrentPPO` supports only LSTM and a single value head with a single γ. Options:
-   (a) use `RecurrentPPO` + `MultiInputLstmPolicy` with LSTM and one value head on the
-   combined reward (simplest, deviates from the architecture section); or (b) write a small
-   custom PPO with GRU and dual heads (matches the spec, more code to test).
 3. **[M8] Archive cap.** The M8 prompt says LRU eviction at 20,000 cells; the Kaggle rules
    and `t4_goexplore.yaml` say 5,000. Proposal: configurable `max_cells`, default 5,000.
 4. **[M9] Seed count.** "Do not cut … the 10-seed protocol" and R10 ("keep 10 for E1 and
@@ -494,3 +538,4 @@ Each must be decided before the milestone named.
 9. **[M4] Oracles must not read `defects`:** D25. Intent-only view, enforced by tests.
 10. **[M4] Vertical-trap check needs live floors:** D25. Live engine floors against the intended topology.
 11. **[M5] Worker counts for the bench:** `bench_env.py` runs 1, 2, 4 and 16 workers. Treat 16 as indicative only on Kaggle's 4 vCPUs; training uses 2 per job.
+12. **[M6] RecurrentPPO cannot express the specified network:** decided as option A (LSTM, one value head), D33.

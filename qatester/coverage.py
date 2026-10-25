@@ -17,6 +17,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from multiprocessing import shared_memory
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -142,6 +143,28 @@ class CoverageTracker:
             "connection_coverage": float((self.portals > 0).sum() / n_port) if n_port else 0.0,
             "abstract_states": int(np.count_nonzero(self.states)),
         }  # fmt: skip
+
+    def room_cells(self) -> dict[str, tuple[int, int]]:
+        """Per room: (walkable cells visited, walkable cells), by each cell's centre."""
+        w = self.truth.data["walkable"]
+        ox, oy, size = w["origin"][0], w["origin"][1], w["cell_size"]
+        out = {r["id"]: [0, 0] for r in self.truth.data["rooms"]}
+        for iy, ix in zip(*np.nonzero(self.walkable), strict=True):
+            room = self.truth.room_at(ox + (ix + 0.5) * size, oy + (iy + 0.5) * size)
+            if room is not None:
+                out[room][1] += 1
+                out[room][0] += int(self.cells[iy, ix] > 0)
+        return {k: (v[0], v[1]) for k, v in out.items()}
+
+    def save(self, path: Path) -> None:
+        """Snapshot every count (for checkpoints: shared memory does not outlive a session)."""
+        np.save(path, np.asarray(self._flat))
+
+    def restore(self, path: Path) -> None:
+        saved = np.load(path)
+        if saved.shape != self._flat.shape:
+            raise ValueError(f"{path}: {saved.shape} counts, expected {self._flat.shape}")
+        self._flat[:] = saved
 
     def close(self) -> None:
         """Detach; the owner also frees the block."""

@@ -1,0 +1,22 @@
+# M6 acceptance: T3a, PPO on the validity reward only (alpha = 1), on MAP01 CLEAN.
+# Passes when the policy reaches MAP01's exit in > 80% of evaluation episodes.
+# Kaggle GPU session; one job uses one T4 (CUDA_VISIBLE_DEVICES picks which).
+run_name: t3a_map01
+agent: ppo
+total_steps: 1_000_000
+n_envs: 2
+seed: 0
+device: auto
+ckpt_every: 100_000
+metrics_every: 10_000
+maps:
+  variant: buggy        # MAP01 has no defects, so buggy == fixed here
+  curriculum:
+    - {until: 1_000_000, maps: [MAP01], weights: [1.0]}
+reward:
+  alpha: 1.0            # T3a: winning, not testing
+eval:
+  every: 100_000
+  episodes: 20
+  maps: [MAP01]
+  variant: fixed

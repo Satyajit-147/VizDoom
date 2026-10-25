@@ -16,6 +16,8 @@ which `close()` also calls.
 from __future__ import annotations
 
 import multiprocessing as mp
+import shutil
+import tempfile
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Literal
@@ -33,7 +35,7 @@ from qatester.env.observation import (
     observation_space,
     scalars,
 )
-from qatester.env.reward import EpisodeReward, RewardConfig
+from qatester.env.reward import ADV_PARTS, VALID_PARTS, EpisodeReward, RewardConfig
 from qatester.env.supervisor import CallResult, Supervisor
 from qatester.env.trace import episode_stem, write_trace
 from qatester.env.world import World, count_pickups_in_view, keys_mask
@@ -57,6 +59,23 @@ TracePolicy = Literal["all", "findings", "none"]
 Obs = dict[str, np.ndarray]
 
 
+def _cfg_value(cfg_path: Path, key: str) -> str:
+    for line in Path(cfg_path).read_text(encoding="ascii").splitlines():
+        k, _, v = line.partition("=")
+        if k.strip() == key:
+            return v.strip()
+    raise KeyError(f"{cfg_path}: no {key}")
+
+
+def wad_of(cfg_path: Path) -> Path:
+    """The WAD a ViZDoom .cfg loads (relative paths resolve against the .cfg's folder)."""
+    return (Path(cfg_path).parent / _cfg_value(cfg_path, "doom_scenario_path")).resolve()
+
+
+def doom_map_of(cfg_path: Path) -> str:
+    return _cfg_value(cfg_path, "doom_map")
+
+
 class QADoomEnv(gym.Env[Obs, np.int64]):
     metadata: dict[str, Any] = {"render_modes": []}  # noqa: RUF012 - as gymnasium.Env
 
@@ -76,16 +95,9 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         cheats: bool = False,
         init_retries: int = 5,
         init_backoff_s: float = 2.0,
+        map_name: str | None = None,
     ) -> None:
         super().__init__()
-        self.cfg_path = Path(cfg_path)
-        self.truth = groundtruth.intent_only() if "defects" in groundtruth.data else groundtruth
-        self.map_name: str = self.truth.data["map"]
-        self.time_limit: int = int(self.truth.data["goal"]["time_limit_tics"])
-        self.world = World(self.truth)
-        if self.world.goal_kind != "reach_exit":
-            raise ValueError(f"goal kind {self.world.goal_kind!r} is not supported yet")
-        self.coverage = coverage
         self.queue = oracle_queue
         self.base_seed = seed
         self.record_dir = Path(record_dir) if record_dir is not None else None
@@ -100,8 +112,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.depth = DepthProcessor()
         self.frames = FrameStack()
         self.reward = EpisodeReward(self.reward_cfg)
-        self.oracles = make_oracles(self.oracle_cfg)
-        self.traversal = TraversalTracker(self.world.level)
+        self._configure_map(Path(cfg_path), groundtruth, coverage, map_name)
         self.supervisor = Supervisor(
             self._make_game, step_timeout_s=self.oracle_cfg.crash.step_timeout_s,
             retries=init_retries, backoff_s=init_backoff_s,
@@ -109,13 +120,50 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.supervisor.start()
 
         self.episode = -1
+        self.total_steps = 0  # env steps over this env's lifetime
         self.game_seed = 0
         self.records: list[StepRecord] = []
         self.episode_findings: list[Finding] = []
         self.demo_path: Path | None = None
+        self._demo_tmp: Path | None = None
+        self._pending_demos: list[tuple[Path, Path]] = []  # (recording, destination)
         self.in_episode = False
         self.closed = False
         self._reset_episode_state()
+
+    def _configure_map(self, cfg_path: Path, groundtruth: GroundTruth,
+                       coverage: CoverageTracker | None, name: str | None) -> None:  # fmt: skip
+        """Per-map state: the level's intent, its oracles, its coverage counts."""
+        truth = groundtruth.intent_only() if "defects" in groundtruth.data else groundtruth
+        world = World(truth)
+        if world.goal_kind != "reach_exit":
+            raise ValueError(f"goal kind {world.goal_kind!r} is not supported yet")
+        self.cfg_path = cfg_path
+        self.truth = truth
+        self.map_name: str = name or truth.data["map"]
+        self.time_limit: int = int(truth.data["goal"]["time_limit_tics"])
+        self.world = world
+        self.coverage = coverage
+        self.oracles = make_oracles(self.oracle_cfg)
+        self.traversal = TraversalTracker(world.level)
+
+    def set_map(self, cfg_path: Path, groundtruth: GroundTruth,
+                coverage: CoverageTracker | None = None, name: str | None = None) -> None:
+        """Switch to another map before the next reset (the training curriculum).
+
+        Findings judged across episodes are finalized for the old map first. A map in the
+        same WAD is a 5 ms `set_doom_map`; another WAD restarts the engine."""
+        cfg_path = Path(cfg_path)
+        if cfg_path == self.cfg_path:
+            return
+        self.finalize_oracles()
+        same_wad = wad_of(cfg_path) == wad_of(self.cfg_path)
+        self._configure_map(cfg_path, groundtruth, coverage, name)
+        if same_wad:
+            self.game.set_doom_map(doom_map_of(cfg_path))
+            self.game.set_episode_timeout(self.time_limit)
+        else:
+            self.supervisor.restart()
 
     # --- engine -----------------------------------------------------------------------
     def _make_game(self) -> vzd.DoomGame:
@@ -177,6 +225,9 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.last: StepRecord | None = None
         self.last_frame = np.zeros((64, 64), np.uint8)
         self.loaded = False
+        self.ep_parts: dict[str, float] = {}
+        self.ep_return = 0.0
+        self.ep_steps = 0
 
     def reset(self, *, seed: int | None = None,
               options: dict[str, Any] | None = None) -> tuple[Obs, dict[str, Any]]:  # fmt: skip
@@ -190,19 +241,27 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.game_seed = int(self.np_random.integers(2**31 - 1))
         self.game.set_seed(self.game_seed)
         self.demo_path = None
+        rec: list[str] = []
         if self.record_dir is not None and "load_state" not in options:
             self.demo_path = self.record_dir / "demos" / f"{self._stem()}.lmp"
             self.demo_path.parent.mkdir(parents=True, exist_ok=True)
-        res = self.supervisor.call(self.game.new_episode, *([str(self.demo_path)]
-                                                           if self.demo_path else []))  # fmt: skip
+            # ViZDoom hangs on a recording path of ~113+ characters, so record to a short
+            # temporary path and move the file once the engine has closed it (D33).
+            tmp = self._short() / f"e{self.episode}.lmp"
+            self._pending_demos.append((tmp, self.demo_path))
+            rec = [str(tmp)]
+        res = self.supervisor.call(self.game.new_episode, *rec)
         if res.error is not None or res.hung:
             self.supervisor.restart()  # a failed new_episode is retried once, on a fresh engine
             self.game.set_seed(self.game_seed)
-            self.game.new_episode(*([str(self.demo_path)] if self.demo_path else []))
+            self.game.new_episode(*rec)
+        self._flush_demos(keep_last=bool(rec))
         if "warp" in options:
             self._warp(*options["warp"])
         if "load_state" in options:
-            self.game.load(str(options["load_state"]))
+            tmp = self._short() / "l.sav"
+            shutil.copyfile(options["load_state"], tmp)
+            self.game.load(str(tmp))
         return self._begin_episode(loaded="load_state" in options)
 
     def _warp(self, x: float, y: float, angle: float | None = None) -> None:
@@ -316,6 +375,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
             portals=crossed, findings=findings,
         )  # fmt: skip
 
+        self._tally(reward, parts)
         moved = float(np.hypot(rec.x - prev.x, rec.y - prev.y))
         obs = {"depth": self.frames.push(self._frame(state)),
                "scalars": self._scalars(rec, state, moved, bool(ACTIONS[a].move_dirs))}  # fmt: skip
@@ -324,6 +384,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         info = self._info(rec, findings, parts)
         if finished:
             info["outcome"] = "death" if died else ("timeout" if timeout else "goal")
+            info["episode_stats"] = self._episode_stats(info["outcome"])
             self._end_episode()
         return obs, float(reward), bool(died or goal), bool(timeout), info
 
@@ -335,15 +396,38 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
                       done=True, truncated=True, notifications=())  # fmt: skip
         findings = self._observe(rec)
         reward, parts = self.reward.step(findings=findings)
+        self._tally(reward, parts)
         self.supervisor.restart()
         obs = {"depth": self.frames.frames.copy(),
                "scalars": self._scalars(rec, None, 0.0, False)}  # fmt: skip
         info = self._info(rec, findings, parts)
         info["outcome"] = "hang" if res.hung else "crash"
         info["engine_failure"] = res.error or f"no reply within {res.wall_s:.1f}s"
+        info["episode_stats"] = self._episode_stats(info["outcome"])
         self.demo_path = None  # the engine died before writing it
+        if self._pending_demos:
+            self._pending_demos.pop()
         self._end_episode()
         return obs, float(reward), False, True, info
+
+    def _tally(self, reward: float, parts: dict[str, float]) -> None:
+        self.total_steps += 1
+        self.ep_steps += 1
+        self.ep_return += reward
+        for k, v in parts.items():
+            self.ep_parts[k] = self.ep_parts.get(k, 0.0) + v
+
+    def _episode_stats(self, outcome: str) -> dict[str, Any]:
+        valid = sum(self.ep_parts.get(k, 0.0) for k in VALID_PARTS)
+        adv = sum(self.ep_parts.get(k, 0.0) for k in ADV_PARTS)
+        return {"map": self.map_name, "outcome": outcome, "steps": self.ep_steps,
+                "return": self.ep_return, "validity": valid, "adversarial": adv,
+                "parts": dict(self.ep_parts)}  # fmt: skip
+
+    def _post(self, item: dict[str, Any]) -> None:
+        if self.queue is not None:
+            self.queue.put({"map": self.map_name, "env_seed": self.base_seed,
+                            "env_steps": self.total_steps, **item})  # fmt: skip
 
     def _observe(self, rec: StepRecord) -> list[Finding]:
         self.records.append(rec)
@@ -351,9 +435,8 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         if self.demo_path is not None:
             findings = [replace(f, demo_path=self.demo_path) for f in findings]
         self.episode_findings += findings
-        if self.queue is not None:
-            for f in findings:
-                self.queue.put((self.map_name, f))
+        for f in findings:
+            self._post({"type": "finding", "finding": f})
         return findings
 
     # --- reading the engine -----------------------------------------------------------
@@ -419,9 +502,25 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
             "keys": sorted(rec.keys), "findings": findings, "reward_parts": parts,
         }  # fmt: skip
 
+    def _flush_demos(self, keep_last: bool = False) -> None:
+        """Move finished recordings to their place in the run folder."""
+        done = self._pending_demos[:-1] if keep_last else self._pending_demos
+        for tmp, dest in done:
+            if tmp.exists():
+                shutil.move(tmp, dest)
+        self._pending_demos = self._pending_demos[-1:] if keep_last else []
+
     # --- Go-Explore hooks (M8) ----------------------------------------------------------
+    def _short(self) -> Path:
+        """A short scratch folder: ViZDoom hangs on file paths of ~113+ characters (D33)."""
+        if self._demo_tmp is None:
+            self._demo_tmp = Path(tempfile.mkdtemp(prefix="qa"))
+        return self._demo_tmp
+
     def save_state(self, save_path: Path) -> None:
-        self.game.save(str(save_path))
+        tmp = self._short() / "s.sav"
+        self.game.save(str(tmp))
+        shutil.move(tmp, save_path)
 
     def load_state(self, save_path: Path) -> Obs:
         """Go-Explore reset: restore a saved state and start a new oracle episode there.
@@ -442,9 +541,11 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
                 if f.demo_path is None and "episode" in f.evidence else f
                 for f in findings
             ]  # fmt: skip
-        if self.queue is not None:
-            for f in findings:
-                self.queue.put((self.map_name, f))
+        for f in findings:
+            self._post({"type": "finding", "finding": f})
+        reach = next((o for o in self.oracles if o.name == "unreachable"), None)
+        for gap in getattr(reach, "coverage_gaps", []):
+            self._post({"type": "coverage_gap", "gap": gap})
         self.oracles = make_oracles(self.oracle_cfg)
         return findings
 
@@ -456,3 +557,6 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
             self.finalize_oracles()
         finally:
             self.supervisor.close()
+            self._flush_demos()
+            if self._demo_tmp is not None:
+                shutil.rmtree(self._demo_tmp, ignore_errors=True)

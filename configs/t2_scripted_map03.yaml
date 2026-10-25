@@ -1,0 +1,12 @@
+# T2 (wall-follower with USE on contact) on MAP03, the same budget as T1.
+run_name: t2_scripted_map03
+agent: scripted
+total_steps: 200_000
+n_envs: 4
+seed: 0
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 200_000, maps: [MAP03], weights: [1.0]}
+reward:
+  alpha: 0.5

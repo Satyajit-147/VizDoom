@@ -55,11 +55,14 @@ pythonpath = ["tests"]
 python_version = "3.11"
 
 [[tool.mypy.overrides]]
-module = ["qatester.mapgen.*", "qatester.oracles.*", "qatester.env.*", "qatester.coverage"]
+module = ["qatester.mapgen.*", "qatester.oracles.*", "qatester.env.*", "qatester.coverage",
+          "qatester.report.*", "qatester.config", "qatester.runner"]
 strict = true
 
 [[tool.mypy.overrides]]
-module = ["vizdoom", "vizdoom.*", "pyarrow", "pyarrow.*"]
+module = ["vizdoom", "vizdoom.*", "pyarrow", "pyarrow.*", "sklearn", "sklearn.*", "scipy.*",
+          "torch", "torch.*", "stable_baselines3", "stable_baselines3.*", "sb3_contrib",
+          "sb3_contrib.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
