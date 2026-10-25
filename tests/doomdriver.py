@@ -109,9 +109,10 @@ def inside_room(room: Room, margin: float = WALL) -> Callable[[float, float], bo
 
 def approach(room: Room, wall_axis: str, wall_at: float, along: float,
              dist: float) -> tuple[float, float, float]:  # fmt: skip
-    """A point `dist` from the wall inside `room`, and the angle facing the wall."""
+    """A point `dist` from the wall inside `room`, and the angle facing the wall. The wall
+    may sit on the room's edge or, beside a neighbouring room, WALL/2 inside it."""
     if wall_axis == "x":
-        sign = -1 if room.x1 == wall_at else 1  # room lies on the low-x side
+        sign = -1 if wall_at > (room.x0 + room.x1) / 2 else 1  # room on the low-x side
         return wall_at + sign * dist, along, 0.0 if sign < 0 else 180.0
-    sign = -1 if room.y1 == wall_at else 1
+    sign = -1 if wall_at > (room.y0 + room.y1) / 2 else 1
     return along, wall_at + sign * dist, 90.0 if sign < 0 else 270.0

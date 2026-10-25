@@ -404,6 +404,69 @@ assumes about 300 steps/s per job, with 2 jobs of 2 workers each. The env alone 
 about 1,200 steps/s per job in that layout. PPO updates will take some of that, and M6
 measures the real training rate.
 
+## 2026-10-25 — Procedural maps (D18, item 1)
+
+### D31. `qatester/mapgen/procgen.py`: how generated maps are made
+- **Seeds and splits.** A seed fixes a map completely. Train seeds are 0, 1, 2, …;
+  test seeds start at 1,000,000, so the two splits never share a map. A pack is at most
+  32 maps (one WAD, MAP01–MAP32): `python -m qatester.mapgen.procgen --split train
+  --count 32 -o <dir>`, then the usual `qatester.mapgen.cli build`.
+- **Defect classes come first.** 0–3 distinct kinds are drawn uniformly from the 7. The
+  layout is then made to contain what each kind needs: a pit behind a lift, a teleport
+  pair, a switch door, a locked door, a health pickup, a spare dead end, an outer wall.
+  Every class is therefore about equally common: each appears on about 1.5/7 of maps,
+  and about a quarter of maps are clean.
+- **Layout.** 5–9 rooms grown on a 4×4 grid. Column widths and row heights are drawn
+  from 320–512 mu, and neighbouring rooms share a full wall. A random spanning tree from
+  the spawn room gives the portals; up to 2 extra edges add loops. Some leaves become
+  pits (floor −64) or balconies (+64), reachable only by lift, so no open portal ever
+  joins two floors more than a step apart. Tree edges are open 50%, door 30%, locked
+  door 10% (at most one per key colour) and switch door 10%.
+- **Placement rules that keep maps playable.**
+  - Keys and switches go, shallowest door first, in a floor-0 room reachable without
+    their own door and without any door not yet unlocked.
+  - The exit goes in the deepest leaf.
+  - Teleport pads sit 112 mu in from a corner of a room at least 384 mu across. That
+    keeps them clear of lift platforms, and 80+ mu from the room centre where arrivals
+    land, so a clean map never bounces the player straight back.
+  - Wall switches go 40 mu inside a wall with no portal, spaced 128 mu apart when two
+    share a wall.
+  - Pickups stay 96 mu clear of walls and 80 mu clear of pads.
+- **Defects stay findable and separate.**
+  - The `wrong_tag` door is chosen so that what it cuts off holds nothing the map needs
+    (spawn, exit, keys, switches). No other defect goes there.
+  - `geometry_trap` uses a dead end reserved for it: no lift, no teleport, no pickups,
+    no switch door in front.
+  - `one_way_lift` only targets lifts down into pits. A one-way lift up to a balcony
+    would make a region unreachable, which is a different class.
+  - `missing_blocking` uses an outer wall that no switch uses.
+  - Two defects never share a room.
+- **Every map is checked as it is made.** The spec validators, both compiled variants
+  through the geometry validators, and ground-truth generation all run inside
+  `generate`. On failure the generator retries with seed `[seed, attempt]`, which keeps
+  it deterministic. On average a map takes 1.2 attempts.
+
+### D32. Generated maps validated in the engine (2026-10-25)
+`tests/test_procgen.py` covers a pack of 24 generated maps (12 train, 12 test seeds):
+- On the fixed variant, every M2 portal routine works (doors, locked doors, switch
+  doors, lifts both ways, teleports, the exit), and the oracles stay silent on that play
+  and on random play.
+- On the buggy variant, each defect's scenario shows the defect, and the oracles find it
+  with its expected family. The only other findings allowed are matches to another real
+  defect of the same map.
+
+A one-off sweep of 96 more maps (train seeds 100–147, test seeds 1,000,100–1,000,147):
+all 96 play as intended with zero findings, and all 141 defects are found by their
+expected family.
+
+The sweep exposed a bug in the test helper `doomdriver.approach`. It decided which side
+of a wall the room is on by checking that the wall sits on the room's edge. A switch on
+a wall shared with a neighbouring room (no portal there) sits WALL/2 inside the edge, so
+the test player was placed outside the room. The helper now compares the wall with the
+room's centre. The corpus only had switches on outer walls, so the bug never showed
+there. The env and the oracles take switch positions from the ground truth and were
+never affected.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

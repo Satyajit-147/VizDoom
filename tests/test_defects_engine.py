@@ -16,7 +16,7 @@ from doomdriver import Driver, approach, inside_room
 
 from qatester.mapgen.cli import BuildResult, build
 from qatester.mapgen.geometry import EXIT_NORMAL, LIFT_DEPTH, WALL, CompiledMap
-from qatester.mapgen.spec import Defect, MapSpec, Room, shared_wall
+from qatester.mapgen.spec import Defect, MapSpec, Portal, Room, shared_wall
 
 REPO = Path(__file__).resolve().parents[1]
 PLAYER_RADIUS = 16
@@ -42,9 +42,13 @@ def _outside_level(spec: MapSpec, x: float, y: float) -> bool:
     )
 
 
-def _neighbour_via_open(spec: MapSpec, room: Room) -> Room:
-    p = next(p for p in spec.portals if p.kind == "open" and room.id in (p.a, p.b))
-    return spec.room(p.b if p.a == room.id else p.a)
+def _way_in(spec: MapSpec, room: Room) -> tuple[Room, Portal]:
+    """A neighbouring room and the walk-through portal joining it to `room`, preferring
+    an open one."""
+    ways = [p for p in spec.portals
+            if room.id in (p.a, p.b) and p.kind in ("open", "door", "locked_door")]  # fmt: skip
+    p = min(ways, key=lambda p: p.kind != "open")
+    return spec.room(p.b if p.a == room.id else p.a), p
 
 
 # --- one scenario per defect kind: True = the defect showed ---------------------------
@@ -102,7 +106,7 @@ def opens_without_key(d: Driver, cm: CompiledMap, defect: Defect) -> bool:
 def traps(d: Driver, cm: CompiledMap, defect: Defect) -> bool:
     """Walk into the room from its neighbour, then try to walk and jump back out."""
     room = cm.spec.room(defect.target)
-    out = _neighbour_via_open(cm.spec, room)
+    out, portal = _way_in(cm.spec, room)
     wall = shared_wall(room, out)
     assert wall is not None
     along = (wall.lo + wall.hi) / 2
@@ -110,6 +114,12 @@ def traps(d: Driver, cm: CompiledMap, defect: Defect) -> bool:
     d.reset()
     d.warp(x, y)
     d.face(angle)
+    if portal.kind != "open":  # a door: open it first (with its key, if locked)
+        if portal.requires is not None:
+            d.give(portal.requires)
+        d.forward(20)
+        d.use()
+        d.idle(35)
     assert d.walk_until(inside_room(room), 120), "could not even enter the room"
     d.forward(10)
     d.face(angle + 180)
