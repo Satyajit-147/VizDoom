@@ -379,15 +379,30 @@ defect found in recorded real play by its expected family, with no stray family.
 - **Goal kinds.** Only `reach_exit` is supported. The corpus uses nothing else, and the
   env raises an error on any other kind.
 
-### D30. M5 status 2026-10-24: local acceptance passed; the Kaggle benchmark is pending
+### D30. M5 accepted 2026-10-25
 `tests/test_env_contract.py` covers Gymnasium's `check_env`, spaces, keys, the USE flag,
 the exit, live oracles with a trace and a demo, demo replay, determinism, save/load,
 crash and hang. `tests/test_reward_hacking.py` covers the three scripted adversarial
 policies, each held under its bound. `tests/test_env_units.py` covers the parts that need
-no engine. Local bench (12 cores, MAP07): 850–975 steps/s per worker, against
-1,240–2,030 for bare ViZDoom; about 45% of a step is our Python. M5 is accepted once
-`scripts/bench_env.py` reports more than 400 steps/s for 1 worker on a Kaggle T4 session
-(`notebooks/kaggle_m5_bench.ipynb`).
+no engine. All of them pass locally (Python 3.12, gymnasium 1.4.0) and on Kaggle (Python
+3.13.15, gymnasium 1.2.0, vizdoom 1.3.2): 30 passed, including the leak tests.
+
+`scripts/bench_env.py` on a Kaggle T4 x2 session (4 vCPU, Intel Xeon @ 2.00GHz), MAP07
+buggy, random actions, all oracles live, 20 s per row:
+
+| workers | steps/s per worker | total steps/s | share of step in the engine |
+|---|---|---|---|
+| bare ViZDoom, 1 | 1486.4 | — | — |
+| 1 | 912.6 | 912.6 | 54.9% |
+| 2 | 739.6 | 1479.1 | 55.9% |
+| 4 | 614.5 | 2458.1 | 53.0% |
+| 16 | 147.0 | 2351.7 | 86.9% |
+
+The target of more than 400 steps/s with 1 worker is met (912.6). Throughput saturates
+at 4 workers, one per vCPU; 16 workers only oversubscribe the CPUs. The plan's budget
+assumes about 300 steps/s per job, with 2 jobs of 2 workers each. The env alone gives
+about 1,200 steps/s per job in that layout. PPO updates will take some of that, and M6
+measures the real training rate.
 
 ## Open issues found in PLAN.md
 
