@@ -202,8 +202,10 @@ class _Pending:
 class AttemptTracker:
     """Proper attempts to use an exit that visibly failed (docs/decisions.md D25).
 
-    - door / lift: USE whose ray (Doom's 64 mu use range) hits the portal, holding the
-      key for a locked door; then the portal's sector does not move within the window.
+    - door / lift: USE whose ray (Doom's 64 mu use range) hits the portal from outside
+      it, holding the key for a locked door; then the portal's sector does not move
+      within the window. (Standing on a lift and pressing USE does nothing in Doom, and
+      is no attempt: you leave a raised lift by walking off it; docs/decisions.md D36.)
     - switch-operated door: USE whose ray hits its switch; the door does not move.
     - open portal: pushing forward through the opening itself (lined up inside it,
       facing it, within reach) for `throat_push_tics` without making progress.
@@ -266,6 +268,8 @@ class AttemptTracker:
                 if p.switch is not None:
                     if not ray_hits_segment(x, y, angle, self.use_range, lv.switch_lines[p.switch]):
                         continue
+                elif rect_distance(x, y, p.area) == 0.0:
+                    continue  # standing on the lift (or in the doorway): USE cannot work it
                 elif not ray_hits_rect(x, y, angle, self.use_range, p.area):
                     continue
                 elif p.requires is not None and p.requires not in step.keys:

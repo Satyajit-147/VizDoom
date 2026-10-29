@@ -72,6 +72,10 @@ def run_rollout(cfg: RunConfig, entries: Mapping[str, MapEntry], st: list[Stage]
             outs = pool.starmap(_worker, [
                 (cfg, entries, st, coverage, queue, r, share[r], record_dir) for r in range(n)
             ])  # fmt: skip
+            # Let the workers exit on their own: leaving the `with` would SIGTERM them
+            # mid-cleanup, which only prints noise.
+            pool.close()
+            pool.join()
         items = []
         while not queue.empty():
             items.append(queue.get())

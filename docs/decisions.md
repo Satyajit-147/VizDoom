@@ -545,6 +545,27 @@ the best").**
 Both apply to every tier that uses the env (T3b and T4 share the validity term). The M6
 acceptance run is repeated with them.
 
+### D36. Oracle fix: USE while standing on a lift is no attempt (2026-10-29)
+The second M6 run's T1 report on MAP03 (200k steps of random play, now with turning in
+place) contained a `softlock/confined` candidate on the balcony, where no softlock was
+planted. The run is deterministic and reproduced locally: 110 raw findings, identical
+to Kaggle. In one of about 76 episodes the agent ended stranded on the balcony and the
+raised lift platform, pressing USE. Standing **on** the platform, USE does nothing in
+Doom, and Family 4/6's attempt tracker counted that as the lift failing. With the
+lift as the balcony's only portal, "every way out failed" held. But a raised lift is
+left by walking off it, so this was a false alarm. M4's soaks (about 10 random episodes
+per map) were too short to hit it.
+
+Fix in `level.AttemptTracker`: a USE counts as an attempt on a door or lift only when
+the player stands outside the portal's area. No threshold changed (the D27 block is
+untouched). This is a correctness fix of the same kind as D25's, covered by a
+regression test (`test_use_while_standing_on_a_lift_is_no_attempt`), which also checks
+that a dead lift called from the room below is still a failed attempt.
+
+Process note for the write-up: like D25's fixes, this was found by running the oracles
+on more play than their fixtures. Report it as a calibration-stage oracle fix, made
+before any tester comparison was run.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

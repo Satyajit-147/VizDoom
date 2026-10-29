@@ -38,7 +38,11 @@ def engine_errors() -> tuple[type[BaseException], ...]:
 def exit_on_sigterm() -> None:
     """Turn SIGTERM into a normal exit, so `finally` blocks and atexit handlers run and
     the ViZDoom engines (separate processes that outlive a killed parent) are closed."""
-    signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+    def handler(*_: object) -> None:
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)  # a second SIGTERM just ends it
+        sys.exit(143)
+
+    signal.signal(signal.SIGTERM, handler)
 
 
 def child_pids(pid: int | None = None) -> set[int]:

@@ -173,3 +173,32 @@ def test_config_rejects_unknown_keys() -> None:
         OracleConfig.from_dict({"stuck": {"window": 70}})
     with pytest.raises(ValueError):
         OracleConfig.from_dict({"telepathy": {}})
+
+
+def test_use_while_standing_on_a_lift_is_no_attempt(truth: Truths) -> None:
+    """Regression (D36): pressing USE on top of a raised lift does nothing in Doom, and
+    you leave by walking off it, so it must not count as a failed way out. 200k steps of
+    random play on MAP03 turned it into a false softlock on the balcony."""
+    from qatester.oracles.base import AttemptConfig, StepRecord
+    from qatester.oracles.level import AttemptTracker
+
+    lv = Level(truth["MAP03", "fixed"].intent_only())
+    lift = next(p for p in lv.portals.values() if p.kind == "lift")
+    s = lv.portal_sector[lift.id]
+    floors = tuple(float(x["floor"]) for x in lv.sectors)
+    ceilings = tuple(float(x["ceiling"]) for x in lv.sectors)
+    cx, cy = (lift.area[0] + lift.area[2]) / 2, (lift.area[1] + lift.area[3]) / 2
+
+    def failures(x: float, y: float, angle: float) -> list[str]:
+        tracker = AttemptTracker(lv, AttemptConfig())
+        out: list[str] = []
+        for i in range(30):  # 120 tics: well past the 35-tic window
+            rec = StepRecord(tic=4 * i, x=x, y=y, z=floors[s], angle=angle, use=i == 1,
+                             sector_floors=floors, sector_ceilings=ceilings)  # fmt: skip
+            out += tracker.update(rec, [])
+        return out
+
+    assert failures(cx, cy, 270.0) == [], "USE on the lift itself counted as an attempt"
+    # From the room below, facing the lift from just outside it, a dead lift still fails.
+    below = cy - (lift.area[3] - lift.area[1]) / 2 - 24
+    assert failures(cx, below, 90.0) == [lift.id]
