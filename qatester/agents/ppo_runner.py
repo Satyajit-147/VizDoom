@@ -260,7 +260,7 @@ def train(cfg: RunConfig, run_id: str, run_dir: Path, entries: Mapping[str, MapE
                     reset_num_timesteps=not latest)  # fmt: skip
         if not cb.stopped_early:
             cb.checkpoint()
-            cb.evaluate(cfg.eval.episodes)
+            cb.evaluate(cfg.eval.final_episodes)
     finally:
         venv.close()  # workers finalize their oracles onto the queue
         time.sleep(1.0)

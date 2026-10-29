@@ -112,7 +112,8 @@ class PPOConfig(_Model):
 
 class EvalConfig(_Model):
     every: int = 100_000
-    episodes: int = 20
+    episodes: int = 20  # per map, at every `every` steps
+    final_episodes: int = 20  # per map, once training ends
     maps: list[str] = Field(default_factory=lambda: ["MAP01"])
     variant: Literal["buggy", "fixed"] = "fixed"
     deterministic: bool = False

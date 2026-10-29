@@ -566,6 +566,21 @@ Process note for the write-up: like D25's fixes, this was found by running the o
 on more play than their fixtures. Report it as a calibration-stage oracle fix, made
 before any tester comparison was run.
 
+### D37. T3a run 2 result, and run 3 set-up (2026-10-29)
+Run 2 (shaping + turning in place, 1M steps, two seeds) still reached MAP01's exit in
+0% of evaluation episodes. The final evaluation return rose from −1.31 to +0.69
+(seed 0) and −0.06 (seed 1), so the agent now earns shaping and maybe the key, but it
+never completes key → locked door → exit. The interactive Kaggle session restarted
+before the detailed logs could be read, so the per-episode data was lost. The T3a
+reports also showed `softlock` candidates on clean MAP01. That run's code predates
+D36's lift/doorway fix, so run 3 will show whether they remain.
+
+Run 3: `notebooks/kaggle_t3a_map01.ipynb`, in commit mode only, so files survive the
+session. The analysis is printed in the last cell. 2M steps; evaluation every 250k
+steps with 10 episodes (`eval.final_episodes` = 20 at the end), because evaluation
+episodes of an agent that cannot finish run the full 2,625 steps and were a large share
+of run 2's time. T1, already accepted twice, is not repeated.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

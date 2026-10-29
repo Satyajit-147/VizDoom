@@ -34,7 +34,8 @@ def _cfg(tmp: Path, total: int) -> object:
         "total_steps": total, "runs_dir": tmp / "runs", "results_dir": tmp / "results",
         "ckpt_every": 1024, "metrics_every": 512,
         "ppo": {"n_steps": 256, "batch_size": 128, "n_epochs": 1},
-        "eval": {"every": 10**9, "episodes": 1, "maps": ["MAP01"], "variant": "fixed"},
+        "eval": {"every": 10**9, "episodes": 1, "final_episodes": 1, "maps": ["MAP01"],
+                 "variant": "fixed"},
     })  # fmt: skip
 
 
