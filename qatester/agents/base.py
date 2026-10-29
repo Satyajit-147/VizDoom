@@ -15,4 +15,4 @@ class Agent(Protocol):
         """A new episode starts."""
 
     def act(self, obs: Obs) -> int:
-        """One of the 12 actions."""
+        """An action index (qatester.env.actions)."""

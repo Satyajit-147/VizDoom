@@ -14,7 +14,7 @@ import vizdoom as vzd
 from gymnasium.utils.env_checker import check_env
 
 from qatester.coverage import CoverageTracker
-from qatester.env.actions import INDEX
+from qatester.env.actions import INDEX, N_ACTIONS
 from qatester.env.trace import read_trace
 from qatester.env.vizdoom_env import QADoomEnv
 from qatester.mapgen.cli import BuildResult
@@ -69,7 +69,7 @@ def test_observations_stay_in_their_spaces(built: dict[str, BuildResult],
         rng = np.random.default_rng(0)
         for _ in range(400):
             assert env.observation_space.contains(obs)
-            obs, r, term, trunc, info = env.step(int(rng.integers(12)))
+            obs, r, term, trunc, info = env.step(int(rng.integers(N_ACTIONS)))
             assert np.isfinite(r)
             assert set(info["reward_parts"]) >= {"time", "cell_novelty", "oracle"}
             if term or trunc:
@@ -187,7 +187,7 @@ def test_demo_replays_the_episode(built: dict[str, BuildResult],
 
 def test_same_seed_same_trajectory(built: dict[str, BuildResult],
                                    truth: dict[tuple[str, str], GroundTruth]) -> None:  # fmt: skip
-    actions = np.random.default_rng(2).integers(0, 12, 120)
+    actions = np.random.default_rng(2).integers(0, N_ACTIONS, 120)
     ends = []
     for _ in range(2):
         env = make_env(built, truth, "MAP02", seed=11)

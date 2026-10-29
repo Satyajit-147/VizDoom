@@ -1,8 +1,9 @@
-"""The 12 discrete actions (PLAN: Action space), as combinations of 9 binary buttons.
+"""The discrete actions (PLAN: Action space), as combinations of 9 binary buttons.
 
-Turning exists only while moving forward (actions 5 and 6), as the plan specifies. With
-frame skip 4 a held turn button turns 7 degrees on the first step, then about 14 degrees
-per step once Doom's turn acceleration kicks in.
+The plan's 12 combinations, plus turning in place (12, 13; docs/decisions.md D35). The
+plan only turns while moving forward, so lining up on a door or switch meant walking in
+circles. With frame skip 4 a held turn button turns 7 degrees on the first step, then
+about 14 degrees per step once Doom's turn acceleration kicks in.
 """
 
 from __future__ import annotations
@@ -57,6 +58,8 @@ ACTIONS: tuple[Action, ...] = (
     _a("attack", "ATTACK"),
     _a("jump", "JUMP"),
     _a("forward_jump", "MOVE_FORWARD", "JUMP"),
+    _a("turn_left", "TURN_LEFT"),
+    _a("turn_right", "TURN_RIGHT"),
 )
 N_ACTIONS = len(ACTIONS)
 INDEX = {a.name: i for i, a in enumerate(ACTIONS)}

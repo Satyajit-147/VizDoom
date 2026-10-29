@@ -31,6 +31,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from qatester.coverage import CoverageTracker
+from qatester.env.actions import N_ACTIONS
 from qatester.mapgen.cli import artefact_name, build
 from qatester.mapgen.groundtruth import GroundTruth
 
@@ -49,14 +50,14 @@ def _env_worker(cfg: str, gt_path: str, cov: CoverageTracker, seed: int, warmup:
     rng = np.random.default_rng(seed)
     env.reset()
     for _ in range(warmup):
-        *_, term, trunc, _ = env.step(int(rng.integers(12)))
+        *_, term, trunc, _ = env.step(int(rng.integers(N_ACTIONS)))
         if term or trunc:
             env.reset()
     barrier.wait()
     steps, engine_s, resets = 0, 0.0, 0
     t0 = time.perf_counter()
     while time.perf_counter() - t0 < seconds:
-        *_, term, trunc, _ = env.step(int(rng.integers(12)))
+        *_, term, trunc, _ = env.step(int(rng.integers(N_ACTIONS)))
         steps += 1
         engine_s += env.last.step_wall_s if env.last is not None else 0.0
         if term or trunc:
@@ -79,13 +80,13 @@ def _raw_worker(cfg: str, seed: int, warmup: int, seconds: float) -> dict[str, f
     g.init()
     rng = np.random.default_rng(seed)
     for _ in range(warmup):
-        g.make_action(ACTIONS[int(rng.integers(12))].buttons, 4)
+        g.make_action(ACTIONS[int(rng.integers(N_ACTIONS))].buttons, 4)
     steps = 0
     t0 = time.perf_counter()
     while time.perf_counter() - t0 < seconds:
         if g.is_episode_finished():
             g.new_episode()
-        g.make_action(ACTIONS[int(rng.integers(12))].buttons, 4)
+        g.make_action(ACTIONS[int(rng.integers(N_ACTIONS))].buttons, 4)
         g.get_state()
         steps += 1
     wall = time.perf_counter() - t0

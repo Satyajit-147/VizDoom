@@ -10,6 +10,9 @@ failures):
    left it by more than one cell width. The bonus itself decays with the shared count.
 3. Suicide for reset: -5 on death; time-outs truncate rather than terminate (the env).
 
+The validity term also carries potential-based shaping toward the goal (D35): it
+telescopes over an episode, so it cannot be farmed either.
+
 Per-episode "first time" (entities used, portals crossed, preconditions met) is this
 module's reading of the plan's "the first time each ..." (docs/decisions.md D29).
 """
@@ -33,6 +36,7 @@ class RewardConfig:
     goal: float = 5.0
     death: float = -5.0
     time: float = -0.0005
+    shaping: float = 1.0  # per 1000 mu of route to the goal (D35); 0 turns it off
     # adversarial
     cell_novelty: float = 0.3
     state_novelty: float = 0.5
@@ -48,7 +52,7 @@ class RewardConfig:
             raise ValueError(f"alpha must be in [0, 1], got {self.alpha}")
 
 
-VALID_PARTS = ("progress", "goal", "death", "time")
+VALID_PARTS = ("progress", "goal", "death", "time", "shaping")
 ADV_PARTS = ("cell_novelty", "state_novelty", "entity", "portal", "oracle", "bugbook")
 
 
@@ -105,9 +109,11 @@ class EpisodeReward:
         portals: Iterable[str] = (),
         findings: Sequence[Finding] = (),
         bugbook_hits: int = 0,
+        potential_change: float = 0.0,
     ) -> tuple[float, dict[str, float]]:
         """Reward for one step. `cell_count` / `state_count` are the shared visit counts
-        before this visit, given only for counted entries."""
+        before this visit, given only for counted entries. `potential_change` is
+        Phi(s') - Phi(s) in mu (qatester.env.shaping)."""
         c = self.cfg
         new_progress = set(progress) - self.progress
         self.progress |= new_progress
@@ -120,6 +126,7 @@ class EpisodeReward:
             "goal": c.goal if goal else 0.0,
             "death": c.death if died else 0.0,
             "time": c.time,
+            "shaping": c.shaping * potential_change / 1000.0,
             "cell_novelty": 0.0 if cell_count is None else c.cell_novelty / math.sqrt(1 + cell_count),
             "state_novelty": (0.0 if state_count is None
                               else c.state_novelty / math.sqrt(1 + state_count)),

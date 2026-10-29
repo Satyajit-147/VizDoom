@@ -518,6 +518,33 @@ never affected.
   workers turn SIGTERM into a normal exit, so those hooks run. A SIGKILL still orphans
   engines; there is no fix for that from inside Python.
 
+### D35. T3a could not learn MAP01: shaping toward the goal, and turning in place (2026-10-29)
+**Result that forced it.** M6's first T3a run (PPO, α = 1, 1M steps, seeds 0 and 1)
+never reached MAP01's exit. Every evaluation return was −1.31: 2,625 steps × −0.0005,
+nothing else earned. Random and scripted play over 20 episodes each opened the loft door
+7 and 1 times and **never** picked up the key. With α = 1 there is no reward until the
+key, so PPO, which starts out near-random, had nothing to learn from. This is a sparse
+reward problem, not a pipeline bug: the run, checkpoints, evaluation and reports all
+worked.
+
+**Changes (decided by Claude at the user's request: "proceed with what you think works
+the best").**
+1. **Potential-based shaping in the validity term.** Φ(s) = −(remaining route length):
+   to each goal key not held, nearest first, then to the exit. The route runs through
+   portal openings on the intended level, and locked doors are open only with their
+   key. Reward += w · (Φ(s′) − Φ(s)) / 1000 per step, with w = 1.0 (`validity.shaping`,
+   0 turns it off). It telescopes over an episode, so it cannot be farmed (tested). It
+   is the γ = 1 form of Ng, Harada and Russell (1999), so it does not change the optimal
+   policy. Picking up a key leaves Φ continuous. The agent never sees Φ or the map. On
+   MAP01 the route from spawn is 1,905 mu, so walking it earns about 1.9 on top of the
+   +1 / +1 / +5 milestones.
+2. **Turning in place:** actions 12 (`turn_left`) and 13 (`turn_right`) join the plan's
+   12, for 14 in total; `attack` stays because some maps have monsters. Without them,
+   lining up on a door within USE reach meant walking in circles at about 14° per step.
+
+Both apply to every tier that uses the env (T3b and T4 share the validity term). The M6
+acceptance run is repeated with them.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

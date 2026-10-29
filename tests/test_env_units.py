@@ -30,12 +30,13 @@ from qatester.oracles.base import Finding, StepRecord
 # --- actions -----------------------------------------------------------------------
 
 
-def test_twelve_actions_as_the_plan_lists_them() -> None:
-    assert N_ACTIONS == 12
+def test_the_plans_twelve_actions_plus_turning_in_place() -> None:
+    assert N_ACTIONS == 14
     expected = [
         set(), {"MOVE_FORWARD"}, {"MOVE_BACKWARD"}, {"MOVE_LEFT"}, {"MOVE_RIGHT"},
         {"MOVE_FORWARD", "TURN_LEFT"}, {"MOVE_FORWARD", "TURN_RIGHT"}, {"USE"},
         {"MOVE_FORWARD", "USE"}, {"ATTACK"}, {"JUMP"}, {"MOVE_FORWARD", "JUMP"},
+        {"TURN_LEFT"}, {"TURN_RIGHT"},
     ]  # fmt: skip
     assert [set(a.pressed) for a in ACTIONS] == expected
     assert all(len(a.buttons) == len(BUTTONS) == 9 for a in ACTIONS)

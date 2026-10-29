@@ -64,6 +64,7 @@ class ValidityConfig(_Model):
     goal: float = 5.0
     death: float = -5.0
     time: float = -0.0005
+    shaping: float = 1.0  # potential-based, per 1000 mu of route to the goal (D35)
 
 
 class AdversarialConfig(_Model):
@@ -84,6 +85,7 @@ class RewardSection(_Model):
         v, a = self.validity, self.adversarial
         return RewardConfig(
             alpha=self.alpha, progress=v.precondition, goal=v.goal, death=v.death, time=v.time,
+            shaping=v.shaping,
             cell_novelty=a.cell_novelty, state_novelty=a.state_novelty,
             entity=a.entity_first_use, portal=a.portal_first_cross, oracle=a.oracle_cluster,
             bugbook=a.bugbook_hit,

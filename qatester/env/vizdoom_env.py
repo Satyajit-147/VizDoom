@@ -36,6 +36,7 @@ from qatester.env.observation import (
     scalars,
 )
 from qatester.env.reward import ADV_PARTS, VALID_PARTS, EpisodeReward, RewardConfig
+from qatester.env.shaping import GoalDistance
 from qatester.env.supervisor import CallResult, Supervisor
 from qatester.env.trace import episode_stem, write_trace
 from qatester.env.world import World, count_pickups_in_view, keys_mask
@@ -143,6 +144,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.map_name: str = name or truth.data["map"]
         self.time_limit: int = int(truth.data["goal"]["time_limit_tics"])
         self.world = world
+        self.goal_distance = GoalDistance(truth)
         self.coverage = coverage
         self.oracles = make_oracles(self.oracle_cfg)
         self.traversal = TraversalTracker(world.level)
@@ -227,6 +229,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.loaded = False
         self.ep_parts: dict[str, float] = {}
         self.ep_return = 0.0
+        self.phi = 0.0
         self.ep_steps = 0
 
     def reset(self, *, seed: int | None = None,
@@ -298,6 +301,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.abstract = (*self.cell, keys_mask(rec.keys), self.world.doors_mask(floors, ceilings))
         findings = self._observe(rec)
         self.last = rec
+        self.phi = self.goal_distance.potential(rec.x, rec.y, rec.keys)
         obs = {"depth": self.frames.fill(self._frame(state)),
                "scalars": self._scalars(rec, state, moved=0.0, commanded=False)}  # fmt: skip
         return obs, self._info(rec, findings, {})
@@ -369,7 +373,10 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
                 self.coverage.use_thing(t)
             for p in set(crossed) - self.reward.portals:
                 self.coverage.traverse_portal(p)
+        phi = self.goal_distance.potential(rec.x, rec.y, rec.keys)
+        potential_change, self.phi = phi - self.phi, phi
         reward, parts = self.reward.step(
+            potential_change=potential_change,
             progress=self.world.progress(rec.keys, crossed), goal=goal, died=died,
             cell_count=cell_count, state_count=state_count, entities=entities,
             portals=crossed, findings=findings,

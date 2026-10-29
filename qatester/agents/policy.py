@@ -4,7 +4,7 @@ Stable-Baselines3 features extractor for sb3-contrib's MultiInputLstmPolicy.
     depth (4,64,64) -> Conv(4,32,8,s4) -> Conv(32,64,4,s2) -> Conv(64,64,3,s1)
                     -> Linear(1024, 256)                      (ReLU throughout)
     scalars (18,)   -> Linear(18, 64) -> Linear(64, 64)
-    concat -> 320 features -> one shared LSTM(256) -> policy head (12) + value head (1)
+    concat -> 320 features -> one shared LSTM(256) -> policy head (14) + value head (1)
 
 SB3 scales the uint8 depth to [0, 1] itself (it is an image space). The plan's GRU and
 second value head are not available in RecurrentPPO: an LSTM and one value head are
