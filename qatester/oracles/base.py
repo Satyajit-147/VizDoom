@@ -119,6 +119,7 @@ class AttemptConfig:
     """What counts as a proper, failed attempt to use an exit (Families 4 and 6)."""
 
     use_range_mu: float = 64.0  # Doom's USE reach
+    use_margin_mu: float = 8.0  # an attempt needs the target this far inside reach (D41)
     window_tics: int = 35  # a door or lift must start moving within this
     throat_mu: float = 32.0  # open portal: how close to the opening a push counts
     throat_push_tics: int = 16  # ...and for how long without progress

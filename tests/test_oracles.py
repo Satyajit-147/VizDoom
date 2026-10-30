@@ -202,3 +202,34 @@ def test_use_while_standing_on_a_lift_is_no_attempt(truth: Truths) -> None:
     # From the room below, facing the lift from just outside it, a dead lift still fails.
     below = cy - (lift.area[3] - lift.area[1]) / 2 - 24
     assert failures(cx, below, 90.0) == [lift.id]
+
+
+def test_a_held_use_button_is_one_attempt_not_many(truth: Truths) -> None:
+    """Regression (D41): Doom acts on USE when it is pressed, not while it is held. A
+    trained T3a agent pressed USE just out of reach of the loft door, kept holding it as
+    it stepped into reach, and every held tic was counted as a failed attempt, which made
+    a false softlock in the loft on clean MAP01."""
+    from qatester.oracles.base import AttemptConfig, StepRecord
+    from qatester.oracles.level import AttemptTracker
+
+    lv = Level(truth["MAP01", "fixed"].intent_only())
+    door = lv.portals["p_start_loft"]
+    floors = tuple(float(x["floor"]) for x in lv.sectors)
+    ceilings = tuple(float(x["ceiling"]) for x in lv.sectors)
+    s = lv.portal_sector[door.id]
+    ceilings = tuple(floors[i] if i == s else c for i, c in enumerate(ceilings))  # shut
+
+    def failures(uses: list[bool]) -> list[str]:
+        tracker = AttemptTracker(lv, AttemptConfig())
+        out: list[str] = []
+        for i, use in enumerate(uses + [False] * 15):
+            y = 497 - 1.5 * i if i < 4 else 475.0  # out of reach, then up to the door
+            rec = StepRecord(tic=4 * i, x=290.0, y=y, z=0.0, angle=217.0, use=use,
+                             sector_floors=floors, sector_ceilings=ceilings)  # fmt: skip
+            out += tracker.update(rec, [])
+        return out
+
+    # Pressed out of reach (61 mu, aimed past the door's edge), then held: no attempt.
+    assert failures([True, True, True, True]) == []
+    # Released, stepped up to the door, pressed again, and the door stays shut: counts.
+    assert failures([True, True, False, False, True]) == ["p_start_loft"]

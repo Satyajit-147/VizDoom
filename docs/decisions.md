@@ -303,6 +303,7 @@ oracles:
     loop_confidence: 0.9
   attempts:
     use_range_mu: 64.0
+    use_margin_mu: 8.0
     window_tics: 35
     throat_mu: 32.0
     throat_push_tics: 16
@@ -639,6 +640,31 @@ D36, so re-check it on clean maps with the current oracles.
 Workflow change: Kaggle runs are now started, monitored and downloaded by Claude
 through the Kaggle API, with the code shipped as a private Kaggle dataset
 (`idorizz69/rl-qa-tester-code`), so a run no longer depends on a `git push`.
+
+### D41. Two attempt-tracker fixes: USE acts on the press, and only clearly in reach (2026-10-30)
+Run 3's T3a reports on clean MAP01 held three `softlock/confined` candidates in the
+loft. They were reproduced locally by replaying each finding's demo tic by tic through
+the oracles (`scratchpad` replay of the `.lmp`, no Kaggle). In all three, the agent took
+the key and then spent the last 40% of the episode in the loft. The loft's only exit
+is its door, and exactly one "failed attempt" on that door made it look broken. The
+agent was stuck behaviourally; the level was fine.
+
+1. **A held USE is not a new attempt.** Doom acts on USE when it is pressed, not while
+   it is held. In two cases the agent pressed USE about 61 mu from the door, aimed just
+   past it, then held the button while stepping into reach. Every held tic counted as an
+   attempt. Now only a press (USE up on the previous record) counts.
+2. **Only a press clearly in reach counts.** In the third case the agent pressed USE
+   facing the door with the door's face 63.8 mu away by our geometry, 0.2 mu inside
+   Doom's 64 mu reach, and the engine did not act. New threshold
+   `attempts.use_margin_mu = 8`: an attempt needs its target within 56 mu. A real broken
+   door is still caught by any agent trying it from closer.
+
+Point 2 adds a threshold after the M4 freeze (D27, block updated). It is made before
+any tester comparison (E1–E7) has run, from engine evidence rather than results, and
+it only removes false "failed attempt" events. The write-up will say so. Both fixes also
+apply to Family 4 (unreachable), which uses the same tracker. With them, all three
+demos replay with zero findings, and every defect test still passes. Regression test:
+`test_a_held_use_button_is_one_attempt_not_many`.
 
 ## Open issues found in PLAN.md
 

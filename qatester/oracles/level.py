@@ -202,7 +202,8 @@ class _Pending:
 class AttemptTracker:
     """Proper attempts to use an exit that visibly failed (docs/decisions.md D25).
 
-    - door / lift: USE whose ray (Doom's 64 mu use range) hits the portal from outside
+    - door / lift: a USE press (not a held button: Doom acts only on the press) whose
+      ray (Doom's 64 mu use range) hits the portal from outside
       it, holding the key for a locked door; then the portal's sector does not move
       within the window. (Standing on a lift and pressing USE does nothing in Doom, and
       is no attempt: you leave a raised lift by walking off it; docs/decisions.md D36.)
@@ -215,7 +216,9 @@ class AttemptTracker:
 
     def __init__(self, level: Level, cfg: AttemptConfig) -> None:
         self.level = level
-        self.use_range = cfg.use_range_mu
+        # Only presses clearly within reach count: the engine refused a press our geometry
+        # put 0.2 mu inside Doom's 64 mu reach (D41).
+        self.use_range = cfg.use_range_mu - cfg.use_margin_mu
         self.window = cfg.window_tics
         self.throat_mu = cfg.throat_mu
         self.throat_push_tics = cfg.throat_push_tics
@@ -230,6 +233,7 @@ class AttemptTracker:
         self.throat: dict[str, int] = {}
         self.traversed_at: dict[str, int] = {}  # portal -> tic of its latest traversal
         self.prev: tuple[int, float, float] | None = None
+        self.use_held = False
 
     def _moved(self, floors: tuple[float, ...], ceilings: tuple[float, ...], sector: int,
                floor: float, ceiling: float) -> bool:  # fmt: skip
@@ -261,7 +265,11 @@ class AttemptTracker:
         failed: list[str] = []
         x, y, angle = step.x, step.y, step.angle
 
-        if step.use:
+        # Doom acts on USE when it is pressed, not while it is held (D41): only a press
+        # (USE up on the previous record) is an attempt.
+        pressed = step.use and not self.use_held
+        self.use_held = step.use
+        if pressed:
             for p in lv.portals.values():
                 if p.id in self.pending or p.kind in ("open", "teleport"):
                     continue
