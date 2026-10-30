@@ -90,11 +90,29 @@ def make_env(cfg: RunConfig, entries: Mapping[str, MapEntry], st: list[Stage],
     return CurriculumEnv(env, entries, st, coverage, cfg.n_envs, rng, initial_steps)
 
 
+def snapshot_coverage(entries: Mapping[str, MapEntry], name: str,
+                      counts: CoverageTracker | Path | None) -> CoverageTracker | None:
+    """A private copy of a map's visit counts for evaluation episodes: the policy reads
+    novelty from them (observation slots 14-15), so evaluating without them shows it
+    inputs it never saw in training (D39). The copy keeps evaluation from changing the
+    training counts. `counts` is a live tracker or a checkpoint's saved array."""
+    if counts is None:
+        return None
+    snap = CoverageTracker(GroundTruth.load(entries[name].groundtruth_path))
+    if isinstance(counts, CoverageTracker):
+        snap._flat[:] = counts._flat
+    else:
+        snap.restore(counts)
+    return snap
+
+
 def eval_env(cfg: RunConfig, entries: Mapping[str, MapEntry], name: str, seed: int,
-             record_dir: Path | None = None) -> QADoomEnv:  # fmt: skip
-    """A plain env on one map, novelty off, for evaluation episodes."""
+             record_dir: Path | None = None,
+             coverage: CoverageTracker | None = None) -> QADoomEnv:  # fmt: skip
+    """A plain env on one map for evaluation episodes. Pass the training counts (see
+    `snapshot_coverage`): without them the novelty inputs differ from training."""
     e = entries[name]
-    return QADoomEnv(e.cfg_path, GroundTruth.load(e.groundtruth_path), None, None, seed,
+    return QADoomEnv(e.cfg_path, GroundTruth.load(e.groundtruth_path), coverage, None, seed,
                      record_dir, reward_cfg=cfg.reward.to_reward_config(),
                      oracle_cfg=cfg.oracle_config(), trace_policy="none", map_name=name)  # fmt: skip
 

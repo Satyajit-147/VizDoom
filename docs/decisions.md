@@ -601,6 +601,23 @@ Changes:
   any job still running after 9 hours, gets a stack dump and is killed. Tested locally
   on a short T1 run: both jobs exited cleanly and no engines were left behind.
 
+### D39. T3a learned MAP01; the evaluation was wrong (2026-10-30)
+Run 3's logs, fetched with the Kaggle API, show that **training episodes reached
+MAP01's exit 97–99% of the time (seed 0) and 91–93% (seed 1) by 1.6–2M steps**. The
+episodes were down to 500–900 steps, and the curve is clean: key first, then the
+locked door, then the exit. The evaluation episodes said 0–10%. The cause was that the
+evaluation env had no coverage tracker, so observation slots 14–15 (novelty from the
+shared visit counts) were stuck at 1.0, while in training they were close to 0 almost
+everywhere after millions of steps. The policy was evaluated on inputs it had never
+seen.
+
+Fix: evaluation episodes get a private snapshot of the training counts
+(`factory.snapshot_coverage`), so the inputs match training and evaluation leaves the
+training counts unchanged. `scripts/eval_policy.py` re-evaluates a saved checkpoint
+with `--novelty snapshot|off|both`, which confirms the cause rather than assuming it.
+Note for E6 / unseen maps: a map with no training counts gets a fresh tracker, which
+is what a tester deployed on a new map would see.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

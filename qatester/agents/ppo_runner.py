@@ -45,7 +45,7 @@ from qatester.agents.policy import policy_kwargs
 from qatester.config import RunConfig
 from qatester.coverage import CoverageTracker
 from qatester.env.curriculum import MapEntry, Stage
-from qatester.env.factory import eval_env, make_env, prepare_maps
+from qatester.env.factory import eval_env, make_env, prepare_maps, snapshot_coverage
 from qatester.env.supervisor import child_pids
 from qatester.report.cluster import cluster_findings
 from qatester.runner import append_jsonl, coverage_summary, queue_rows, read_jsonl
@@ -185,12 +185,16 @@ class QACallback(BaseCallback):  # type: ignore[misc]
     def evaluate(self, episodes: int) -> dict[str, Any]:
         rows = {}
         for name in self.cfg.eval.maps:
-            env = eval_env(self.cfg, self.eval_entries, name, seed=10_000 + self.num_timesteps)
+            snap = snapshot_coverage(self.eval_entries, name, self.coverage.get(name))
+            env = eval_env(self.cfg, self.eval_entries, name, seed=10_000 + self.num_timesteps,
+                           coverage=snap)  # fmt: skip
             try:
                 eps = [play_episode(self.model, env, self.cfg.eval.deterministic)
                        for _ in range(episodes)]  # fmt: skip
             finally:
                 env.close()
+                if snap is not None:
+                    snap.close()
             rows[name] = {"episodes": episodes,
                           "goal_rate": sum(e["outcome"] == "goal" for e in eps) / episodes,
                           "mean_return": float(np.mean([e["return"] for e in eps])),

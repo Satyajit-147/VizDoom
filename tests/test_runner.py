@@ -106,3 +106,31 @@ def test_curriculum_stage_follows_global_steps() -> None:
     assert env.pick() == "B"
     Fake.total_steps = 10_000  # past the last stage: stay on it
     assert env.pick() == "B"
+
+
+def test_evaluation_sees_a_private_copy_of_the_training_counts(tmp_path: Path) -> None:
+    """D39: evaluation must show the policy the novelty inputs it trained with, without
+    changing the training counts."""
+    from qatester.env.factory import snapshot_coverage
+
+    cfg = load_config(REPO / "configs" / "t3a_map01.yaml")
+    entries = prepare_maps(cfg.maps, tmp_path / "build")
+    (train,) = make_coverage(entries, {"MAP01"}).values()
+    snap = None
+    try:
+        cell = (4, 3)
+        for _ in range(7):
+            train.visit_cell(cell)
+        snap = snapshot_coverage(entries, "MAP01", train)
+        assert snap is not None and snap.cell_count(cell) == 7
+        snap.visit_cell(cell)
+        assert train.cell_count(cell) == 7, "evaluation changed the training counts"
+        train.save(tmp_path / "c.npy")
+        again = snapshot_coverage(entries, "MAP01", tmp_path / "c.npy")
+        assert again is not None and again.cell_count(cell) == 7
+        again.close()
+        assert snapshot_coverage(entries, "MAP01", None) is None
+    finally:
+        train.close()
+        if snap is not None:
+            snap.close()
