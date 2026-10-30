@@ -581,6 +581,26 @@ steps with 10 episodes (`eval.final_episodes` = 20 at the end), because evaluati
 episodes of an agent that cannot finish run the full 2,625 steps and were a large share
 of run 2's time. T1, already accepted twice, is not repeated.
 
+### D38. Finished training runs that never exit (2026-10-30)
+Run 3 (commit mode) passed its tests at 2 minutes, then printed nothing for 10 hours
+against an expected 2. Run 2 showed the same pattern: its T3a cell kept running
+after the run had produced its 1M-step evaluations and checkpoint, until the cell
+was re-run. The likely cause is that training finishes but the process hangs while
+shutting down: closing the subprocess vector env, or a library finalizer at exit. The
+notebook waits for the processes to exit, so nothing after training ever ran. The
+bash progress loop meant to show this printed nothing in commit mode either.
+
+Changes:
+- `ppo_runner.close_bounded`: the vector env gets 120 s to close; then its workers and
+  their ViZDoom engines are killed.
+- `scripts/train.py` prints `RUN COMPLETE` once reports are written, then `os._exit(0)`,
+  so a stuck finalizer cannot hold a finished run. `kill -USR1` dumps every thread's
+  stack (faulthandler), so the next hang shows where it is.
+- The T3a notebook launches the jobs from Python: progress every 5 minutes in the
+  Kaggle log. A job that printed `RUN COMPLETE` but has not exited after 3 minutes, or
+  any job still running after 9 hours, gets a stack dump and is killed. Tested locally
+  on a short T1 run: both jobs exited cleanly and no engines were left behind.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

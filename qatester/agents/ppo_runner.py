@@ -16,8 +16,12 @@ Kaggle operating rules). Runs on Kaggle only.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import multiprocessing as mp
+import os
+import signal
+import threading
 import time
 from collections import defaultdict
 from collections.abc import Mapping
@@ -42,6 +46,7 @@ from qatester.config import RunConfig
 from qatester.coverage import CoverageTracker
 from qatester.env.curriculum import MapEntry, Stage
 from qatester.env.factory import eval_env, make_env, prepare_maps
+from qatester.env.supervisor import child_pids
 from qatester.report.cluster import cluster_findings
 from qatester.runner import append_jsonl, coverage_summary, queue_rows, read_jsonl
 
@@ -262,8 +267,29 @@ def train(cfg: RunConfig, run_id: str, run_dir: Path, entries: Mapping[str, MapE
             cb.checkpoint()
             cb.evaluate(cfg.eval.final_episodes)
     finally:
-        venv.close()  # workers finalize their oracles onto the queue
+        print(f"[{model.num_timesteps:>9,}] training stopped; closing the env workers", flush=True)
+        close_bounded(venv)  # workers finalize their oracles onto the queue
         time.sleep(1.0)
         cb.drain()
         manager.shutdown()
+        print(f"[{model.num_timesteps:>9,}] env workers closed", flush=True)
     return int(model.num_timesteps)
+
+
+def close_bounded(venv: VecEnv, timeout_s: float = 120.0) -> None:
+    """Close the vector env, but never wait forever: a worker stuck in shutdown is
+    killed, with its ViZDoom engine (docs/decisions.md D38)."""
+    base = venv.unwrapped
+    procs = list(getattr(base, "processes", []))
+    engines = {pid for p in procs if p.pid for pid in child_pids(p.pid)}
+    t = threading.Thread(target=venv.close, daemon=True, name="venv-close")
+    t.start()
+    t.join(timeout_s)
+    if t.is_alive():
+        print(f"env workers did not close within {timeout_s:.0f}s: killing them", flush=True)
+        for p in procs:
+            if p.is_alive():
+                p.kill()
+        for pid in engines:
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(pid, signal.SIGKILL)

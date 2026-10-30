@@ -17,6 +17,8 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 
 import argparse
+import faulthandler
+import signal
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,6 +41,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--run-id")
     args = ap.parse_args(argv)
     exit_on_sigterm()
+    faulthandler.register(signal.SIGUSR1, all_threads=True)  # `kill -USR1` dumps stacks
     overrides: dict[str, Any] = {
         k: v for k, v in {"seed": args.seed, "total_steps": args.total_steps,
                           "n_envs": args.n_envs, "runs_dir": args.runs_dir,
@@ -47,6 +50,11 @@ def main(argv: list[str] | None = None) -> None:
     cfg = load_config(args.config, overrides)
     reports = run(cfg, args.run_id)
     print(summarise(reports))
+    print("RUN COMPLETE", flush=True)
+    # Everything is written. Leave now: a stuck finalizer in a library must not keep a
+    # finished run alive for hours (docs/decisions.md D38).
+    sys.stderr.flush()
+    os._exit(0)
 
 
 if __name__ == "__main__":
