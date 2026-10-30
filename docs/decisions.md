@@ -618,6 +618,28 @@ with `--novelty snapshot|off|both`, which confirms the cause rather than assumin
 Note for E6 / unseen maps: a map with no training counts gets a fresh tracker, which
 is what a tester deployed on a new map would see.
 
+### D40. M6 accepted 2026-10-30
+Run 3's saved T3a agents, re-evaluated on Kaggle (CPU-only notebook
+`idorizz69/rl-qa-tester-eval-t3a`, `scripts/eval_policy.py`, 20 episodes on fixed MAP01,
+stochastic policy):
+
+| seed | novelty = training snapshot (D39 fix) | novelty off (old evaluation) |
+|---|---|---|
+| 0 | goal 1.00, key 1.00, door 1.00, 571 steps, return 8.57 | goal 0.10, 2,525 steps |
+| 1 | goal 0.90, key 0.95, door 0.95, 899 steps, return 7.73 | goal 0.00, key 0.15, 2,625 steps |
+
+Check 2 (> 80% of evaluation episodes reach the exit) passes for both seeds. Check 1
+(T1 report on MAP03 with an out-of-bounds finding and a working demo) passed on
+2026-10-29. Switching the fix off reproduces the old 0–10%, which confirms D39's cause.
+
+Still open from M6, to settle before M7's comparisons: run 3's MAP01 reports hold
+`softlock/confined` candidates in the loft (13 and 10 episodes). That code predates
+D36, so re-check it on clean maps with the current oracles.
+
+Workflow change: Kaggle runs are now started, monitored and downloaded by Claude
+through the Kaggle API, with the code shipped as a private Kaggle dataset
+(`idorizz69/rl-qa-tester-code`), so a run no longer depends on a `git push`.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.
