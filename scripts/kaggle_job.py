@@ -109,7 +109,7 @@ import subprocess, sys
 r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_ppo_smoke.py", "tests/test_bugbook_rule.py",
                     "tests/test_m7_env.py", "-q", "-x", "-p", "no:cacheprovider", "-W", "ignore"],
                    capture_output=True, text=True)
-open("/kaggle/working/preflight.log", "w").write(r.stdout + "\n" + r.stderr)
+open("/kaggle/working/preflight.log", "w").write(r.stdout + "\\n" + r.stderr)
 print(r.stdout[-6000:]); print(r.stderr[-3000:])
 if r.returncode != 0:
     raise SystemExit("pre-flight tests failed: not starting the training waves")
@@ -160,6 +160,9 @@ def main(argv: list[str] | None = None) -> None:
               "nbformat": 4, "nbformat_minor": 5}  # fmt: skip
         for i, c in enumerate(nb["cells"]):  # type: ignore[arg-type]
             c["id"] = f"cell{i}"
+            src = "".join(c["source"])
+            if not src.lstrip().startswith(("!", "%")):
+                compile(src, f"cell {i}", "exec")  # a broken cell must fail here, not on Kaggle
         Path(d, "job.ipynb").write_text(json.dumps(nb, indent=1))
         kid = f"{USER}/rl-qa-tester-{args.name}"
         Path(d, "kernel-metadata.json").write_text(json.dumps({
