@@ -80,6 +80,14 @@ class RewardSection(_Model):
     alpha: float = 0.5
     validity: ValidityConfig = Field(default_factory=ValidityConfig)
     adversarial: AdversarialConfig = Field(default_factory=AdversarialConfig)
+    # T3b: abstract-state novelty beta, decayed linearly over the first part of training.
+    novelty_beta_start: float = 0.5
+    novelty_beta_end: float = 0.1
+    novelty_decay_frac: float = 0.6
+
+    def novelty_beta(self, step: int, total: int) -> float:
+        done = min(1.0, step / max(1.0, self.novelty_decay_frac * total))
+        return self.novelty_beta_start + (self.novelty_beta_end - self.novelty_beta_start) * done
 
     def to_reward_config(self) -> RewardConfig:
         v, a = self.validity, self.adversarial
@@ -108,6 +116,12 @@ class PPOConfig(_Model):
     vf_coef: float = 0.5
     max_grad_norm: float = 0.5
     lstm_hidden_size: int = 256
+
+
+class BugBookConfig(_Model):
+    enabled: bool = True
+    match_radius_mu: float = 96.0
+    freq_cap: int = 20
 
 
 class EvalConfig(_Model):
@@ -144,6 +158,7 @@ class RunConfig(_Model):
     reward: RewardSection = Field(default_factory=RewardSection)
     ppo: PPOConfig = Field(default_factory=PPOConfig)
     eval: EvalConfig = Field(default_factory=EvalConfig)
+    bugbook: BugBookConfig = Field(default_factory=BugBookConfig)
     report: ReportConfig = Field(default_factory=ReportConfig)
     oracles: dict[str, dict[str, Any]] = Field(default_factory=dict)
 

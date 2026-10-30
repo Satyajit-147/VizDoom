@@ -1,0 +1,23 @@
+# M7 acceptance: T3b: PPO with count-based curiosity and the Bug Book (alpha = 0.5) on MAP07 SPRAWL, 600k
+# steps, 3 seeds. M7 passes when T3b's cell coverage on MAP07 is significantly higher
+# than T3a's (Mann-Whitney U over seeds; scripts/compare_coverage.py).
+run_name: t3b_map07
+agent: ppo
+total_steps: 600_000
+n_envs: 2
+seed: 0
+device: auto
+ckpt_every: 100_000
+metrics_every: 10_000
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 600_000, maps: [MAP07], weights: [1.0]}
+reward:
+  alpha: 0.5
+eval:
+  every: 200_000
+  episodes: 5
+  final_episodes: 10
+  maps: [MAP07]
+  variant: buggy

@@ -1,0 +1,28 @@
+# T3b on the plan's curriculum, with generated training maps mixed in from the core
+# stage on (docs/decisions.md D18): the tester meant to work on unseen maps, and the
+# agent the demo plays. E1's T3b configuration.
+run_name: t3b
+agent: ppo
+total_steps: 2_000_000
+n_envs: 2
+seed: 0
+device: auto
+ckpt_every: 100_000
+metrics_every: 10_000
+maps:
+  variant: buggy
+  generated: {split: train, count: 64, start: 0}
+  curriculum:
+    - {until: 200_000, maps: [MAP01], weights: [1.0]}
+    - {until: 1_200_000, maps: [MAP01, MAP02, MAP03, MAP04, MAP05, MAP06],
+       weights: [0.05, 0.09, 0.09, 0.09, 0.09, 0.09], generated_weight: 0.5}
+    - {until: 2_000_000, maps: [MAP01, MAP02, MAP03, MAP04, MAP05, MAP06, MAP07],
+       weights: [0.025, 0.055, 0.055, 0.055, 0.055, 0.055, 0.2], generated_weight: 0.5}
+reward:
+  alpha: 0.5
+eval:
+  every: 500_000
+  episodes: 5
+  final_episodes: 10
+  maps: [MAP01, MAP07]
+  variant: fixed

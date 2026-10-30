@@ -42,6 +42,7 @@ from stable_baselines3.common.vec_env import (
 )
 
 from qatester.agents.policy import policy_kwargs
+from qatester.bugbook import BugBook
 from qatester.config import RunConfig
 from qatester.coverage import CoverageTracker
 from qatester.env.curriculum import MapEntry, Stage
@@ -99,6 +100,9 @@ class QACallback(BaseCallback):  # type: ignore[misc]
         self.next_metrics = self.next_ckpt = self.next_eval = 0
         self.last_t, self.last_steps = time.time(), initial_steps
         self.stopped_early = False
+        self.novelty_beta = cfg.reward.novelty_beta_start
+        b = cfg.bugbook
+        self.bugbook = BugBook.load_or_new(run_dir / "bugbook.json", b.match_radius_mu, b.freq_cap)
 
     def _on_training_start(self) -> None:
         n = self.model.num_timesteps
@@ -106,6 +110,21 @@ class QACallback(BaseCallback):  # type: ignore[misc]
         self.next_ckpt = n + self.cfg.ckpt_every
         self.next_eval = n + self.cfg.eval.every
         self.last_steps = n
+        self.schedule_novelty()
+        self.push_bugbook()
+
+    def schedule_novelty(self) -> None:
+        beta = self.cfg.reward.novelty_beta(self.num_timesteps, self.cfg.total_steps)
+        self.training_env.env_method("set_novelty_beta", beta)
+        self.novelty_beta = beta
+
+    def push_bugbook(self) -> None:
+        """Send every map's known-bug places to the workers (the Bug Book reward)."""
+        if not self.cfg.bugbook.enabled:
+            return
+        for m in self.bugbook.maps:
+            self.training_env.env_method("set_bugbook_targets", m, self.bugbook.targets(m),
+                                         self.cfg.bugbook.match_radius_mu)  # fmt: skip
 
     def drain(self) -> None:
         items = []
@@ -118,6 +137,10 @@ class QACallback(BaseCallback):  # type: ignore[misc]
         append_jsonl(self.run_dir / "findings.jsonl", findings)
         append_jsonl(self.run_dir / "coverage_gaps.jsonl", gaps)
         self.findings += findings
+        if self.cfg.bugbook.enabled and findings:
+            for f in findings:
+                self.bugbook.add_or_confirm(f, f["map"], int(f["env_steps"]))
+            self.push_bugbook()
 
     def _on_step(self) -> bool:
         for info in self.locals["infos"]:
@@ -132,6 +155,7 @@ class QACallback(BaseCallback):  # type: ignore[misc]
         if n >= self.next_metrics:
             self.next_metrics += self.cfg.metrics_every
             self.drain()
+            self.schedule_novelty()
             self.log_metrics()
         if n >= self.next_eval:
             self.next_eval += self.cfg.eval.every
@@ -174,6 +198,7 @@ class QACallback(BaseCallback):  # type: ignore[misc]
             "coverage": {m: coverage_summary(c) for m, c in self.coverage.items()},
             "clusters_by_family": clusters, "raw_findings": len(self.findings),
             "ent_coef": float(self.model.ent_coef),
+            "novelty_beta": round(self.novelty_beta, 4), "bugbook": self.bugbook.stats(),
         }  # fmt: skip
         self.last_t, self.last_steps = now, n
         append_jsonl(self.run_dir / "metrics.jsonl", [row])
@@ -216,6 +241,7 @@ class QACallback(BaseCallback):  # type: ignore[misc]
             venv.save(str(self.ckpt / "vecnormalize.pkl"))
         for name, c in self.coverage.items():
             c.save(self.ckpt / f"coverage_{name}.npy")
+        self.bugbook.save(self.run_dir / "bugbook.json")
         tmp = self.ckpt / "latest.json.tmp"
         tmp.write_text(json.dumps({"steps": n, "time": time.time()}))
         tmp.replace(self.ckpt / "latest.json")

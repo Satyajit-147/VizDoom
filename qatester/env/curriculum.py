@@ -74,6 +74,14 @@ class CurriculumEnv(gym.Wrapper[Obs, np.int64, Obs, np.int64]):
             self._truth[name] = GroundTruth.load(self.maps[name].groundtruth_path).intent_only()
         return self._truth[name]
 
+    # Trainer hooks, passed through to the env (VecEnv.env_method calls them by name).
+    def set_bugbook_targets(self, map_name: str, targets: list[tuple[str, float, float]],
+                            radius_mu: float = 96.0) -> None:  # fmt: skip
+        self.qa.set_bugbook_targets(map_name, targets, radius_mu)
+
+    def set_novelty_beta(self, beta: float) -> None:
+        self.qa.set_novelty_beta(beta)
+
     def reset(self, *, seed: int | None = None,
               options: dict[str, Any] | None = None) -> tuple[Obs, dict[str, Any]]:  # fmt: skip
         name = self.pick()

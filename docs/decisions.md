@@ -666,6 +666,40 @@ apply to Family 4 (unreachable), which uses the same tracker. With them, all thr
 demos replay with zero findings, and every defect test still passes. Regression test:
 `test_a_held_use_button_is_one_attempt_not_many`.
 
+## 2026-10-30 — M7
+
+### D42. Curiosity tester (T3b) and the Bug Book: what the plan leaves open
+- **Bug Book** (`qatester/bugbook.py`): the plan's rule exactly. Add a new finding with
+  frequency 1; a matching finding confirms it (frequency + 1, capped at 20); a replay
+  that no longer reproduces it decrements it; it is removed at 0. Matching: same family,
+  within 96 mu, and the same name for invariants (the report's rule). Saved as
+  `runs/<id>/bugbook.json` with every checkpoint, and reloaded on resume.
+  `tests/test_bugbook_rule.py` covers all four transitions, the cap and persistence.
+- **Bug Book reward:** +1.5 for coming within 96 mu of a known bug's place, once per
+  entry per episode (so it cannot be farmed). Invariant entries have no place, so they
+  pay nothing. The trainer sends the places to the workers as entries are added.
+- **Replay and decrement** need a way to replay an entry. Each entry keeps its demo; a
+  demo replays deterministically through the oracles (the D41 replay showed this
+  works). The decrement path is exercised in E7, by replaying the buggy build's Bug Book
+  on the fixed build. Replay from Go-Explore saves arrives with M8.
+- **Novelty schedule:** the abstract-state novelty weight β goes linearly from 0.5 to
+  0.1 over the first 60% of training (`reward.novelty_beta_*`), as the plan says. The
+  trainer pushes it to the workers every 10k steps. Cell novelty (0.3) is not decayed;
+  the plan names only β.
+- **M7 comparison: 5 seeds, not 3.** With 3 seeds per side, the smallest one-sided
+  Mann–Whitney p-value is 1/C(6,3) = 0.05, so even a perfect separation can never be
+  significant at α = 0.05 (checked with `scripts/compare_coverage.py`). The plan's
+  milestone table says 5 seeds (smallest p = 1/252); the M7 prompt says 3. We use 5
+  seeds × 600k steps per tier on MAP07 (`configs/t3a_map07.yaml`, `t3b_map07.yaml`),
+  run in waves of two jobs on Kaggle.
+- **Added run, the tester the project actually needs:** `configs/t3b.yaml`, T3b on the
+  curriculum with 64 generated training maps mixed in, 2M steps (D18). It is the agent
+  for the demo and for the unseen-map evaluation (E6).
+- **Kaggle runs from the command line:** `scripts/kaggle_job.py` uploads the code as a
+  dataset version, writes the notebook, and pushes it on GPU T4 × 2. The notebook runs a
+  pre-flight (the PPO smoke, Bug Book and M7 env tests) and stops before any long run if
+  those fail.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

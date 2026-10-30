@@ -47,6 +47,8 @@ def test_ppo_trains_checkpoints_and_resumes(tmp_path: Path) -> None:
     assert (run_dir / "ckpt" / "model.zip").exists()
     assert (run_dir / "ckpt" / "vecnormalize.pkl").exists()
     assert (run_dir / "ckpt" / "coverage_MAP01.npy").exists()
+    assert (run_dir / "bugbook.json").exists(), "the Bug Book is saved with each checkpoint"
+    assert "novelty_beta" in read_jsonl(run_dir / "metrics.jsonl")[-1]
     metrics = read_jsonl(run_dir / "metrics.jsonl")
     assert metrics and metrics[-1]["coverage"]["MAP01"]["cell"] > 0
     assert read_jsonl(run_dir / "eval.jsonl")[-1]["maps"]["MAP01"]["episodes"] == 1

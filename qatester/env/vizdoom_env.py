@@ -15,6 +15,7 @@ which `close()` also calls.
 
 from __future__ import annotations
 
+import math
 import multiprocessing as mp
 import shutil
 import tempfile
@@ -97,6 +98,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         init_retries: int = 5,
         init_backoff_s: float = 2.0,
         map_name: str | None = None,
+        display: bool = False,
     ) -> None:
         super().__init__()
         self.queue = oracle_queue
@@ -107,12 +109,18 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.frame_skip = frame_skip
         self.trace_policy: TracePolicy = trace_policy
         self.cheats = cheats
+        # Demo only: render a 320x240 colour view for people to watch (`self.screen`).
+        # The agent still gets the same depth observation, cropped and resized to 64x64.
+        self.display = display
+        self.screen: np.ndarray | None = None
 
         self.action_space = gym.spaces.Discrete(N_ACTIONS)
         self.observation_space = observation_space()  # type: ignore[assignment]
-        self.depth = DepthProcessor()
+        self.depth = DepthProcessor(240, 320) if display else DepthProcessor()
         self.frames = FrameStack()
         self.reward = EpisodeReward(self.reward_cfg)
+        self.bugbook_targets: dict[str, list[tuple[str, float, float]]] = {}
+        self.bugbook_radius = 96.0
         self._configure_map(Path(cfg_path), groundtruth, coverage, map_name)
         self.supervisor = Supervisor(
             self._make_game, step_timeout_s=self.oracle_cfg.crash.step_timeout_s,
@@ -149,6 +157,27 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.oracles = make_oracles(self.oracle_cfg)
         self.traversal = TraversalTracker(world.level)
 
+    # --- M7: Bug Book targets and the novelty schedule, set by the trainer --------------
+    def set_bugbook_targets(self, map_name: str, targets: list[tuple[str, float, float]],
+                            radius_mu: float = 96.0) -> None:  # fmt: skip
+        """Places of known bugs on `map_name` (Bug Book entries). Reaching one pays the
+        Bug Book reward, once per entry per episode."""
+        self.bugbook_targets[map_name] = list(targets)
+        self.bugbook_radius = radius_mu
+
+    def _bugbook_hits(self, rec: StepRecord) -> int:
+        hits = 0
+        for eid, x, y in self.bugbook_targets.get(self.map_name, ()):
+            if eid not in self.bugbook_paid and math.hypot(rec.x - x, rec.y - y) <= self.bugbook_radius:
+                self.bugbook_paid.add(eid)
+                hits += 1
+        return hits
+
+    def set_novelty_beta(self, beta: float) -> None:
+        """The abstract-state novelty weight (PLAN T3b: 0.5, decayed to 0.1)."""
+        self.reward_cfg = replace(self.reward_cfg, state_novelty=beta)
+        self.reward.cfg = self.reward_cfg
+
     def set_map(self, cfg_path: Path, groundtruth: GroundTruth,
                 coverage: CoverageTracker | None = None, name: str | None = None) -> None:
         """Switch to another map before the next reset (the training curriculum).
@@ -173,8 +202,12 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         g = vzd.DoomGame()
         g.load_config(str(self.cfg_path))
         g.set_mode(vzd.Mode.PLAYER)
-        g.set_screen_resolution(vzd.ScreenResolution.RES_160X120)
-        g.set_screen_format(vzd.ScreenFormat.GRAY8)
+        if self.display:
+            g.set_screen_resolution(vzd.ScreenResolution.RES_320X240)
+            g.set_screen_format(vzd.ScreenFormat.RGB24)
+        else:
+            g.set_screen_resolution(vzd.ScreenResolution.RES_160X120)
+            g.set_screen_format(vzd.ScreenFormat.GRAY8)
         g.set_depth_buffer_enabled(True)
         g.set_labels_buffer_enabled(True)
         g.set_objects_info_enabled(True)
@@ -227,6 +260,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         self.last: StepRecord | None = None
         self.last_frame = np.zeros((64, 64), np.uint8)
         self.loaded = False
+        self.bugbook_paid: set[str] = set()
         self.ep_parts: dict[str, float] = {}
         self.ep_return = 0.0
         self.phi = 0.0
@@ -379,7 +413,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
             potential_change=potential_change,
             progress=self.world.progress(rec.keys, crossed), goal=goal, died=died,
             cell_count=cell_count, state_count=state_count, entities=entities,
-            portals=crossed, findings=findings,
+            portals=crossed, findings=findings, bugbook_hits=self._bugbook_hits(rec),
         )  # fmt: skip
 
         self._tally(reward, parts)
@@ -482,6 +516,8 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
     def _frame(self, state: Any) -> np.ndarray:
         if state is not None and state.depth_buffer is not None:
             self.last_frame = self.depth(state.depth_buffer)
+            if self.display:
+                self.screen = state.screen_buffer
         return self.last_frame
 
     def _scalars(self, rec: StepRecord, state: Any, moved: float,

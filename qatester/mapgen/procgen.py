@@ -584,12 +584,21 @@ def _attempt(rng: np.random.Generator, cfg: ProcgenConfig, seed: int, slot: int,
     return spec
 
 
-def generate(seed: int, cfg: ProcgenConfig | None = None, slot: int = 1) -> MapSpec:
-    """The map for `seed`. Deterministic: the same seed always gives the same spec."""
+def generate(seed: int, cfg: ProcgenConfig | None = None, slot: int = 1,
+             kinds: Sequence[str] | None = None) -> MapSpec:  # fmt: skip
+    """The map for `seed`. Deterministic: the same seed always gives the same spec.
+
+    `kinds` forces which defect classes the map gets (the demo: a user picks the bugs);
+    by default 0-3 distinct classes are drawn from the seed."""
     cfg = cfg or ProcgenConfig()
     rng = np.random.default_rng(seed)
     k = int(rng.integers(0, cfg.max_defects + 1))
-    kinds = [str(x) for x in rng.choice(DEFECT_KINDS, size=k, replace=False)]
+    drawn = [str(x) for x in rng.choice(DEFECT_KINDS, size=k, replace=False)]
+    if kinds is not None:
+        unknown = set(kinds) - set(DEFECT_KINDS)
+        if unknown or len(set(kinds)) != len(kinds):
+            raise ValueError(f"kinds must be distinct defect classes; bad: {sorted(unknown)}")
+    kinds = list(kinds) if kinds is not None else drawn
     errors = []
     for attempt in range(MAX_ATTEMPTS):
         try:
