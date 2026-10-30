@@ -8,6 +8,7 @@ outline around the region they occupy or cut off.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from html import escape
 
@@ -44,8 +45,10 @@ THING_COLOUR = {
 Marker = tuple[float, float, str, str]  # x, y, label, colour
 
 
-def render_svg(cm: CompiledMap, markers: Sequence[Marker] = ()) -> str:
-    """`markers` are drawn on top, e.g. a bug report's findings on the intended map."""
+def render_svg(cm: CompiledMap, markers: Sequence[Marker] = (),
+               trail: Sequence[tuple[float, float]] = ()) -> str:
+    """`markers` are drawn on top, e.g. a bug report's findings on the intended map;
+    `trail` is a path the player walked (NaN points break it into pieces)."""
     spec = cm.spec
     x0 = min(r.x0 for r in spec.rooms)
     y0 = min(r.y0 for r in spec.rooms)
@@ -131,6 +134,16 @@ def render_svg(cm: CompiledMap, markers: Sequence[Marker] = ()) -> str:
             f'<text x="{x + 9}" y="{y - 9}" fill="#e00" font-weight="bold">'
             f"{escape(rec.id)} ({escape(rec.expected_oracle)})</text>"
         )
+    pieces: list[list[str]] = [[]]
+    for tx, ty in trail:
+        if math.isnan(tx) or math.isnan(ty):  # a gap: a new piece
+            pieces.append([])
+        else:
+            pieces[-1].append(f"{px(tx)},{py(ty)}")
+    for pts in pieces:
+        if len(pts) > 1:
+            out.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="#1e88e5" '
+                       'stroke-width="2" stroke-opacity="0.75" stroke-linejoin="round"/>')
     for mx, my, label, colour in markers:
         x, y = px(mx), py(my)
         out.append(f'<circle cx="{x}" cy="{y}" r="9" fill="{colour}" fill-opacity="0.85" '

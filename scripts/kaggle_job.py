@@ -81,6 +81,7 @@ for w, wave in enumerate(WAVES):
             "--runs-dir", "/kaggle/working/runs", "--results-dir", "/kaggle/working/results"],
             stdout=open(log, "w"), stderr=subprocess.STDOUT, start_new_session=True,
             env={**base, "CUDA_VISIBLE_DEVICES": str(gpu)}), log)
+        time.sleep(20)  # start the jobs apart: engines starting together race (D43)
     print(f"=== wave {w + 1}/{len(WAVES)}: {', '.join(procs)} ===", flush=True)
     start, done_at, last = time.time(), {}, 0.0
     while any(p.poll() is None for p, _ in procs.values()):
@@ -106,8 +107,10 @@ for w, wave in enumerate(WAVES):
 PREFLIGHT = '''# Pre-flight: stop here, before any long run, if the training code is broken.
 import subprocess, sys
 r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_ppo_smoke.py", "tests/test_bugbook_rule.py",
-                    "tests/test_m7_env.py", "-q", "-x", "-p", "no:cacheprovider"], capture_output=True, text=True)
-print(r.stdout[-3000:]); print(r.stderr[-2000:])
+                    "tests/test_m7_env.py", "-q", "-x", "-p", "no:cacheprovider", "-W", "ignore"],
+                   capture_output=True, text=True)
+open("/kaggle/working/preflight.log", "w").write(r.stdout + "\n" + r.stderr)
+print(r.stdout[-6000:]); print(r.stderr[-3000:])
 if r.returncode != 0:
     raise SystemExit("pre-flight tests failed: not starting the training waves")
 '''

@@ -26,6 +26,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+demo = ["streamlit>=1.40"]
 # Installed only on Kaggle. Kaggle preinstalls a CUDA-matched torch, which
 # satisfies the lower bound without a reinstall.
 train = [

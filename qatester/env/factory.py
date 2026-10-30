@@ -7,6 +7,7 @@ paths and configs, and the env loads the intended level itself.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -76,7 +77,12 @@ def map_names(st: list[Stage]) -> set[str]:
 def make_env(cfg: RunConfig, entries: Mapping[str, MapEntry], st: list[Stage],
              coverage: Mapping[str, CoverageTracker] | None, queue: Any,
              rank: int, record_dir: Path | None, initial_steps: int = 0) -> CurriculumEnv:  # fmt: skip
-    """Worker `rank`'s env. Seeds derive from the run seed, so workers differ."""
+    """Worker `rank`'s env. Seeds derive from the run seed, so workers differ.
+
+    Workers start their engines a moment apart: two ViZDoom instances starting in the
+    same instant from one folder race to create `./_vizdoom/`, and a worker died of it
+    on Kaggle (D43)."""
+    time.sleep(2.0 * rank)
     seed = cfg.seed * 1000 + rank
     rng = np.random.default_rng([cfg.seed, rank])
     first = min(map_names(st))
