@@ -57,7 +57,11 @@ SETUP = '''import os, glob, subprocess, pathlib, tarfile
 os.environ.update(SDL_VIDEODRIVER="dummy", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1")
 work = pathlib.Path("/kaggle/working/rl-qa-tester"); work.mkdir(parents=True, exist_ok=True)
 tars = glob.glob("/kaggle/input/**/code.tar.gz", recursive=True)
-tarfile.open(tars[0]).extractall(work)
+if tars:
+    tarfile.open(tars[0]).extractall(work)
+else:  # Kaggle sometimes unpacks the archive itself
+    src = pathlib.Path(sorted(glob.glob("/kaggle/input/**/pyproject.toml", recursive=True))[0]).parent
+    subprocess.run(["cp", "-r", f"{src}/.", str(work)], check=True)
 os.chdir(work)
 print(subprocess.run(["git", "log", "-1", "--oneline"], capture_output=True, text=True).stdout or "code unpacked")
 '''
