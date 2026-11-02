@@ -70,6 +70,7 @@ class ValidityConfig(_Model):
 class AdversarialConfig(_Model):
     cell_novelty: float = 0.3
     state_novelty: float = 0.5
+    novelty_scale: float = 1.0  # D44: T3b uses 0.05 so novelty cannot drown the task
     entity_first_use: float = 1.0
     portal_first_cross: float = 1.0
     oracle_cluster: float = 3.0
@@ -95,6 +96,7 @@ class RewardSection(_Model):
             alpha=self.alpha, progress=v.precondition, goal=v.goal, death=v.death, time=v.time,
             shaping=v.shaping,
             cell_novelty=a.cell_novelty, state_novelty=a.state_novelty,
+            novelty_scale=a.novelty_scale,
             entity=a.entity_first_use, portal=a.portal_first_cross, oracle=a.oracle_cluster,
             bugbook=a.bugbook_hit,
         )  # fmt: skip

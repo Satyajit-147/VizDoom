@@ -260,6 +260,17 @@ def softlock_near_legit_teleports(t: Truths) -> Run:
     return episodes(m, tr.end(False))
 
 
+def softlock_near_teleport_ping_pong(t: Truths) -> Run:
+    """MAP06 fixed: hops straight back and forth on purpose (D44). Each hop lands where
+    it should, clear of the pads, so it is not a loop however fast it repeats."""
+    m = t["MAP06", "fixed"]
+    tr = Trace(m, start=(1240, 256), angle=180).walk_to(1156, 256)
+    for _ in range(4):
+        tr.teleport(1216, 960, 0).walk_to(1156, 960)
+        tr.teleport(1216, 256, 0).walk_to(1156, 256)
+    return episodes(m, tr.end(False))
+
+
 def softlock_near_pit_with_lift(t: Truths) -> Run:
     """MAP06 fixed: drops into the pit, calls the lift, rides out."""
     m = t["MAP06", "fixed"]
@@ -290,5 +301,5 @@ NEAR_MISSES: dict[str, list[Fixture]] = {
     "invariant": [invariant_near_heal_to_100, invariant_near_door_with_key,
                   invariant_near_damage],
     "softlock": [softlock_near_idle, softlock_near_legit_teleports,
-                 softlock_near_pit_with_lift],
+                 softlock_near_pit_with_lift, softlock_near_teleport_ping_pong],
 }  # fmt: skip

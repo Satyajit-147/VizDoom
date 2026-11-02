@@ -20,6 +20,8 @@ maps:
        weights: [0.025, 0.055, 0.055, 0.055, 0.055, 0.055, 0.2], generated_weight: 0.5}
 reward:
   alpha: 0.5
+  adversarial:
+    novelty_scale: 0.05   # D44: unscaled novelty was 20-100x the task reward
 eval:
   every: 500_000
   episodes: 5

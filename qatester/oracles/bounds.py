@@ -7,8 +7,10 @@ exact rooms).
 2. z_clip: on the ground but below the live floor or above the live ceiling of the
    intended sector under the player, beyond a tolerance. Confidence 1.0.
 3. wall_traversal: between consecutive records the straight path crosses an intended
-   wall *and* the move is faster than running allows. Moves starting on a teleport pad
-   are excused (teleport problems belong to Family 6). Confidence 1.0.
+   wall *and* the move is faster than running allows. A move that starts within
+   `teleport_margin_mu` of a teleport pad, or ends that close to a teleport's intended
+   destination, is a teleport and is excused (teleport problems belong to Family 6;
+   D44). Confidence 1.0.
 """
 
 from __future__ import annotations
@@ -84,7 +86,9 @@ class BoundsOracle:
         if p is not None and step.tic > p.tic:
             moved = math.hypot(step.x - p.x, step.y - p.y)
             limit = cfg.max_speed_mu_per_tic * (step.tic - p.tic) + cfg.player_radius_mu
-            if moved > limit and not lv.on_teleport_pad(p.x, p.y, 2 * cfg.player_radius_mu):
+            teleported = (lv.on_teleport_pad(p.x, p.y, cfg.teleport_margin_mu)
+                          or lv.near_teleport_dest(step.x, step.y, cfg.teleport_margin_mu))  # fmt: skip
+            if moved > limit and not teleported:
                 path = (p.x, p.y, step.x, step.y)
                 crossed = [w for w in lv.walls if segments_cross(path, w)]
                 if crossed:

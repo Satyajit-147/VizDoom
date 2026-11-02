@@ -10,8 +10,11 @@ needs evidence that the way out is broken. Confidence 0.8, or 0.95 when two or m
 episodes end confined in the same room.
 
 Teleport loop, streamed: at least `min_loop_hops` teleport-sized jumps in a row, each
-within `max_lag_tics` of the previous, bouncing between the same two rooms. Confidence
-0.9. The plan's "autocorrelation of position at lag < 70 tics above 0.9" is replaced:
+within `max_lag_tics` of the previous, bouncing between the same two rooms, and each
+landing within `loop_arrival_mu` of a teleport pad (D44): a broken pair drops the player
+right in front of the other pad, while a working one drops them clear of every pad, so
+an agent that hops back and forth on purpose is not a loop. Reported at the centre of
+the pad the loop started from. Confidence 0.9. The plan's "autocorrelation of position at lag < 70 tics above 0.9" is replaced:
 any smooth walk has near-1 autocorrelation at short lags, so it does not single out a
 loop.
 """
@@ -52,7 +55,7 @@ class SoftlockOracle:
         self.tracker: TraversalTracker | None = None
         self.attempts: AttemptTracker | None = None
         self.trail: list[tuple[int, float, float, float, int]] = []  # tic, x, y, z, sector
-        self.failures: list[tuple[int, str]] = []  # (tic, portal) failed attempts
+        self.failures: list[tuple[int, str]] = []  # (tic begun, portal) failed attempts
         self.ended = False
         self.prev: StepRecord | None = None
         self.hops: list[_Hop] = []
@@ -85,6 +88,10 @@ class SoftlockOracle:
         p = self.prev
         if p is None or math.hypot(step.x - p.x, step.y - p.y) < self.cfg.teleport_jump_mu:
             return []
+        landing = self.level.nearest_teleport_pad(step.x, step.y)
+        if landing is None or landing[1] > self.cfg.loop_arrival_mu:
+            self.hops = []  # landed clear of every pad: the teleport worked
+            return []
         hop = _Hop(step.tic, (p.x, p.y, p.z), self.level.sector_at(p.x, p.y),
                    self.level.sector_at(step.x, step.y))  # fmt: skip
         if self.hops and (hop.tic - self.hops[-1].tic > self.cfg.max_lag_tics or (
@@ -96,7 +103,9 @@ class SoftlockOracle:
             return []
         self.loop_reported = True
         first = self.hops[0]
-        return [Finding(self.name, "teleport_loop", first.src, (first.tic, hop.tic),
+        pad = self.level.nearest_teleport_pad(first.src[0], first.src[1])
+        at = (pad[0][0], pad[0][1], first.src[2]) if pad else first.src
+        return [Finding(self.name, "teleport_loop", at, (first.tic, hop.tic),
                         self.cfg.loop_confidence,
                         {"episode": self.ctx.episode, "hops": len(self.hops),
                          "sectors": [first.from_sector, first.to_sector]})]  # fmt: skip
@@ -105,7 +114,8 @@ class SoftlockOracle:
         assert self.level is not None and self.tracker is not None and self.attempts
         out = self._loop(step)
         crossed = self.tracker.update(step.x, step.y)
-        self.failures += [(step.tic, pid) for pid in self.attempts.update(step, crossed)]
+        self.failures += [(self.attempts.started[pid], pid)
+                          for pid in self.attempts.update(step, crossed)]  # fmt: skip
         self.trail.append((step.tic, step.x, step.y, step.z, self.level.sector_at(step.x, step.y)))
         self.prev = step
         if step.done:

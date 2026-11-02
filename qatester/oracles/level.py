@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import math
 from collections import deque
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -100,6 +101,7 @@ class Level:
         self.portal_sector: dict[str, int] = {
             s["portal"]: s["index"] for s in self.sectors if s["portal"] is not None
         }
+        self._faces: dict[tuple[str, float], list[Segment]] = {}
 
     def sector_at(self, x: float, y: float) -> int:
         return self.truth.sector_at(x, y)
@@ -127,6 +129,53 @@ class Level:
             if (a, b) == (s_from, s_to) or (p.kind != "teleport" and (b, a) == (s_from, s_to)):
                 out.append(p)
         return out
+
+    def near_teleport_dest(self, x: float, y: float, margin: float) -> bool:
+        """Within `margin` of where some teleport is meant to drop the player."""
+        return any(
+            p.kind == "teleport" and p.dest is not None
+            and math.hypot(x - p.dest[0], y - p.dest[1]) <= margin
+            for p in self.portals.values()
+        )  # fmt: skip
+
+    def nearest_teleport_pad(self, x: float, y: float) -> tuple[tuple[float, float], float] | None:
+        """Centre of the teleport pad nearest (x, y) and its distance, or None."""
+        centres = [((p.area[0] + p.area[2]) / 2, (p.area[1] + p.area[3]) / 2)
+                   for p in self.portals.values() if p.kind == "teleport"]  # fmt: skip
+        if not centres:
+            return None
+        c = min(centres, key=lambda c: math.hypot(x - c[0], y - c[1]))
+        return c, math.hypot(x - c[0], y - c[1])
+
+    def use_faces(self, pid: str, trim: float) -> list[Segment]:
+        """The parts of a door's or lift's outline that carry its USE special: its edges
+        minus the stretches that are solid wall (a lift's area runs on into the wall
+        strip behind it, D44), each shortened by `trim` at both ends, since the frame
+        beside a door or lift takes a press that grazes its corner."""
+        key = (pid, trim)
+        if key not in self._faces:
+            x0, y0, x1, y1 = self.portals[pid].area
+            out: list[Segment] = []
+            for horizontal, at, lo, hi in ((True, y0, x0, x1), (True, y1, x0, x1),
+                                           (False, x0, y0, y1), (False, x1, y0, y1)):  # fmt: skip
+                cover = sorted(
+                    (min(w[0], w[2]), max(w[0], w[2])) if horizontal
+                    else (min(w[1], w[3]), max(w[1], w[3]))
+                    for w in self.walls
+                    if (w[1] == w[3] == at if horizontal else w[0] == w[2] == at)
+                )  # fmt: skip
+                pieces, start = [], lo
+                for a, b in cover:
+                    if a > start:
+                        pieces.append((start, min(a, hi)))
+                    start = max(start, b)
+                pieces.append((start, hi))
+                for a, b in pieces:
+                    if b - a > 2 * trim:
+                        a, b = a + trim, b - trim
+                        out.append((a, at, b, at) if horizontal else (at, a, at, b))
+            self._faces[key] = out
+        return self._faces[key]
 
     def on_teleport_pad(self, x: float, y: float, margin: float) -> bool:
         return any(
@@ -185,6 +234,30 @@ def ray_hits_rect(x: float, y: float, angle: float, length: float, r: Rect) -> b
     return any(segments_cross(ray, e) for e in edges)
 
 
+def _ray_t(ray: Segment, s: Segment) -> float | None:
+    """Where along `ray` (0..1) it meets segment `s`, or None (a miss, or parallel)."""
+    rx, ry = ray[2] - ray[0], ray[3] - ray[1]
+    qx, qy = s[2] - s[0], s[3] - s[1]
+    den = rx * qy - ry * qx
+    if den == 0:
+        return None
+    wx, wy = s[0] - ray[0], s[1] - ray[1]
+    t, u = (wx * qy - wy * qx) / den, (wx * ry - wy * rx) / den
+    return t if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0 else None
+
+
+def ray_reaches_face(x: float, y: float, angle: float, length: float,
+                     faces: Sequence[Segment], walls: Sequence[Segment]) -> bool:  # fmt: skip
+    """Whether the view ray of `length` meets one of `faces` before any wall."""
+    ray = (x, y, x + length * math.cos(math.radians(angle)),
+           y + length * math.sin(math.radians(angle)))  # fmt: skip
+    hits = [t for f in faces if (t := _ray_t(ray, f)) is not None]
+    if not hits:
+        return False
+    blocked = [t for w in walls if (t := _ray_t(ray, w)) is not None]
+    return min(hits) < min(blocked, default=math.inf)
+
+
 def ray_hits_segment(x: float, y: float, angle: float, length: float, s: Segment) -> bool:
     ex = x + length * math.cos(math.radians(angle))
     ey = y + length * math.sin(math.radians(angle))
@@ -203,15 +276,20 @@ class AttemptTracker:
     """Proper attempts to use an exit that visibly failed (docs/decisions.md D25).
 
     - door / lift: a USE press (not a held button: Doom acts only on the press) whose
-      ray (Doom's 64 mu use range) hits the portal from outside
-      it, holding the key for a locked door; then the portal's sector does not move
-      within the window. (Standing on a lift and pressing USE does nothing in Doom, and
+      ray (Doom's 64 mu use range) meets one of the portal's use faces before any wall,
+      holding the key for a locked door; then the portal's sector does not move
+      within the window. The press must reach from the previous record's pose as well
+      as this one's: Doom acts on the first tic of a frame-skipped step, so an agent
+      running in with USE held may press out of reach and only then arrive (D44). (Standing on a lift and pressing USE does nothing in Doom, and
       is no attempt: you leave a raised lift by walking off it; docs/decisions.md D36.)
     - switch-operated door: USE whose ray hits its switch; the door does not move.
     - open portal: pushing forward through the opening itself (lined up inside it,
       facing it, within reach) for `throat_push_tics` without making progress.
     - teleport: standing on the pad without arriving within the window.
-    Attempts on a portal that already moved this episode (an open door) are ignored.
+    Attempts on a portal that already moved this episode (an open door) are ignored, and
+    so are presses while its door or lift is still moving: Doom ignores those (D44).
+    `started[pid]` is when the latest failed attempt on `pid` began (the press, the
+    start of the push), which is earlier than the step that reports the failure.
     """
 
     def __init__(self, level: Level, cfg: AttemptConfig) -> None:
@@ -219,6 +297,7 @@ class AttemptTracker:
         # Only presses clearly within reach count: the engine refused a press our geometry
         # put 0.2 mu inside Doom's 64 mu reach (D41).
         self.use_range = cfg.use_range_mu - cfg.use_margin_mu
+        self.face_trim = cfg.face_trim_mu
         self.window = cfg.window_tics
         self.throat_mu = cfg.throat_mu
         self.throat_push_tics = cfg.throat_push_tics
@@ -232,7 +311,9 @@ class AttemptTracker:
         self.pending: dict[str, _Pending] = {}
         self.throat: dict[str, int] = {}
         self.traversed_at: dict[str, int] = {}  # portal -> tic of its latest traversal
-        self.prev: tuple[int, float, float] | None = None
+        self.prev: tuple[int, float, float, float] | None = None  # tic, x, y, angle
+        self.prev_heights: tuple[tuple[float, ...], tuple[float, ...]] | None = None
+        self.started: dict[str, int] = {}
         self.use_held = False
 
     def _moved(self, floors: tuple[float, ...], ceilings: tuple[float, ...], sector: int,
@@ -273,18 +354,19 @@ class AttemptTracker:
             for p in lv.portals.values():
                 if p.id in self.pending or p.kind in ("open", "teleport"):
                     continue
-                if p.switch is not None:
-                    if not ray_hits_segment(x, y, angle, self.use_range, lv.switch_lines[p.switch]):
-                        continue
-                elif rect_distance(x, y, p.area) == 0.0:
-                    continue  # standing on the lift (or in the doorway): USE cannot work it
-                elif not ray_hits_rect(x, y, angle, self.use_range, p.area):
+                poses = [(x, y, angle)] + ([self.prev[1:]] if self.prev is not None else [])
+                if not all(self._reaches(p, *pose) for pose in poses):
                     continue
-                elif p.requires is not None and p.requires not in step.keys:
+                if p.requires is not None and p.requires not in step.keys:
                     continue  # no key: the door is right to stay shut
                 sector = lv.portal_sector.get(p.id)
                 if sector is not None and self._already_moved(floors, ceilings, sector):
                     continue
+                if sector is not None and self.prev_heights is not None and self._moved(
+                    floors, ceilings, sector, self.prev_heights[0][sector],
+                    self.prev_heights[1][sector],
+                ):  # fmt: skip
+                    continue  # still moving from an earlier use: Doom ignores the press
                 pend = _Pending(step.tic, sector)
                 if sector is not None and sector < len(floors):
                     pend.floor, pend.ceiling = floors[sector], ceilings[sector]
@@ -310,6 +392,7 @@ class AttemptTracker:
             self.throat[p.id] = self.throat.get(p.id, 0) + dt
             if self.throat[p.id] >= self.throat_push_tics:
                 failed.append(p.id)
+                self.started[p.id] = step.tic - self.throat[p.id]
                 self.throat[p.id] = 0
 
         for pid, pend in list(self.pending.items()):
@@ -323,6 +406,19 @@ class AttemptTracker:
                 del self.pending[pid]
             elif step.tic - pend.tic >= self.window:
                 failed.append(pid)
+                self.started[pid] = pend.tic
                 del self.pending[pid]
-        self.prev = (step.tic, x, y)
+        self.prev = (step.tic, x, y, angle)
+        if floors:
+            self.prev_heights = (floors, ceilings)
         return failed
+
+    def _reaches(self, p: Portal, x: float, y: float, angle: float) -> bool:
+        """A USE press from this pose can work portal `p` (its switch, or its face)."""
+        lv = self.level
+        if p.switch is not None:
+            return ray_hits_segment(x, y, angle, self.use_range, lv.switch_lines[p.switch])
+        if rect_distance(x, y, p.area) == 0.0:
+            return False  # standing on the lift (or in the doorway): USE cannot work it
+        return ray_reaches_face(x, y, angle, self.use_range,
+                                lv.use_faces(p.id, self.face_trim), lv.walls)  # fmt: skip

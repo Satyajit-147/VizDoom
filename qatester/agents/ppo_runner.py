@@ -193,6 +193,8 @@ class QACallback(BaseCallback):  # type: ignore[misc]
             "steps_per_s": round((n - self.last_steps) / max(1e-9, now - self.last_t), 1),
             "episodes": len(eps), "return": mean("return"), "validity": mean("validity"),
             "adversarial": mean("adversarial"), "length": mean("steps"),
+            "parts": {k: float(np.mean([e["parts"].get(k, 0.0) for e in eps]))
+                      for k in sorted({k for e in eps for k in e["parts"]})},
             "death_rate": (sum(e["outcome"] == "death" for e in eps) / len(eps)) if eps else None,
             "goal_rate": (sum(e["outcome"] == "goal" for e in eps) / len(eps)) if eps else None,
             "coverage": {m: coverage_summary(c) for m, c in self.coverage.items()},
@@ -204,7 +206,9 @@ class QACallback(BaseCallback):  # type: ignore[misc]
         append_jsonl(self.run_dir / "metrics.jsonl", [row])
         print(f"[{n:>9,}] {row['steps_per_s']:6.0f} steps/s  episodes {len(eps):3d}  "
               f"return {row['return'] if eps else float('nan'):7.2f}  goal "
-              f"{row['goal_rate'] if eps else float('nan'):.2f}  findings "
+              f"{row['goal_rate'] if eps else float('nan'):.2f}  valid "
+              f"{row['validity'] if eps else float('nan'):6.2f}  adv "
+              f"{row['adversarial'] if eps else float('nan'):6.2f}  findings "
               f"{len(self.findings)}", flush=True)  # fmt: skip
 
     def evaluate(self, episodes: int) -> dict[str, Any]:

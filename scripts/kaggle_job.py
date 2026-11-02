@@ -68,6 +68,7 @@ print(subprocess.run(["git", "log", "-1", "--oneline"], capture_output=True, tex
 
 LAUNCH = '''import os, sys, time, signal, subprocess, pathlib, json
 WAVES = __WAVES__
+EXTRA = __EXTRA__
 LOG = pathlib.Path("/kaggle/working/logs"); LOG.mkdir(parents=True, exist_ok=True)
 base = {**os.environ, "SDL_VIDEODRIVER": "dummy", "OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1"}
 def lines(p): return p.read_text(errors="replace").splitlines() if p.exists() else []
@@ -78,7 +79,7 @@ for w, wave in enumerate(WAVES):
         name = pathlib.Path(cfg).stem + f"_seed{seed}"
         log = LOG / f"{name}.log"
         procs[name] = (subprocess.Popen([sys.executable, "scripts/train.py", "--config", cfg, "--seed", str(seed),
-            "--runs-dir", "/kaggle/working/runs", "--results-dir", "/kaggle/working/results"],
+            "--runs-dir", "/kaggle/working/runs", "--results-dir", "/kaggle/working/results", *EXTRA],
             stdout=open(log, "w"), stderr=subprocess.STDOUT, start_new_session=True,
             env={**base, "CUDA_VISIBLE_DEVICES": str(gpu)}), log)
         time.sleep(20)  # start the jobs apart: engines starting together race (D43)
@@ -140,6 +141,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--wave", action="append", required=True,
                     help="config:seed[,config:seed] - at most two jobs, one per T4")
     ap.add_argument("--no-upload", action="store_true", help="reuse the last code upload")
+    ap.add_argument("--total-steps", type=int, help="override every job's total steps (a probe)")
     args = ap.parse_args(argv)
     waves = []
     for w in args.wave:
@@ -154,7 +156,9 @@ def main(argv: list[str] | None = None) -> None:
         upload_code(f"code at {sha}")
     with tempfile.TemporaryDirectory(prefix="qa_k") as d:
         nb = {"cells": [code(SETUP), code('!pip install -q -e ".[train]"'), code(PREFLIGHT),
-                        code(LAUNCH.replace("__WAVES__", json.dumps(waves))), code(SUMMARY)],
+                        code(LAUNCH.replace("__WAVES__", json.dumps(waves)).replace("__EXTRA__", json.dumps(
+                            ["--total-steps", str(args.total_steps)] if args.total_steps else []))),
+                        code(SUMMARY)],
               "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python",
                                           "name": "python3"}},
               "nbformat": 4, "nbformat_minor": 5}  # fmt: skip

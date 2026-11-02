@@ -112,6 +112,9 @@ class BoundsConfig:
     z_tolerance_mu: float = 8.0
     player_height_mu: float = 56.0
     max_speed_mu_per_tic: float = 32.0
+    teleport_margin_mu: float = 48.0  # a jump this close to a pad, or to a teleport's
+    # destination, is a teleport, not a wall traversal (D44: at frame skip 4 the record
+    # before a teleport can be ~32 mu short of the pad)
 
 
 @dataclass(frozen=True)
@@ -120,6 +123,7 @@ class AttemptConfig:
 
     use_range_mu: float = 64.0  # Doom's USE reach
     use_margin_mu: float = 8.0  # an attempt needs the target this far inside reach (D41)
+    face_trim_mu: float = 8.0  # ...and to land this far from a door's or lift's corner (D44)
     window_tics: int = 35  # a door or lift must start moving within this
     throat_mu: float = 32.0  # open portal: how close to the opening a push counts
     throat_push_tics: int = 16  # ...and for how long without progress
@@ -141,6 +145,7 @@ class SoftlockConfig:
     max_lag_tics: int = 70
     min_loop_hops: int = 4
     teleport_jump_mu: float = 200.0
+    loop_arrival_mu: float = 80.0
     confidence: float = 0.8
     repeat_confidence: float = 0.95
     loop_confidence: float = 0.9

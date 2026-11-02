@@ -232,4 +232,92 @@ def test_a_held_use_button_is_one_attempt_not_many(truth: Truths) -> None:
     # Pressed out of reach (61 mu, aimed past the door's edge), then held: no attempt.
     assert failures([True, True, True, True]) == []
     # Released, stepped up to the door, pressed again, and the door stays shut: counts.
-    assert failures([True, True, False, False, True]) == ["p_start_loft"]
+    assert failures([True, True, False, False, False, True]) == ["p_start_loft"]
+    # Pressed on the very step that brought it into reach: Doom acted on the press from
+    # the pose before that step, out of reach, so no attempt (D44).
+    assert failures([True, True, False, False, True]) == []
+
+
+def test_a_teleport_seen_at_frame_skip_4_is_not_a_wall_traversal(truth: Truths) -> None:
+    """Regression (D44): at frame skip 4 the record before a teleport can be ~30 mu short
+    of the pad, so the jump to the destination looked like passing through walls."""
+    from qatester.oracles.base import EpisodeContext, StepRecord
+    from qatester.oracles.bounds import BoundsOracle
+
+    gt = truth["MAP06", "fixed"].intent_only()
+    lv = Level(gt)
+    tp = next(p for p in lv.portals.values() if p.kind == "teleport")
+    assert tp.dest is not None
+    px = (tp.area[0] + tp.area[2]) / 2
+
+    def kinds(before: tuple[float, float], after: tuple[float, float]) -> list[str]:
+        o = BoundsOracle()
+        o.reset(EpisodeContext("MAP06", 0, 0, gt, 4))
+        out = o.observe(StepRecord(tic=100, x=before[0], y=before[1], z=0.0))
+        out += o.observe(StepRecord(tic=104, x=after[0], y=after[1], z=0.0, done=True))
+        return [f.kind for f in out]
+
+    short = (px, tp.area[1] - 30.0)  # 30 mu outside the pad's edge
+    assert "wall_traversal" not in kinds(short, tp.dest)
+    # A jump through solid wall with no teleport near either end is still a traversal.
+    assert "wall_traversal" in kinds((40.0, 100.0), (700.0, 100.0))
+
+
+def test_a_press_on_the_wall_beside_a_lift_is_not_an_attempt(truth: Truths) -> None:
+    """Regression (D44): a lift's area runs on into the wall strip behind it. A press
+    whose ray met that strip's solid wall was counted as a failed lift press, which made
+    false softlocks (the engine ignores such a press: checked on GEN12's lift). Only a
+    press on a face that carries the lift's special, away from its corners, counts."""
+    from qatester.oracles.base import AttemptConfig, StepRecord
+    from qatester.oracles.level import AttemptTracker
+
+    lv = Level(truth["MAP06", "fixed"].intent_only())
+    lift = lv.portals["p_start_pit"]  # area (208, 504, 304, 584); wall strip y 504..520
+    floors = tuple(float(x["floor"]) for x in lv.sectors)
+    ceilings = tuple(float(x["ceiling"]) for x in lv.sectors)
+
+    def attempts(x: float, y: float, angle: float) -> list[str]:
+        tracker = AttemptTracker(lv, AttemptConfig())
+        out: list[str] = []
+        for i, use in enumerate([False, True] + [False] * 12):
+            rec = StepRecord(tic=4 * i, x=x, y=y, z=-64.0, angle=angle, use=use,
+                             sector_floors=floors, sector_ceilings=ceilings)  # fmt: skip
+            out += tracker.update(rec, [])
+        return out
+
+    # From the pit, straight at the platform's west face: an attempt (the lift is static).
+    assert attempts(184.0, 552.0, 0.0) == [lift.id]
+    # Straight at the same edge where it runs through the wall strip: no attempt.
+    assert attempts(184.0, 512.0, 0.0) == []
+    # At the face, grazing its corner (within 8 mu of its end): no attempt.
+    assert attempts(184.0, 580.0, 0.0) == []
+
+
+def test_a_press_on_a_moving_lift_is_not_an_attempt(truth: Truths) -> None:
+    """Regression (D44): the lift was still finishing its ride up when the agent pressed
+    USE; Doom ignores that press, which then counted as a failed attempt, dated when its
+    window ran out (after the agent had dropped into the room below), and made a false
+    softlock on a clean generated map. Failures are dated by their press."""
+    from qatester.oracles.base import AttemptConfig, StepRecord
+    from qatester.oracles.level import AttemptTracker
+
+    lv = Level(truth["MAP06", "fixed"].intent_only())
+    lift = lv.portals["p_start_pit"]
+    s = lv.portal_sector[lift.id]
+    floors = tuple(float(x["floor"]) for x in lv.sectors)
+    ceilings = tuple(float(x["ceiling"]) for x in lv.sectors)
+    rising = tuple(f - 20.0 if i == s else f for i, f in enumerate(floors))
+
+    def run(before_press: tuple[float, ...]) -> tuple[list[str], AttemptTracker]:
+        tracker = AttemptTracker(lv, AttemptConfig())
+        out: list[str] = []
+        for i, use in enumerate([False, False, True] + [False] * 12):
+            rec = StepRecord(tic=4 * i, x=184.0, y=552.0, z=-64.0, angle=0.0, use=use,
+                             sector_floors=before_press if i == 1 else floors,
+                             sector_ceilings=ceilings)  # fmt: skip
+            out += tracker.update(rec, [])
+        return out, tracker
+
+    assert run(rising)[0] == []  # pressed as it arrived: ignored by Doom, no attempt
+    failed, tracker = run(floors)  # pressed at rest: an attempt, dated by the press
+    assert failed == [lift.id] and tracker.started[lift.id] == 8

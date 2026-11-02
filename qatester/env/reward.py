@@ -40,6 +40,7 @@ class RewardConfig:
     # adversarial
     cell_novelty: float = 0.3
     state_novelty: float = 0.5
+    novelty_scale: float = 1.0  # multiplies both novelty terms (D44: 0.05 for T3b)
     entity: float = 1.0
     portal: float = 1.0
     oracle: float = 3.0
@@ -127,9 +128,10 @@ class EpisodeReward:
             "death": c.death if died else 0.0,
             "time": c.time,
             "shaping": c.shaping * potential_change / 1000.0,
-            "cell_novelty": 0.0 if cell_count is None else c.cell_novelty / math.sqrt(1 + cell_count),
+            "cell_novelty": (0.0 if cell_count is None
+                             else c.novelty_scale * c.cell_novelty / math.sqrt(1 + cell_count)),
             "state_novelty": (0.0 if state_count is None
-                              else c.state_novelty / math.sqrt(1 + state_count)),
+                              else c.novelty_scale * c.state_novelty / math.sqrt(1 + state_count)),
             "entity": c.entity * len(new_entities),
             "portal": c.portal * len(new_portals),
             "oracle": c.oracle * len(self.new_findings(findings)),

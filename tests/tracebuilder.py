@@ -87,7 +87,9 @@ class Trace:
         return self
 
     def use(self) -> Trace:
-        return self.emit(use=True)
+        """Line up (one still record, already facing), then press: Doom acts on the press
+        from the pose before the frame-skipped step (D44)."""
+        return self.emit().emit(use=True)
 
     def teleport(self, x: float, y: float, angle: float | None = None) -> Trace:
         self.x, self.y = x, y

@@ -4,7 +4,8 @@ clicked through with Streamlit's AppTest."""
 
 from __future__ import annotations
 
-import os
+import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -38,9 +39,19 @@ def test_play_finish_and_score_a_corpus_map(tmp_path: Path) -> None:
     assert (tmp_path / "report" / "report.html").exists()
 
 
-def test_streamlit_app_clicks_through(tmp_path: Path) -> None:
+@pytest.fixture
+def keep_main() -> Iterator[None]:
+    """AppTest runs the app as `__main__`. Put the real one back afterwards: worker
+    processes started by later tests re-import `__main__`, and would start the app."""
+    main = sys.modules["__main__"]
+    yield
+    sys.modules["__main__"] = main
+
+
+def test_streamlit_app_clicks_through(tmp_path: Path, keep_main: None,
+                                      monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     testing = pytest.importorskip("streamlit.testing.v1")
-    os.environ["QA_LAB_DIR"] = str(tmp_path)
+    monkeypatch.setenv("QA_LAB_DIR", str(tmp_path))
     at = testing.AppTest.from_file(str(REPO / "scripts" / "qa_lab.py"), default_timeout=300)
     at.run()
     at.sidebar.button[0].click().run()  # build the default generated level

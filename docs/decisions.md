@@ -265,7 +265,7 @@ Never edit in response to a result. A genuine change is a new, named experiment,
 from scratch, with both versions reported. Additions beyond PLAN Appendix B: `crash.*`,
 `stuck.push_tics`, `stuck.push_progress_mu`, `stuck.vertical_*`,
 `bounds.player_height_mu`, `bounds.max_speed_mu_per_tic`, `reach.confidence_*`,
-`softlock.min_loop_hops`, `softlock.teleport_jump_mu`, `softlock.*confidence`, `attempts.*`.
+`softlock.min_loop_hops`, `softlock.teleport_jump_mu`, `softlock.loop_arrival_mu`, `softlock.*confidence`, `attempts.*`.
 Removed: `softlock.autocorr_threshold` (D25).
 
 <!-- frozen-oracle-thresholds -->
@@ -289,6 +289,7 @@ oracles:
     z_tolerance_mu: 8.0
     player_height_mu: 56.0
     max_speed_mu_per_tic: 32.0
+    teleport_margin_mu: 48.0
   reach:
     use_attempts_for_broken_trigger: 5
     confidence_graph: 0.95
@@ -298,12 +299,14 @@ oracles:
     max_lag_tics: 70
     min_loop_hops: 4
     teleport_jump_mu: 200.0
+    loop_arrival_mu: 80.0
     confidence: 0.8
     repeat_confidence: 0.95
     loop_confidence: 0.9
   attempts:
     use_range_mu: 64.0
     use_margin_mu: 8.0
+    face_trim_mu: 8.0
     window_tics: 35
     throat_mu: 32.0
     throat_push_tics: 16
@@ -699,6 +702,75 @@ demos replay with zero findings, and every defect test still passes. Regression 
   dataset version, writes the notebook, and pushes it on GPU T4 × 2. The notebook runs a
   pre-flight (the PPO smoke, Bug Book and M7 env tests) and stops before any long run if
   those fail.
+
+### D43. Staggered engine start-ups (2026-10-31)
+The first M7 pre-flight on Kaggle died with a broken pipe: several ViZDoom engines
+started at the same instant race on the shared `./_vizdoom/` folder (config and save
+files), and one of them exits. `make_env` now waits `2 s × rank` before starting worker
+`rank`'s engine, and `scripts/kaggle_job.py` starts parallel jobs 20 s apart. The cost
+is about 15 s per run.
+
+### D44. M7 first run: why it failed, and the fixes before the rerun (2026-11-02)
+**Result (M7 acceptance not met).** MAP07, 600k steps, 5 seeds per tier. T3a final cell
+coverage was 0.52, 0.71, 0.73, 0.50, 0.75; T3b was 0.38, 0.47, 0.33, 0.33, 0.33
+(one-sided Mann–Whitney U = 0, p = 0.997, A12 = 0: T3b is *worse*). The curriculum T3b
+run (2M steps, seed 0) never finished a map. Its report scored precision 0.46 and recall
+0.29 against the answer keys.
+
+**Cause 1, reward balance.** Per episode, T3b's adversarial return was 50–190 against a
+validity return of about 1–5. Cell and state novelty, summed over 2,600 steps, swamped
+the task, so the agent learned to wander and never picked up keys. New knob
+`adversarial.novelty_scale` multiplies the cell and state novelty terms. It is 0.05 in
+the T3b configs, which puts novelty on the scale of the task reward. Oracle and
+Bug Book bonuses are unchanged. This is a training setting, not an oracle threshold, and
+the rerun reports it.
+
+**Cause 2, false alarms (49 of 90 reported findings).** `qatester/replay.py` replays a
+finding's demo tic by tic through the oracles, sampling every 4th tic as training did.
+89 of the 90 findings reproduced exactly, so each false alarm could be studied. Four
+oracle fixes, all from engine evidence and none from tester comparisons (the same
+standard as D41). They add thresholds to the frozen block, and the write-up will say so.
+1. **Teleports seen at frame skip 4 looked like wall traversals (19).** The record
+   before a hop can be up to 25 mu short of the pad. A jump is now excused if it starts
+   within `bounds.teleport_margin_mu = 48` of a pad, or ends within 48 mu of a teleport
+   destination.
+2. **Teleport loops (18).** Measured on every hop in the 31 loop demos: a planted loop
+   always lands exactly 56 mu (LOOP_STANDOFF) from the other pad's centre. A working
+   teleport lands 96 mu or more from any pad (138–204 in the false cases, where the agent
+   hopped back and forth on purpose). A hop now counts toward a loop only if it lands
+   within `softlock.loop_arrival_mu = 80` of a pad centre. 15 of the 18 "false" loops
+   were real loops reported at the record before the hop, outside the scoring radius.
+   A loop is now reported at the centre of the pad it started from.
+3. **Confined (10) and broken trigger (2): presses the engine never acted on.**
+   - A lift's area runs on into the 16 mu wall strip behind it. Presses whose ray met
+     that strip's solid wall were counted as failed lift presses. Checked in the engine
+     on GEN12: a straight press on the platform face lowers the lift, and the same press
+     on the strip does nothing. A press now has to meet a *use face* (the parts of the
+     portal's outline not covered by walls, trimmed by `attempts.face_trim_mu = 8` at each
+     end for the frame) before any wall.
+   - Doom acts on USE on the first tic of a frame-skipped step, from the pose of the
+     record before it. 24 of 27 counted presses were out of reach at that pose: the
+     agent ran in with USE held. A press now has to reach from both poses.
+   - A press while the door or lift is still moving from an earlier use is ignored by
+     Doom, and is no longer an attempt.
+   - A failure is now dated by its press, not by the end of its 35-tic window. A press
+     made from the room above had been counted as a failed escape from the room the
+     agent dropped into a moment later.
+4. **Scoring.** A planted trap pit (`geometry_trap`) that the softlock family reports as
+   `confined` names the defect correctly: the player is stranded there.
+   `report.scoring.ALSO_ACCEPTED` allows it.
+
+**Validation, local, before any GPU time.** All 90 demos were replayed through the fixed
+oracles: false alarms went from 48 to 0, and planted defects found went from 35 to 41,
+with none lost. Clean-map sweep: random and scripted testers on the fixed builds of the
+8 corpus maps, 64 training maps and 32 unseen test maps, 3 episodes each at frame skip 4,
+1.76M steps. One false alarm before the moving-lift and press-dating fixes, none after
+them (0 in 1,762,038 steps). Regression tests:
+`test_a_teleport_seen_at_frame_skip_4_is_not_a_wall_traversal`,
+`softlock_near_teleport_ping_pong`,
+`test_a_press_on_the_wall_beside_a_lift_is_not_an_attempt`,
+`test_a_press_on_a_moving_lift_is_not_an_attempt`, and the held-USE test extended to a
+press made on the step that brought the agent into reach.
 
 ## Open issues found in PLAN.md
 

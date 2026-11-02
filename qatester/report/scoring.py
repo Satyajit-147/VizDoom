@@ -14,10 +14,14 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 MATCH_RADIUS_MU = 128.0
+# A family that also names a defect correctly (D44): a player who falls into a trap pit
+# and stays there until time runs out is stranded, which the softlock family reports.
+ALSO_ACCEPTED = {"geometry_trap": {"softlock"}}
 
 
 def matches(oracle: str, x: float, y: float, defect: Mapping[str, Any]) -> bool:
-    if oracle != defect["expected_oracle"]:
+    families = {defect["expected_oracle"]} | ALSO_ACCEPTED.get(defect["kind"], set())
+    if oracle not in families:
         return False
     near = math.hypot(x - defect["position"][0], y - defect["position"][1]) <= MATCH_RADIUS_MU
     inside = any(r[0] <= x <= r[2] and r[1] <= y <= r[3] for r in defect["region"])
