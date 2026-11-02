@@ -69,6 +69,7 @@ print(subprocess.run(["git", "log", "-1", "--oneline"], capture_output=True, tex
 LAUNCH = '''import os, sys, time, signal, subprocess, pathlib, json
 WAVES = __WAVES__
 EXTRA = __EXTRA__
+GATE = __GATE__  # [wave, threshold]: after that wave, go on only if some run's task reward got there
 LOG = pathlib.Path("/kaggle/working/logs"); LOG.mkdir(parents=True, exist_ok=True)
 base = {**os.environ, "SDL_VIDEODRIVER": "dummy", "OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1"}
 def lines(p): return p.read_text(errors="replace").splitlines() if p.exists() else []
@@ -103,6 +104,17 @@ for w, wave in enumerate(WAVES):
                 print(f"[{(now - t_all) / 60:5.0f} min] {name} {state}: {(prog or ls or [''])[-1][:150]}", flush=True)
     for name, (p, log) in procs.items():
         print(f"--- {name}: last lines ---"); print("\\n".join(lines(log)[-8:]), flush=True)
+    if GATE and w + 1 == GATE[0]:
+        ends = {}
+        for name in procs:
+            m = [json.loads(l) for l in lines(pathlib.Path("/kaggle/working/runs") / name / "metrics.jsonl") if l.strip()]
+            v = [r["validity"] for r in m if r.get("validity") is not None][-10:]
+            ends[name] = sum(v) / len(v) if v else float("-inf")
+        print(f"GATE after wave {w + 1}: mean validity over the last 10 metrics rows {ends}; need one >= {GATE[1]}", flush=True)
+        if max(ends.values()) < GATE[1]:
+            print("GATE FAILED: not starting the remaining waves", flush=True)
+            break
+        print("GATE PASSED", flush=True)
 '''
 
 PREFLIGHT = '''# Pre-flight: stop here, before any long run, if the training code is broken.
@@ -142,6 +154,8 @@ def main(argv: list[str] | None = None) -> None:
                     help="config:seed[,config:seed] - at most two jobs, one per T4")
     ap.add_argument("--no-upload", action="store_true", help="reuse the last code upload")
     ap.add_argument("--total-steps", type=int, help="override every job's total steps (a probe)")
+    ap.add_argument("--gate", help="WAVE:THRESHOLD - stop after that wave unless some run's mean "
+                    "validity over its last 10 metrics rows reaches THRESHOLD")
     args = ap.parse_args(argv)
     waves = []
     for w in args.wave:
@@ -149,6 +163,9 @@ def main(argv: list[str] | None = None) -> None:
         if len(jobs) > 2:
             raise SystemExit("a wave holds at most two jobs (one per T4)")
         waves.append(jobs)
+    gate = None
+    if args.gate:
+        gate = [int(args.gate.split(":")[0]), float(args.gate.split(":")[1])]
     sha = subprocess.run(["git", "-C", str(REPO), "rev-parse", "--short", "HEAD"],
                          capture_output=True, text=True, check=True).stdout.strip()  # fmt: skip
     if not args.no_upload:
@@ -157,7 +174,8 @@ def main(argv: list[str] | None = None) -> None:
     with tempfile.TemporaryDirectory(prefix="qa_k") as d:
         nb = {"cells": [code(SETUP), code('!pip install -q -e ".[train]"'), code(PREFLIGHT),
                         code(LAUNCH.replace("__WAVES__", json.dumps(waves)).replace("__EXTRA__", json.dumps(
-                            ["--total-steps", str(args.total_steps)] if args.total_steps else []))),
+                            ["--total-steps", str(args.total_steps)] if args.total_steps else []))
+                             .replace("__GATE__", json.dumps(gate))),
                         code(SUMMARY)],
               "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python",
                                           "name": "python3"}},
