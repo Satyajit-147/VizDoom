@@ -18,6 +18,7 @@ import os
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 
+import random
 import sys
 import time
 from pathlib import Path
@@ -61,8 +62,12 @@ ss = st.session_state
 # --- left panel: the level ------------------------------------------------------------
 with st.sidebar:
     st.header("1. Level")
-    source = st.radio("Map", ["Generate a new map", "Hand-made map"], horizontal=True)
-    if source == "Generate a new map":
+    source = st.radio("Map", ["Surprise me", "Generate a new map", "Hand-made map"],
+                      horizontal=True)  # fmt: skip
+    if source == "Surprise me":
+        st.caption("A random new map with 2-3 random bug types planted. Which bugs, and "
+                   "where, stays hidden until you reveal the answer key.")
+    elif source == "Generate a new map":
         seed = int(st.number_input("Seed (any number makes a different map)", 0, 10**7,
                                    2_000_000, step=1))  # fmt: skip
         picked = st.multiselect("Bugs to plant", list(BUG_LABELS), format_func=BUG_LABELS.get,
@@ -74,7 +79,11 @@ with st.sidebar:
             ss.session.close()
             del ss["session"]
         with st.spinner("Building the level..."):
-            if source == "Generate a new map":
+            if source == "Surprise me":
+                dice = random.Random()
+                ss.level = make_level(OUT / "levels", seed=dice.randrange(10**7),
+                                      kinds=dice.sample(list(BUG_LABELS), dice.randint(2, 3)))  # fmt: skip
+            elif source == "Generate a new map":
                 ss.level = make_level(OUT / "levels", seed=seed, kinds=picked)
             else:
                 ss.level = make_level(OUT / "levels", corpus_map=lump, maps_dir=REPO / "maps")
@@ -91,7 +100,7 @@ with st.sidebar:
     ckpt = st.selectbox("Trained checkpoint", CHECKPOINTS) if tester == "ppo" else None
     if not torch_available():
         st.caption("The trained tester needs PyTorch installed on this machine.")
-    budget = int(st.slider("Steps to play", 500, 20_000, 4_000, step=500))
+    budget = int(st.slider("Steps to play", 1_000, 60_000, 20_000, step=1_000))
 
 level: LabLevel | None = ss.get("level")
 if level is None:
@@ -146,7 +155,7 @@ if session is not None:
     if start and not finish:
         target = session.steps + budget
         while session.steps < target:
-            session.step(8)
+            session.step(25)  # redraw every 25 steps: the browser is the slow part
             draw()
             time.sleep(0.01)
 

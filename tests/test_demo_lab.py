@@ -55,13 +55,18 @@ def test_streamlit_app_clicks_through(tmp_path: Path, keep_main: None,
     monkeypatch.setenv("QA_LAB_DIR", str(tmp_path))
     at = testing.AppTest.from_file(str(REPO / "scripts" / "qa_lab.py"), default_timeout=300)
     at.run()
+    at.sidebar.radio[0].set_value("Generate a new map").run()  # deterministic, unlike Surprise me
     at.sidebar.button[0].click().run()  # build the default generated level
-    at.sidebar.slider[0].set_value(500).run()
+    at.sidebar.slider[0].set_value(1_000).run()
     next(b for b in at.button if b.label.startswith("Start")).click().run()
     next(b for b in at.button if b.label.startswith("Finish")).click().run()
     assert not at.exception, [e.value for e in at.exception]
     labels = [m.label for m in at.metric]
     assert "Planted bugs found" in labels and "False alarms" in labels
+    at.sidebar.radio[0].set_value("Surprise me").run()
+    at.sidebar.button[0].click().run()  # a random map with random hidden bugs
+    assert not at.exception, [e.value for e in at.exception]
+    assert any("planted bug" in h.value for h in at.subheader)
 
 
 def test_goexplore_tester_in_the_lab(tmp_path: Path) -> None:
