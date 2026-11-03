@@ -840,7 +840,7 @@ metrics are complete). The final drain now only records.
   counts are shared as usual. `max_cells` is 20,000 (the M8 prompt); MAP07 needed about
   1,000 cells.
 
-### D47. Two more false-alarm causes, found by playing the demo (2026-11-03)
+### D47. Three more false-alarm causes, found by playing the demo (2026-11-03)
 Twelve QA Lab "Surprise me" runs (random generated maps, random planted bugs; Go-Explore,
 random and scripted testers at 20k and 60k steps) gave false reports of three kinds,
 each checked in the engine:
