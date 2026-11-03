@@ -9,7 +9,9 @@ An escape attempt (docs/decisions.md D25) is one world direction (commanded move
 facing, bucketed to N/E/S/W) held for at least `push_tics` while the player moves less
 than `push_progress_mu`. Counting directions in the world frame catches an agent that
 turns while pushing forward; requiring a *sustained* push stops an agent jittering in a
-corner, which faces many directions for a tic or two each, from looking wedged.
+corner, which faces many directions for a tic or two each, from looking wedged. Only a
+push on the ground counts: Doom gives almost no air control, so a move commanded
+mid-jump goes nowhere without anything being wrong (D47).
 
 Vertical trap: the agent stands in a sector whose live floor is more than 24 mu below
 every neighbouring sector's live floor, and the intended level gives that sector no
@@ -83,7 +85,7 @@ class StuckOracle:
         for q in range(4):
             run: list[StepRecord] = []
             for s in [*steps, None]:
-                if s is not None and q in world_quadrants(s):
+                if s is not None and s.on_ground and q in world_quadrants(s):
                     run.append(s)
                     continue
                 if run and run[-1].tic - run[0].tic + frame >= self.cfg.push_tics and diameter([(r.x, r.y) for r in run]) < self.cfg.push_progress_mu:

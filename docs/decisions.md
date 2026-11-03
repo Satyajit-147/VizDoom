@@ -840,6 +840,35 @@ metrics are complete). The final drain now only records.
   counts are shared as usual. `max_cells` is 20,000 (the M8 prompt); MAP07 needed about
   1,000 cells.
 
+### D47. Two more false-alarm causes, found by playing the demo (2026-11-03)
+Twelve QA Lab "Surprise me" runs (random generated maps, random planted bugs; Go-Explore,
+random and scripted testers at 20k and 60k steps) gave false reports of three kinds,
+each checked in the engine:
+1. **A switch pressed through a wall.** A switch-operated door's switch can sit in the
+   neighbouring room's wall: on GEN4288885 the switch for p_r22_r12 is in r32's wall
+   (x = 1416), 16 mu behind r22's own wall (x = 1400). The attempt tracker checked only
+   that the USE ray reached the switch line, not that a wall stood in between. Presses
+   from r22, which the engine ignores, counted as failed presses of a working switch,
+   and gave `unreachable/broken_trigger`. In the engine, a press from r32 at (1450, 960)
+   opens the door and the same press from r22 at (1380, 960) does not. A switch press now
+   has to meet the switch before any other wall (walls along the switch's own line
+   excepted), the rule doors and lifts already follow (D44).
+2. **Moves commanded mid-jump.** The stuck oracle counted a push made while airborne as
+   a failed escape attempt. Doom gives almost no air control, so a sticky-random
+   Go-Explore run that jumped in a corner and pressed back mid-air "failed" to escape,
+   then walked off on landing: a false `stuck/wedge`. Only pushes on the ground count.
+3. **A Go-Explore save makes a step longer.** `DoomGame.save` advances the game by 2 tics,
+   so a step on which Go-Explore saves a new cell lasts 6 tics, not 4. A player running
+   at a teleport pad was 48.2 mu short of it on the record before the hop, beyond the
+   48 mu teleport excuse (D44), so the teleport was reported as a wall traversal. The
+   margin is 48 mu per frame-skipped step and now scales with the record's actual tic
+   gap. The fastest move measured over 83,733 replayed steps is 42.8 mu per 4 tics, so
+   12 mu per tic covers it.
+None of these adds a threshold. Regression tests:
+`test_a_switch_pressed_through_a_wall_is_not_an_attempt` (on the generated map, at the
+engine-checked positions), `test_moves_commanded_mid_jump_are_not_escape_attempts`, and
+`test_the_teleport_margin_grows_with_a_longer_step`. Each fails without its fix.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

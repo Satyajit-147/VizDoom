@@ -102,6 +102,7 @@ class Level:
             s["portal"]: s["index"] for s in self.sectors if s["portal"] is not None
         }
         self._faces: dict[tuple[str, float], list[Segment]] = {}
+        self._walls_except: dict[Segment, list[Segment]] = {}
 
     def sector_at(self, x: float, y: float) -> int:
         return self.truth.sector_at(x, y)
@@ -146,6 +147,19 @@ class Level:
             return None
         c = min(centres, key=lambda c: math.hypot(x - c[0], y - c[1]))
         return c, math.hypot(x - c[0], y - c[1])
+
+    def walls_except(self, line: Segment) -> list[Segment]:
+        """The walls, without those lying along `line` (the wall a switch is set in)."""
+        if line not in self._walls_except:
+            x0, y0, x1, y1 = line
+            self._walls_except[line] = [
+                w for w in self.walls
+                if not ((x0 == x1 == w[0] == w[2] and min(w[1], w[3]) < max(y0, y1)
+                         and max(w[1], w[3]) > min(y0, y1))
+                        or (y0 == y1 == w[1] == w[3] and min(w[0], w[2]) < max(x0, x1)
+                            and max(w[0], w[2]) > min(x0, x1)))
+            ]  # fmt: skip
+        return self._walls_except[line]
 
     def use_faces(self, pid: str, trim: float) -> list[Segment]:
         """The parts of a door's or lift's outline that carry its USE special: its edges
@@ -416,8 +430,9 @@ class AttemptTracker:
     def _reaches(self, p: Portal, x: float, y: float, angle: float) -> bool:
         """A USE press from this pose can work portal `p` (its switch, or its face)."""
         lv = self.level
-        if p.switch is not None:
-            return ray_hits_segment(x, y, angle, self.use_range, lv.switch_lines[p.switch])
+        if p.switch is not None:  # the switch, before any other wall (D47)
+            return ray_reaches_face(x, y, angle, self.use_range, [lv.switch_lines[p.switch]],
+                                    lv.walls_except(lv.switch_lines[p.switch]))  # fmt: skip
         if rect_distance(x, y, p.area) == 0.0:
             return False  # standing on the lift (or in the doorway): USE cannot work it
         return ray_reaches_face(x, y, angle, self.use_range,

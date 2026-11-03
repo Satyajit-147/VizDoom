@@ -321,3 +321,85 @@ def test_a_press_on_a_moving_lift_is_not_an_attempt(truth: Truths) -> None:
     assert run(rising)[0] == []  # pressed as it arrived: ignored by Doom, no attempt
     failed, tracker = run(floors)  # pressed at rest: an attempt, dated by the press
     assert failed == [lift.id] and tracker.started[lift.id] == 8
+
+
+def test_a_switch_pressed_through_a_wall_is_not_an_attempt(tmp_path: Path) -> None:
+    """Regression (D47): on a generated map the switch for door p_r22_r12 sits in room
+    r32's wall (x = 1416), behind r22's own wall (x = 1400). Presses from r22 met r22's
+    wall first and did nothing in the engine, yet counted as failed presses of a working
+    switch, which made false `unreachable/broken_trigger` reports. Checked in the engine:
+    from (1450, 960) facing west the door opens; from (1380, 960) facing east it does not."""
+    from qatester.demo.lab import make_level
+    from qatester.oracles.base import AttemptConfig, StepRecord
+    from qatester.oracles.level import AttemptTracker
+
+    level = make_level(tmp_path, seed=4288885,
+                       kinds=["one_way_lift", "bad_pickup", "wrong_special"])  # fmt: skip
+    assert level.name == "GEN4288885"
+    lv = Level(level.truth.intent_only())
+    door = lv.portals["p_r22_r12"]
+    s = lv.portal_sector[door.id]
+    floors = tuple(float(x["floor"]) for x in lv.sectors)
+    ceilings = tuple(floors[i] if i == s else float(x["ceiling"])
+                     for i, x in enumerate(lv.sectors))  # fmt: skip  # the door is shut
+
+    def attempts(x: float, y: float, angle: float) -> list[str]:
+        tracker = AttemptTracker(lv, AttemptConfig())
+        out: list[str] = []
+        for i, use in enumerate([False, True] + [False] * 12):
+            rec = StepRecord(tic=4 * i, x=x, y=y, z=0.0, angle=angle, use=use,
+                             sector_floors=floors, sector_ceilings=ceilings)  # fmt: skip
+            out += tracker.update(rec, [])
+        return out
+
+    assert attempts(1450.0, 960.0, 180.0) == [door.id]  # from the switch's own room
+    assert attempts(1380.0, 960.0, 0.0) == []  # through r22's wall: the engine ignores it
+
+
+def test_moves_commanded_mid_jump_are_not_escape_attempts(truth: Truths) -> None:
+    """Regression (D47): a Go-Explore run pushed left into a wall, then jumped and pressed
+    back while airborne, barely moving (Doom gives almost no air control), and walked off
+    once it landed. The airborne pushes counted as failed escapes: a false wedge."""
+    from dataclasses import replace
+
+    from qatester.oracles.base import EpisodeContext
+    from qatester.oracles.stuck import StuckOracle
+
+    m = truth["MAP01", "fixed"]
+    tr = Trace(m, start=(400, 300), angle=0.0).push(60, ("left",)).push(24, ("forward",))
+    tr.push(24, ("back",)).push(24, ("right",))
+
+    def run(airborne: bool) -> list[str]:
+        # airborne only while pushing forward and back; landed for the last push
+        recs = [replace(r, on_ground=not (airborne and 60 <= r.tic < 108)) for r in tr.records]
+        o = StuckOracle()
+        o.reset(EpisodeContext("MAP01", 0, 0, m.intent_only(), 4))
+        return [f.kind for r in recs for f in o.observe(r)] + [f.kind for f in o.finalize()]
+
+    assert "wedge" in run(airborne=False)  # the same pushes on the ground: wedged
+    assert "wedge" not in run(airborne=True)
+
+
+def test_the_teleport_margin_grows_with_a_longer_step(truth: Truths) -> None:
+    """Regression (D47): a Go-Explore save costs the engine 2 tics, so that step lasts 6
+    tics, not 4. A player running at a pad covered 48.2 mu before it (more than the
+    48 mu margin for 4 tics), and its teleport was reported as a wall traversal."""
+    from qatester.oracles.base import EpisodeContext, StepRecord
+    from qatester.oracles.bounds import BoundsOracle
+
+    gt = truth["MAP06", "fixed"].intent_only()
+    lv = Level(gt)
+    pad = next(p for p in lv.portals.values() if p.kind == "teleport")
+    assert pad.dest is not None
+    x0 = pad.area[0] - 60.0  # 60 mu short of the pad: beyond 48, within 72
+    y0 = (pad.area[1] + pad.area[3]) / 2
+
+    def kinds(dt: int) -> list[str]:
+        o = BoundsOracle()
+        o.reset(EpisodeContext("MAP06", 0, 0, gt, 4))
+        a = StepRecord(tic=100, x=x0, y=y0, z=0.0)
+        b = StepRecord(tic=100 + dt, x=pad.dest[0] + 100.0, y=pad.dest[1], z=0.0)
+        return [f.kind for r in (a, b) for f in o.observe(r)]
+
+    assert "wall_traversal" not in kinds(6)  # a 6-tic step: margin 72 mu
+    assert "wall_traversal" in kinds(4)  # a normal 4-tic step: 60 mu is too far

@@ -10,7 +10,8 @@ exact rooms).
    wall *and* the move is faster than running allows. A move that starts within
    `teleport_margin_mu` of a teleport pad, or ends that close to a teleport's intended
    destination, is a teleport and is excused (teleport problems belong to Family 6;
-   D44). Confidence 1.0.
+   D44). The margin is for one frame-skipped step and grows with a longer one (D47).
+   Confidence 1.0.
 """
 
 from __future__ import annotations
@@ -86,8 +87,11 @@ class BoundsOracle:
         if p is not None and step.tic > p.tic:
             moved = math.hypot(step.x - p.x, step.y - p.y)
             limit = cfg.max_speed_mu_per_tic * (step.tic - p.tic) + cfg.player_radius_mu
-            teleported = (lv.on_teleport_pad(p.x, p.y, cfg.teleport_margin_mu)
-                          or lv.near_teleport_dest(step.x, step.y, cfg.teleport_margin_mu))  # fmt: skip
+            # The margin is per frame-skipped step; a step that took longer (a Go-Explore
+            # save costs 2 tics) let the player cover more ground before the pad (D47).
+            margin = cfg.teleport_margin_mu * max(1.0, (step.tic - p.tic) / self.ctx.frame_skip)
+            teleported = (lv.on_teleport_pad(p.x, p.y, margin)
+                          or lv.near_teleport_dest(step.x, step.y, margin))  # fmt: skip
             if moved > limit and not teleported:
                 path = (p.x, p.y, step.x, step.y)
                 crossed = [w for w in lv.walls if segments_cross(path, w)]
