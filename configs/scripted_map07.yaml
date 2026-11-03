@@ -1,0 +1,13 @@
+# E1 baseline on MAP07 SPRAWL: T2 (scripted) at Go-Explore's M8 budget, 1M steps, 5 seeds.
+# No learning: a CPU-only session.
+run_name: scripted_map07
+agent: scripted
+total_steps: 1_000_000
+n_envs: 4
+seed: 0
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 1_000_000, maps: [MAP07], weights: [1.0]}
+reward:
+  alpha: 0.5

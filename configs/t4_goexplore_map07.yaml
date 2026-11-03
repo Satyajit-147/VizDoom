@@ -1,0 +1,21 @@
+# M8 acceptance: T4, Go-Explore over ViZDoom save/load, on MAP07 SPRAWL. Passes when cell
+# coverage on MAP07 at 1M steps is at least 80% (5 seeds). The explorer between resets is
+# sticky random (docs/decisions.md D46), so this runs in a CPU-only session.
+run_name: t4_goexplore_map07
+agent: goexplore
+total_steps: 1_000_000
+n_envs: 4            # a CPU session has 4 cores; each worker keeps its own archive
+seed: 0
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 1_000_000, maps: [MAP07], weights: [1.0]}
+reward:
+  alpha: 0.5
+goexplore:
+  p_reset: 0.5
+  horizon: 500
+  heuristic: mixed
+  productivity_guard: true
+  max_cells: 20_000
+  repeat: 0.9

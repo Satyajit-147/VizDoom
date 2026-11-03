@@ -1,0 +1,16 @@
+# Bug finding on maps no tester was tuned on: the 32 generated *test*-split maps (never
+# used in training, D18), MAP08 HOLDOUT, and the corpus maps MAP01-MAP06. About 100k
+# steps per map (3.9M in all), maps drawn evenly. No learning: a CPU-only session.
+run_name: unseen_goexplore
+agent: goexplore
+total_steps: 3_900_000
+n_envs: 4
+seed: 0
+maps:
+  variant: buggy
+  generated: {split: test, count: 32, start: 0}
+  curriculum:
+    - {until: 3_900_000, maps: [MAP01, MAP02, MAP03, MAP04, MAP05, MAP06, MAP08],
+       weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], generated_weight: 32.0}
+reward:
+  alpha: 0.5

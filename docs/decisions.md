@@ -801,6 +801,45 @@ that were already closed (`OSError: handle is closed`) when the workers' final
 cross-episode findings arrived. Seeds 1 and 4 on MAP07 lost their final report (their
 metrics are complete). The final drain now only records.
 
+## 2026-11-03 — M8
+
+### D46. Go-Explore (T4): what differs from the plan, and why
+- **Save/load benchmark (plan R3):** on MAP07, save takes 3.6 ms (median, max 6.0) and
+  load (new episode plus load) 8.6 ms (max 12.1). A save file is 37 KB, and a load
+  restores the exact position (a replay of the same 60 random actions after a load
+  matches the fresh run step for step). This is well under the 50 ms limit, so there is
+  no replay fallback.
+- **Explorer between resets: sticky random, not PPO.** The plan's T4 runs the PPO
+  policy from each reset. Here the explorer repeats its last action with probability 0.9
+  and presses USE (p = 0.5) when observation scalar 17 says something usable is in
+  reach ahead. That is the scripted tester's rule: a door must be pressed while faced,
+  which uniform random play almost never does. This is Ecoffet et al.'s exploration
+  phase. It needs no GPU, so T4 runs in CPU sessions, and what it measures is what the
+  archive contributes. M7 showed that the PPO policies do not reliably leave MAP07's
+  start region (D45); the archive is what gets past that. T4 with a PPO explorer is
+  future work.
+- **Cell = (ix, iy, iz bucket, keys, open doors).** The plan's cell has no door state.
+  Without it the archive stayed at 0.333 coverage on MAP07 for 200k steps: the door out
+  of r01 shuts about 37 steps after it opens, and random play rarely gets through in
+  time. With the env's door-open mask (the plan's abstract state, D29) in the cell, the
+  moment a door opens is saved, and resets start with it open. MAP07 coverage at 200k
+  steps on one worker went to 0.828.
+- **Frontier heuristic without ground truth.** d is measured to the nearest grid cell not
+  yet in the archive, not to the nearest unvisited *walkable* cell: walkability is ground
+  truth, which agents may not read. Walls therefore look like frontier until the
+  productivity guard learns otherwise, which is what the guard is for.
+- **Replacement** keeps the earliest arrival (best_return = -arrival tic), so a reset
+  point leaves the most episode time.
+- **No demos in Go-Explore runs.** In a process that has recorded a `.lmp`, ViZDoom
+  freezes the game clock after every load: the player cannot move, and the crash oracle
+  reported `tic_stall` three steps into each loaded stretch. Demos cannot cover loaded
+  episodes anyway (a demo replays from the map start), so T4 workers record none, and
+  T4 findings carry a position but no replay. Regression test:
+  `test_goexplore_run_loads_saves_and_explores_with_the_clock_running`.
+- **Per-map archives**, and one archive per worker (4 workers in a CPU session). Coverage
+  counts are shared as usual. `max_cells` is 20,000 (the M8 prompt); MAP07 needed about
+  1,000 cells.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

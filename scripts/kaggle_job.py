@@ -119,8 +119,7 @@ for w, wave in enumerate(WAVES):
 
 PREFLIGHT = '''# Pre-flight: stop here, before any long run, if the training code is broken.
 import subprocess, sys
-r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_ppo_smoke.py", "tests/test_bugbook_rule.py",
-                    "tests/test_m7_env.py", "-q", "-x", "-p", "no:cacheprovider", "-W", "ignore"],
+r = subprocess.run([sys.executable, "-m", "pytest", *__TESTS__, "-q", "-x", "-p", "no:cacheprovider", "-W", "ignore"],
                    capture_output=True, text=True)
 open("/kaggle/working/preflight.log", "w").write(r.stdout + "\\n" + r.stderr)
 print(r.stdout[-6000:]); print(r.stderr[-3000:])
@@ -154,14 +153,16 @@ def main(argv: list[str] | None = None) -> None:
                     help="config:seed[,config:seed] - at most two jobs, one per T4")
     ap.add_argument("--no-upload", action="store_true", help="reuse the last code upload")
     ap.add_argument("--total-steps", type=int, help="override every job's total steps (a probe)")
+    ap.add_argument("--cpu", action="store_true",
+                    help="a CPU-only session (no GPU quota): one job per wave, 4 cores")
     ap.add_argument("--gate", help="WAVE:THRESHOLD - stop after that wave unless some run's mean "
                     "validity over its last 10 metrics rows reaches THRESHOLD")
     args = ap.parse_args(argv)
     waves = []
     for w in args.wave:
         jobs = [(c.rsplit(":", 1)[0], int(c.rsplit(":", 1)[1])) for c in w.split(",")]
-        if len(jobs) > 2:
-            raise SystemExit("a wave holds at most two jobs (one per T4)")
+        if len(jobs) > (1 if args.cpu else 2):
+            raise SystemExit("a wave holds at most two jobs (one per T4), one on --cpu")
         waves.append(jobs)
     gate = None
     if args.gate:
@@ -172,7 +173,10 @@ def main(argv: list[str] | None = None) -> None:
         print(f"uploading code {sha} ...", flush=True)
         upload_code(f"code at {sha}")
     with tempfile.TemporaryDirectory(prefix="qa_k") as d:
-        nb = {"cells": [code(SETUP), code('!pip install -q -e ".[train]"'), code(PREFLIGHT),
+        nb = {"cells": [code(SETUP), code('!pip install -q -e ".[train]"'), code(PREFLIGHT.replace("__TESTS__", json.dumps(
+                            ["tests/test_goexplore.py", "tests/test_runner.py"] if args.cpu else
+                            ["tests/test_ppo_smoke.py", "tests/test_bugbook_rule.py",
+                             "tests/test_m7_env.py"]))),
                         code(LAUNCH.replace("__WAVES__", json.dumps(waves)).replace("__EXTRA__", json.dumps(
                             ["--total-steps", str(args.total_steps)] if args.total_steps else []))
                              .replace("__GATE__", json.dumps(gate))),
@@ -190,10 +194,11 @@ def main(argv: list[str] | None = None) -> None:
         Path(d, "kernel-metadata.json").write_text(json.dumps({
             "id": kid, "title": f"rl-qa-tester {args.name}", "code_file": "job.ipynb",
             "language": "python", "kernel_type": "notebook", "is_private": True,
-            "enable_gpu": True, "enable_internet": True,
+            "enable_gpu": not args.cpu, "enable_internet": True,
             "dataset_sources": [f"{USER}/{DATASET}"], "kernel_sources": [],
             "competition_sources": []}))  # fmt: skip
-        print(kaggle("kernels", "push", "-p", d, "--accelerator", "NvidiaTeslaT4").strip())
+        accel = [] if args.cpu else ["--accelerator", "NvidiaTeslaT4"]
+        print(kaggle("kernels", "push", "-p", d, *accel).strip())
     print(f"watch: https://www.kaggle.com/code/{kid} (Logs tab)")
 
 

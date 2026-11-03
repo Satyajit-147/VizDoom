@@ -129,6 +129,8 @@ def run(cfg: RunConfig, run_id: str | None = None) -> dict[str, Path]:
             append_jsonl(run_dir / "findings.jsonl", findings)
             append_jsonl(run_dir / "coverage_gaps.jsonl", gaps)
             append_jsonl(run_dir / "episodes.jsonl", res.episodes)
+            append_jsonl(run_dir / "goexplore.jsonl",
+                         [it for it in res.queue_items if it["type"] == "goexplore"])
             steps = res.steps
         wall = time.time() - started
         wads = sorted({wad_of(entries[n].cfg_path) for n in names})

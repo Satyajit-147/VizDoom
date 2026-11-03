@@ -84,7 +84,8 @@ class CurriculumEnv(gym.Wrapper[Obs, np.int64, Obs, np.int64]):
 
     def reset(self, *, seed: int | None = None,
               options: dict[str, Any] | None = None) -> tuple[Obs, dict[str, Any]]:  # fmt: skip
-        name = self.pick()
+        options = dict(options or {})
+        name = options.pop("map", None) or self.pick()  # Go-Explore names the map it loads
         entry = self.maps[name]
         self.qa.set_map(entry.cfg_path, self.truth(name), self.coverage.get(name), name)
         obs, info = self.qa.reset(seed=seed, options=options)

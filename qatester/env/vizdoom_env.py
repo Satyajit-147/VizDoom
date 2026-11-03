@@ -543,6 +543,7 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
             "map": self.map_name, "seed": self.game_seed,
             "tic": rec.tic, "pos": (rec.x, rec.y, rec.z), "cell": self.truth.cell_of(rec.x, rec.y),
             "keys": sorted(rec.keys), "findings": findings, "reward_parts": parts,
+            "doors": self.world.doors_mask(rec.sector_floors, rec.sector_ceilings),
         }  # fmt: skip
 
     def _flush_demos(self, keep_last: bool = False) -> None:

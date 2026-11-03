@@ -14,6 +14,7 @@ from typing import Any
 import numpy as np
 
 from qatester.agents.base import Agent
+from qatester.agents.goexplore import GoExplore
 from qatester.agents.random_agent import RandomAgent
 from qatester.agents.scripted_agent import WallFollower
 from qatester.config import RunConfig
@@ -43,9 +44,28 @@ def _worker(cfg: RunConfig, entries: Mapping[str, MapEntry], st: list[Stage],
             coverage: Mapping[str, CoverageTracker], queue: Any, rank: int, steps: int,
             record_dir: Path) -> list[dict[str, Any]]:  # fmt: skip
     exit_on_sigterm()
-    env = make_env(cfg, entries, st, coverage, queue, rank, record_dir)
+    # No demos for Go-Explore: a demo only replays from the map start, and in a process
+    # that has recorded one, ViZDoom freezes the game clock after every load (D46).
+    env = make_env(cfg, entries, st, coverage, queue, rank,
+                   None if cfg.agent == "goexplore" else record_dir)  # fmt: skip
+    if cfg.agent == "goexplore":
+        g = cfg.goexplore
+        ge = GoExplore(g.p_reset, g.horizon, g.heuristic, g.productivity_guard, g.max_cells,
+                       g.repeat)  # fmt: skip
+        try:
+            episodes = [{"rank": rank, **e}
+                        for e in ge.run(env, steps, np.random.default_rng([cfg.seed, rank, 1]))]
+            summary = ge.summary()
+            print(f"go-explore worker {rank}: {ge.steps} steps, {ge.loads} loads, archives "
+                  f"{ {k: a['cells'] for k, a in summary['archives'].items()} }", flush=True)
+            if queue is not None:
+                queue.put({"type": "goexplore", "rank": rank, "summary": summary})
+        finally:
+            env.close()
+            ge.close()
+        return episodes
     agent = make_agent(cfg.agent, np.random.default_rng([cfg.seed, rank, 1]))
-    episodes: list[dict[str, Any]] = []
+    episodes = []
     try:
         obs, _ = env.reset()
         agent.reset()

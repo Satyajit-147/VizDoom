@@ -143,9 +143,20 @@ class ReportConfig(_Model):
     calibration: Path | None = None  # JSON with a fitted temperature (M9)
 
 
+class GoExploreConfig(_Model):
+    """T4 (M8; docs/decisions.md D46)."""
+
+    p_reset: float = 0.5
+    horizon: int = 500
+    heuristic: Literal["count", "frontier", "mixed", "uniform"] = "mixed"
+    productivity_guard: bool = True
+    max_cells: int = 20_000
+    repeat: float = 0.9  # sticky random explorer
+
+
 class RunConfig(_Model):
     run_name: str
-    agent: Literal["random", "scripted", "ppo"]
+    agent: Literal["random", "scripted", "ppo", "goexplore"]
     total_steps: int
     n_envs: int = 2
     seed: int = 0
@@ -161,6 +172,7 @@ class RunConfig(_Model):
     ppo: PPOConfig = Field(default_factory=PPOConfig)
     eval: EvalConfig = Field(default_factory=EvalConfig)
     bugbook: BugBookConfig = Field(default_factory=BugBookConfig)
+    goexplore: GoExploreConfig = Field(default_factory=GoExploreConfig)
     report: ReportConfig = Field(default_factory=ReportConfig)
     oracles: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
