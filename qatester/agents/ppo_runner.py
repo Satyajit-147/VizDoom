@@ -126,7 +126,9 @@ class QACallback(BaseCallback):  # type: ignore[misc]
             self.training_env.env_method("set_bugbook_targets", m, self.bugbook.targets(m),
                                          self.cfg.bugbook.match_radius_mu)  # fmt: skip
 
-    def drain(self) -> None:
+    def drain(self, push: bool = True) -> None:
+        """Collect the workers' findings; with `push`, send new Bug Book places to them
+        (not after they are closed: the final drain only records)."""
         items = []
         while True:
             try:
@@ -140,7 +142,8 @@ class QACallback(BaseCallback):  # type: ignore[misc]
         if self.cfg.bugbook.enabled and findings:
             for f in findings:
                 self.bugbook.add_or_confirm(f, f["map"], int(f["env_steps"]))
-            self.push_bugbook()
+            if push:
+                self.push_bugbook()
 
     def _on_step(self) -> bool:
         for info in self.locals["infos"]:
@@ -304,7 +307,7 @@ def train(cfg: RunConfig, run_id: str, run_dir: Path, entries: Mapping[str, MapE
         print(f"[{model.num_timesteps:>9,}] training stopped; closing the env workers", flush=True)
         close_bounded(venv)  # workers finalize their oracles onto the queue
         time.sleep(1.0)
-        cb.drain()
+        cb.drain(push=False)  # the workers are gone: record their last findings only
         manager.shutdown()
         print(f"[{model.num_timesteps:>9,}] env workers closed", flush=True)
     return int(model.num_timesteps)

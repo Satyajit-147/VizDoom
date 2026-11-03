@@ -772,6 +772,35 @@ them (0 in 1,762,038 steps). Regression tests:
 `test_a_press_on_a_moving_lift_is_not_an_attempt`, and the held-USE test extended to a
 press made on the step that brought the agent into reach.
 
+### D45. M7 rerun (2026-11-03): acceptance still not met
+One Kaggle job (`m7-rerun`, code c1e3aa8, 4.8 GPU hours) ran T3b with the D44 fixes:
+5 seeds on MAP07 and the curriculum T3b with 2 seeds. The `--gate 1:-0.5` progress check
+passed after wave 1 (mean validity over the last 10 rows: +1.14 and +0.25, against
+-1.08 or lower in every old T3b run).
+
+**M7 (MAP07 cell coverage, 600k steps, 5 seeds each).** T3a (the first run's results,
+whose training no D44 change touches: alpha = 1 uses no adversarial term, and oracles do
+not feed the observation): 0.52, 0.71, 0.73, 0.50, 0.75. T3b: 0.82, 0.51, 0.79, 0.33,
+0.56. One-sided Mann-Whitney U = 13, p = 0.50, A12 = 0.52, so **M7 fails**. The result
+is bimodal: two T3b seeds beat every T3a seed, and one never left the third of MAP07
+that is reachable without opening a door. Novelty no longer drowns the task, but a
+count bonus alone does not make the agent leave the start region reliably. Getting the
+agent to a frontier it has seen once and to explore from there is the job of Go-Explore
+(M8).
+
+**Curriculum T3b (2M steps, 71 maps).** Zero false alarms in live training (precision
+1.00 on both seeds, 21 and 30 reports). Recall 0.17 and 0.24 (wrong_tag 0/19 on both).
+The agent never reaches a goal, on any map or at any eval. Mean cell coverage on the
+generated maps is 0.42 and 0.47, against 0.54 for the first run's unscaled novelty. With
+about 11 episodes per map, the full bonus helped exploration, so the right novelty scale
+depends on how often each map is seen. That is not tuned here: changing it after seeing
+these results would be tuning to the test.
+
+**Bug found:** after training, the last `drain()` pushed Bug Book places to workers
+that were already closed (`OSError: handle is closed`) when the workers' final
+cross-episode findings arrived. Seeds 1 and 4 on MAP07 lost their final report (their
+metrics are complete). The final drain now only records.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.
