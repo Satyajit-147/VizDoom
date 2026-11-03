@@ -61,3 +61,20 @@ def test_streamlit_app_clicks_through(tmp_path: Path, keep_main: None,
     assert not at.exception, [e.value for e in at.exception]
     labels = [m.label for m in at.metric]
     assert "Planted bugs found" in labels and "False alarms" in labels
+
+
+def test_goexplore_tester_in_the_lab(tmp_path: Path) -> None:
+    """The demo's Go-Explore tester: it jumps between saved states (gaps in the trail),
+    keeps the clock running after loads (D46), and finds MAP03's leak."""
+    level = make_level(tmp_path / "lv", corpus_map="MAP03", maps_dir=REPO / "maps")
+    s = Session(level, tester="goexplore", record_dir=tmp_path / "runs", seed=1)
+    try:
+        s.step(20_000)
+        assert s.saved_states >= 20
+        assert sum(x != x for x, _ in s.trail) >= 5  # NaN gaps: jumps to saved states
+        res = s.finish(tmp_path / "report")
+    finally:
+        s.close()
+    sc = res["score"]
+    assert sc["found"]["d_leak_hall_north"], f"leak not found: {res['report']['findings']}"
+    assert sc["false_alarms"] == []

@@ -3,8 +3,8 @@
 1. `make_level` builds a level to test: a generated map with the bug classes a person
    picks (or one of the eight hand-made maps), compiled into its buggy WAD with its
    answer key.
-2. `Session` lets a tester play it step by step (random, scripted, or a trained PPO
-   checkpoint), keeping the colour view, the trail and every detection as it happens.
+2. `Session` lets a tester play it step by step (random, scripted, Go-Explore, or a
+   trained PPO checkpoint), keeping the colour view, the trail and every detection as it happens.
 3. `Session.finish` closes the run, writes the usual report, and scores it against
    the answer key: which planted bugs were found, which were missed, any false alarms.
 
@@ -21,6 +21,7 @@ from typing import Any
 
 import numpy as np
 
+from qatester.agents.goexplore import GoExplore
 from qatester.agents.random_agent import RandomAgent
 from qatester.agents.scripted_agent import WallFollower
 from qatester.coverage import CoverageTracker
@@ -44,7 +45,7 @@ BUG_LABELS = {
     "bad_pickup": "Bad pickup (health above the maximum)",
 }
 assert set(BUG_LABELS) == set(DEFECT_KINDS)
-TESTERS = ("random", "scripted", "ppo")
+TESTERS = ("random", "scripted", "goexplore", "ppo")
 
 
 @dataclass
@@ -123,12 +124,19 @@ class Session:
         if self.tester not in TESTERS:
             raise ValueError(f"tester must be one of {TESTERS}")
         self.coverage = CoverageTracker(self.level.truth)
+        # Go-Explore records no demos: ViZDoom freezes the clock after a load otherwise (D46)
         self.env = QADoomEnv(self.level.cfg_path, self.level.truth, self.coverage, None,
-                             self.seed, self.record_dir, display=True,
-                             map_name=self.level.name)  # fmt: skip
+                             self.seed, None if self.tester == "goexplore" else self.record_dir,
+                             display=True, map_name=self.level.name)  # fmt: skip
         rng = np.random.default_rng(self.seed)
         self.model: Any = None
         self.agent: Any = None
+        self.goexplore: GoExplore | None = None
+        if self.tester == "goexplore":
+            self.goexplore = GoExplore()
+            self._walk = self.goexplore.walk(self.env, rng)
+            self._iteration = 0
+            return
         if self.tester == "random":
             self.agent = RandomAgent(rng)
         elif self.tester == "scripted":
@@ -159,6 +167,8 @@ class Session:
 
     def step(self, n: int = 1) -> list[dict[str, Any]]:
         """Play `n` steps; returns the detections made during them."""
+        if self.goexplore is not None:
+            return self._step_goexplore(n)
         new: list[dict[str, Any]] = []
         for _ in range(n):
             self.obs, _, term, trunc, info = self.env.step(np.int64(self._act()))
@@ -171,6 +181,27 @@ class Session:
                 self._new_episode()
         self.findings += new
         return new
+
+    def _step_goexplore(self, n: int) -> list[dict[str, Any]]:
+        assert self.goexplore is not None
+        new: list[dict[str, Any]] = []
+        for _ in range(n):
+            info, over = next(self._walk)
+            if self.goexplore.iterations != self._iteration:  # it jumped to a saved state
+                self._iteration = self.goexplore.iterations
+                self.trail.append((float("nan"), float("nan")))
+            self.steps += 1
+            self.trail.append((info["pos"][0], info["pos"][1]))
+            new += [raw_finding(f, self.level.name, self.steps, self.seed)
+                    for f in info["findings"]]  # fmt: skip
+            self.episodes += over
+        self.findings += new
+        return new
+
+    @property
+    def saved_states(self) -> int:
+        """Go-Explore's archive size (0 for the other testers)."""
+        return sum(len(a) for a in self.goexplore.archives.values()) if self.goexplore else 0
 
     @property
     def screen(self) -> np.ndarray | None:
@@ -204,3 +235,5 @@ class Session:
     def close(self) -> None:
         self.env.close()
         self.coverage.close()
+        if self.goexplore is not None:
+            self.goexplore.close()

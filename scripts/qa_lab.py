@@ -81,8 +81,10 @@ with st.sidebar:
         ss.result = None
 
     st.header("2. Tester")
-    options = ["random", "scripted"] + (["ppo"] if torch_available() and CHECKPOINTS else [])
+    options = ["goexplore", "random", "scripted"] + (
+        ["ppo"] if torch_available() and CHECKPOINTS else [])
     tester = st.radio("Who tests it", options, format_func={
+        "goexplore": "Go-Explore (saves the game at every new place, jumps back to explore further)",
         "random": "Random (presses random buttons)",
         "scripted": "Scripted (follows walls, presses USE)",
         "ppo": "Trained AI tester (PPO)"}.get)  # fmt: skip
@@ -126,9 +128,11 @@ def draw() -> None:
         game.image(session.screen, caption="What the tester sees (colour view)",
                    width="stretch")  # fmt: skip
     cov = session.coverage_summary()
+    saved = (f" · saved states **{session.saved_states:,}**"
+             if session.tester == "goexplore" else "")
     stats.markdown(f"**Step {session.steps:,}** · episodes {session.episodes} · "
                    f"area explored **{100 * cov['cell_coverage']:.0f}%** · "
-                   f"detections {len(session.findings)}")  # fmt: skip
+                   f"detections {len(session.findings)}{saved}")  # fmt: skip
     marks = [{**f, "label": ORACLE_NAMES[f["oracle"]]} for f in session.findings[-40:]]
     mapview.markdown(preview_svg(level, session.trail[-3000:], marks), unsafe_allow_html=True)
     table.dataframe([{"step": f["env_steps"], "detector": ORACLE_NAMES[f["oracle"]],

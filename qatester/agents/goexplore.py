@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -84,13 +85,13 @@ class GoExplore:
                                           self.guard)  # fmt: skip
         return self.archives[name]
 
-    def run(self, env: Any, steps: int, rng: np.random.Generator) -> list[dict[str, Any]]:
-        """Explore for `steps` env steps. `env` is a CurriculumEnv: it picks the map, and
-        takes `options={"map": ..., "load_state": ...}`. Returns finished episodes' stats."""
+    def walk(self, env: Any, rng: np.random.Generator) -> Iterator[tuple[dict[str, Any], bool]]:
+        """Go-Explore, one env step at a time, forever: yields (step info, episode over).
+        `env` is a CurriculumEnv (it picks the map and takes `options["map"]`) or a plain
+        QADoomEnv on one map (the demo)."""
         explorer = StickyRandom(rng, self.repeat)
-        episodes: list[dict[str, Any]] = []
-        while self.steps < steps:
-            name = env.pick()
+        while True:
+            name = env.pick() if hasattr(env, "pick") else env.map_name
             arch = self.archive(name)
             start: Entry | None = None
             if len(arch) and rng.random() < self.p_reset:
@@ -102,7 +103,7 @@ class GoExplore:
             explorer.reset()
             self.iterations += 1
             here = None
-            for _ in range(min(self.horizon, steps - self.steps)):
+            for _ in range(self.horizon):
                 x, y, z = info["pos"]
                 c = cell_of(x, y, z, info["keys"], info["doors"])
                 if c != here:
@@ -112,12 +113,22 @@ class GoExplore:
                         start.new_cells_after_reset += 1
                 obs, _, term, trunc, info = env.step(np.int64(explorer.act(obs)))
                 self.steps += 1
-                if self.steps % self.curve_every == 0:
-                    self.curve.append({"step": self.steps, "cell": {
-                        m: c.summary()["cell_coverage"] for m, c in env.coverage.items()}})
+                yield info, term or trunc
                 if term or trunc:
-                    episodes.append(info["episode_stats"])
                     break
+
+    def run(self, env: Any, steps: int, rng: np.random.Generator) -> list[dict[str, Any]]:
+        """Explore for `steps` env steps on a CurriculumEnv; returns finished episodes'
+        stats, and samples every map's coverage every `curve_every` steps."""
+        episodes: list[dict[str, Any]] = []
+        for info, over in self.walk(env, rng):
+            if self.steps % self.curve_every == 0:
+                self.curve.append({"step": self.steps, "cell": {
+                    m: c.summary()["cell_coverage"] for m, c in env.coverage.items()}})
+            if over:
+                episodes.append(info["episode_stats"])
+            if self.steps >= steps:
+                break
         return episodes
 
     def summary(self) -> dict[str, Any]:
