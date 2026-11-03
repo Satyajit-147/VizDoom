@@ -4,6 +4,7 @@ clicked through with Streamlit's AppTest."""
 
 from __future__ import annotations
 
+import math
 import sys
 from collections.abc import Iterator
 from pathlib import Path
@@ -71,7 +72,7 @@ def test_goexplore_tester_in_the_lab(tmp_path: Path) -> None:
     try:
         s.step(20_000)
         assert s.saved_states >= 20
-        assert sum(x != x for x, _ in s.trail) >= 5  # NaN gaps: jumps to saved states
+        assert sum(math.isnan(x) for x, _ in s.trail) >= 5  # gaps: jumps to saved states
         res = s.finish(tmp_path / "report")
     finally:
         s.close()

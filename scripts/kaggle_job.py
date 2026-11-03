@@ -141,6 +141,29 @@ for run in sorted(pathlib.Path("/kaggle/working/runs").glob("*")):
 '''
 
 
+def launch_cell(waves: list[list[tuple[str, int]]], extra: list[str],
+                gate: list[float] | None) -> str:
+    """The launcher cell. Values go in as Python literals (repr): JSON's `null` is not
+    Python, and a cell that only fails when it runs costs a Kaggle session."""
+    return (LAUNCH.replace("__WAVES__", repr([[list(j) for j in w] for w in waves]))
+            .replace("__EXTRA__", repr(extra)).replace("__GATE__", repr(gate)))
+
+
+def preflight_cell(cpu: bool) -> str:
+    tests = (["tests/test_goexplore.py", "tests/test_runner.py"] if cpu else
+             ["tests/test_ppo_smoke.py", "tests/test_bugbook_rule.py", "tests/test_m7_env.py"])
+    return PREFLIGHT.replace("__TESTS__", repr(tests))
+
+
+def dry_run(src: str, work: Path) -> None:
+    """Run a launcher cell with no waves against a scratch folder: everything except the
+    training itself executes, so a name or type error fails here, not on Kaggle."""
+    head = src.split("\nWAVES = ", 1)
+    body = head[1].split("\n", 1)[1]
+    src = head[0] + "\nWAVES = []\n" + body.replace("/kaggle/working", str(work))
+    exec(compile(src, "launch (dry run)", "exec"), {})  # noqa: S102 - our own cell
+
+
 def code(src: str) -> dict[str, object]:
     return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [],
             "source": src.splitlines(True)}  # fmt: skip
@@ -173,14 +196,11 @@ def main(argv: list[str] | None = None) -> None:
         print(f"uploading code {sha} ...", flush=True)
         upload_code(f"code at {sha}")
     with tempfile.TemporaryDirectory(prefix="qa_k") as d:
-        nb = {"cells": [code(SETUP), code('!pip install -q -e ".[train]"'), code(PREFLIGHT.replace("__TESTS__", json.dumps(
-                            ["tests/test_goexplore.py", "tests/test_runner.py"] if args.cpu else
-                            ["tests/test_ppo_smoke.py", "tests/test_bugbook_rule.py",
-                             "tests/test_m7_env.py"]))),
-                        code(LAUNCH.replace("__WAVES__", json.dumps(waves)).replace("__EXTRA__", json.dumps(
-                            ["--total-steps", str(args.total_steps)] if args.total_steps else []))
-                             .replace("__GATE__", json.dumps(gate))),
-                        code(SUMMARY)],
+        launch = launch_cell(waves, ["--total-steps", str(args.total_steps)]
+                             if args.total_steps else [], gate)  # fmt: skip
+        dry_run(launch, Path(d) / "dry")
+        nb = {"cells": [code(SETUP), code('!pip install -q -e ".[train]"'),
+                        code(preflight_cell(args.cpu)), code(launch), code(SUMMARY)],
               "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python",
                                           "name": "python3"}},
               "nbformat": 4, "nbformat_minor": 5}  # fmt: skip
