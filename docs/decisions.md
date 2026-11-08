@@ -869,6 +869,33 @@ None of these adds a threshold. Regression tests:
 engine-checked positions), `test_moves_commanded_mid_jump_are_not_escape_attempts`, and
 `test_the_teleport_margin_grows_with_a_longer_step`. Each fails without its fix.
 
+### D48. Go-Explore patience: confirming "stuck forever" bugs (2026-11-08)
+STATUS "Known limitations" 1: the softlock family confirms a one-way lift or a trap only
+when an episode times out with the player confined, and Go-Explore cut every run at 500
+steps, so it never confirmed MAP07's one-way lift (3 of 4 bugs on every M8 seed).
+Patience (`goexplore.patience`, `configs/t4_goexplore_map07_patience.yaml`): a share of
+the explorer's steps (10%) goes to runs that are not cut at the horizon but play on
+until the episode really ends. They start from cells that look confined: each archive
+cell now records `max_reach`, the farthest any restart from it got, and patient runs
+pick cells restarted from at least twice with weight 1 / (1 + max_reach)^2. Only the
+archive's own trajectories are used. Off by default; with 0 no extra random draw is made,
+so M8 runs reproduce exactly. No detector changed (D27).
+MAP07, 1M steps, 4 workers (local, Windows), scored against the answer key:
+
+| | seeds | cell coverage | planted bugs found | one-way lift | false alarms |
+|---|---|---|---|---|---|
+| T4 (M8, and seed 0 rerun here) | 5 | 92% | 3 / 4 each | never | 0 |
+| T4 + patience | 5 | 92% each | **4 / 4 each** | **every seed** | 0 |
+
+A crash found on the way (seed 3): a cell first reached in the last tics before the time
+limit loads into an episode that has already ended, and ViZDoom writes no file at all
+when asked to save one (measured: a save after the time-out leaves no file), so the next
+save died in `shutil.move`. Patient runs make this likelier, as they play to the end.
+Go-Explore now drops such a start (`Archive.discard`, `dead_starts` in the summary) and
+`save_state` refuses a finished episode with a clear error. Regression test
+`test_a_save_that_loads_into_an_ended_episode_is_dropped_not_saved_again` fails without
+the fix. Seed 3 rerun: 4 / 4, one dead start dropped.
+
 ### D49. The Fixer's edit operations (F0, docs/FIXER_PLAN.md) (2026-11-08)
 The Fixer loop needs a repair action space before any learning. Bugs live in the compiled
 level, not the MapSpec (D20), so the Fixer edits the compiled `udmf.TextMap`

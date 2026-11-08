@@ -51,7 +51,8 @@ def _worker(cfg: RunConfig, entries: Mapping[str, MapEntry], st: list[Stage],
     if cfg.agent == "goexplore":
         g = cfg.goexplore
         ge = GoExplore(g.p_reset, g.horizon, g.heuristic, g.productivity_guard, g.max_cells,
-                       g.repeat)  # fmt: skip
+                       g.repeat, patience=g.patience, patience_min_resets=g.patience_min_resets,
+                       patience_max_steps=g.patience_max_steps)  # fmt: skip
         try:
             episodes = [{"rank": rank, **e}
                         for e in ge.run(env, steps, np.random.default_rng([cfg.seed, rank, 1]))]

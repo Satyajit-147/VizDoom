@@ -1,0 +1,26 @@
+# Go-Explore patience (CONTRIBUTING "Go-Explore patience"; docs/FIXER_PLAN.md): T4 as in
+# t4_goexplore_map07.yaml, plus 10% of the explorer's steps on runs that play on until the
+# episode times out, started from cells whose restarts never got far. Only an episode that
+# times out lets the softlock family confirm a "stuck forever" bug, which T4 alone misses
+# on MAP07 (the one-way lift). Compare with t4_goexplore_map07 at the same budget and seeds.
+run_name: t4_goexplore_map07_patience
+agent: goexplore
+total_steps: 1_000_000
+n_envs: 4
+seed: 0
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 1_000_000, maps: [MAP07], weights: [1.0]}
+reward:
+  alpha: 0.5
+goexplore:
+  p_reset: 0.5
+  horizon: 500
+  heuristic: mixed
+  productivity_guard: true
+  max_cells: 20_000
+  repeat: 0.9
+  patience: 0.1
+  patience_min_resets: 2
+  patience_max_steps: 6_000

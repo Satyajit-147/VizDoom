@@ -69,6 +69,10 @@ def _cfg_value(cfg_path: Path, key: str) -> str:
     raise KeyError(f"{cfg_path}: no {key}")
 
 
+class EpisodeFinishedError(RuntimeError):
+    """save_state on an episode that has already ended (ViZDoom would write nothing)."""
+
+
 def wad_of(cfg_path: Path) -> Path:
     """The WAD a ViZDoom .cfg loads (relative paths resolve against the .cfg's folder)."""
     return (Path(cfg_path).parent / _cfg_value(cfg_path, "doom_scenario_path")).resolve()
@@ -562,6 +566,10 @@ class QADoomEnv(gym.Env[Obs, np.int64]):
         return self._demo_tmp
 
     def save_state(self, save_path: Path) -> None:
+        # ViZDoom writes no file at all when asked to save a finished episode (measured):
+        # fail clearly here instead of with a missing-file error in shutil.move.
+        if self.game.is_episode_finished():
+            raise EpisodeFinishedError("cannot save: the episode has already ended")
         tmp = self._short() / "s.sav"
         self.game.save(str(tmp))
         shutil.move(tmp, save_path)

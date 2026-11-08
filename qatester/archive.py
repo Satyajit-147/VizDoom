@@ -56,6 +56,9 @@ class Entry:
     resets_from: int = 0
     new_cells_after_reset: int = 0
     last_improved_step: int = 0
+    # Farthest any run restarted from this cell got from it (Chebyshev, in grid cells).
+    # A cell whose restarts never get far looks like a trap: patience starts there.
+    max_reach: int = 0
 
     @property
     def best_return(self) -> float:
@@ -131,6 +134,27 @@ class Archive:
             raise ValueError("the archive is empty")
         w = self.weights()
         e = list(self.entries.values())[int(rng.choice(len(w), p=w / w.sum()))]
+        e.resets_from += 1
+        self.entries.move_to_end(e.cell)
+        return e
+
+    def discard(self, cell: Cell) -> None:
+        """Drop an entry and its save file (a save that loads into an already finished
+        episode, e.g. one made in the last tics before the time limit)."""
+        e = self.entries.pop(cell, None)
+        if e is not None:
+            e.save_path.unlink(missing_ok=True)
+
+    def sample_confined(self, rng: np.random.Generator, min_resets: int = 2) -> Entry | None:
+        """A start for a patient run: among cells restarted from at least `min_resets`
+        times, one whose restarts never got far, weight 1 / (1 + max_reach)^2. Uses only
+        the archive's own trajectories, never the level. None if no cell qualifies yet.
+        Counts the reset against it."""
+        cands = [e for e in self.entries.values() if e.resets_from >= min_resets]
+        if not cands:
+            return None
+        w = np.asarray([1.0 / (1.0 + e.max_reach) ** 2 for e in cands], dtype=float)
+        e = cands[int(rng.choice(len(cands), p=w / w.sum()))]
         e.resets_from += 1
         self.entries.move_to_end(e.cell)
         return e

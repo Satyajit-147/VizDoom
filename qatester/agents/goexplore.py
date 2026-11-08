@@ -74,9 +74,16 @@ class GoExplore:
     root: Path = field(default_factory=save_root)
     archives: dict[str, Archive] = field(default_factory=dict)
     curve_every: int = 10_000  # worker steps between coverage samples
+    patience: float = 0.0  # share of steps for runs that play to the episode's end
+    patience_min_resets: int = 2
+    patience_max_steps: int = 6_000
     steps: int = 0
     iterations: int = 0
     loads: int = 0
+    patient_runs: int = 0
+    patient_steps: int = 0
+    patient_timeouts: int = 0  # patient runs that ended by the time limit (softlock-checkable)
+    dead_starts: int = 0  # archived starts that loaded into an already ended episode
     curve: list[dict[str, Any]] = field(default_factory=list)
 
     def archive(self, name: str) -> Archive:
@@ -94,27 +101,48 @@ class GoExplore:
             name = env.pick() if hasattr(env, "pick") else env.map_name
             arch = self.archive(name)
             start: Entry | None = None
-            if len(arch) and rng.random() < self.p_reset:
+            # Patience first (only when on: with patience 0 no extra random draw is made,
+            # so M8 runs reproduce exactly). A patient run is not cut at the horizon: only
+            # an episode that times out lets the softlock family confirm "stuck forever".
+            patient = False
+            if self.patience > 0 and len(arch) and self.patient_steps < self.patience * self.steps:
+                start = arch.sample_confined(rng, self.patience_min_resets)
+                patient = start is not None
+            if start is None and len(arch) and rng.random() < self.p_reset:
                 start = arch.sample(rng)
+            if start is not None:
                 obs, info = env.reset(options={"map": name, "load_state": start.save_path})
                 self.loads += 1
+                game = getattr(env.unwrapped, "game", None)
+                if game is not None and game.is_episode_finished():
+                    # Saved in the last tics before the time limit: it loads into an ended
+                    # episode, which can be neither explored nor saved again (ViZDoom
+                    # writes no file). Useless as a start, so drop it and pick again.
+                    arch.discard(start.cell)
+                    self.dead_starts += 1
+                    continue
             else:
                 obs, info = env.reset(options={"map": name})
             explorer.reset()
             self.iterations += 1
+            self.patient_runs += patient
             here = None
-            for _ in range(self.horizon):
+            for _ in range(self.patience_max_steps if patient else self.horizon):
                 x, y, z = info["pos"]
                 c = cell_of(x, y, z, info["keys"], info["doors"])
                 if c != here:
                     here = c
                     new = arch.visit(c, int(info["tic"]), self.steps, env.unwrapped.save_state)
-                    if new and start is not None:
-                        start.new_cells_after_reset += 1
+                    if start is not None:
+                        start.new_cells_after_reset += new
+                        start.max_reach = max(start.max_reach, abs(c[0] - start.cell[0]),
+                                              abs(c[1] - start.cell[1]))  # fmt: skip
                 obs, _, term, trunc, info = env.step(np.int64(explorer.act(obs)))
                 self.steps += 1
+                self.patient_steps += patient
                 yield info, term or trunc
                 if term or trunc:
+                    self.patient_timeouts += patient and bool(trunc)
                     break
 
     def run(self, env: Any, steps: int, rng: np.random.Generator) -> list[dict[str, Any]]:
@@ -133,6 +161,8 @@ class GoExplore:
 
     def summary(self) -> dict[str, Any]:
         return {"steps": self.steps, "iterations": self.iterations, "loads": self.loads,
+                "patient_runs": self.patient_runs, "patient_steps": self.patient_steps,
+                "patient_timeouts": self.patient_timeouts, "dead_starts": self.dead_starts,
                 "archives": {k: a.summary() for k, a in self.archives.items()},
                 "curve": self.curve}  # fmt: skip
 

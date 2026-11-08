@@ -152,6 +152,13 @@ class GoExploreConfig(_Model):
     productivity_guard: bool = True
     max_cells: int = 20_000
     repeat: float = 0.9  # sticky random explorer
+    # Patience (docs/FIXER_PLAN.md, CONTRIBUTING "Go-Explore patience"): this share of the
+    # explorer's steps goes to runs that are not cut at `horizon` but play on until the
+    # episode really ends, started from cells whose restarts never got far. Only an episode
+    # that times out can confirm a softlock. 0 = off (M8 behaviour, same random stream).
+    patience: float = Field(default=0.0, ge=0.0, lt=1.0)
+    patience_min_resets: int = 2  # restarts a cell needs before it can look confined
+    patience_max_steps: int = 6_000  # safety cap; the map's time limit normally ends a run first
 
 
 class RunConfig(_Model):
