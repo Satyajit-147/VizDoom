@@ -201,7 +201,16 @@ def build_menu(tm: udmf.TextMap, report: Report, radius: float = RADIUS_MU,
             cur = ld.args[3] if len(ld.args) > 3 else 0
             edits += [SetArg(i, 3, k) for k in keys if k != cur]
         if b is not None:
-            edits.append(SetFlag(i, "blocking", "blocking" not in ld.flags))
+            # Only a line DRAWN as a solid wall (a middle texture) that you can walk
+            # through may be made blocking: that is what a walk-through wall looks like.
+            # Doorways, openings and teleport-pad edges are drawn open, and a trigger
+            # line stops working when blocked; making those blocking walls off part of
+            # the level instead of repairing it (seen in the first loop batch: four
+            # teleport-pad edges blocked to make a teleport loop "go away").
+            sides = (tm.sidedefs[ld.sidefront], tm.sidedefs[ld.sideback])  # type: ignore[index]
+            drawn_wall = any(sd.texturemiddle for sd in sides)
+            if "blocking" in ld.flags or (drawn_wall and ld.special == 0):
+                edits.append(SetFlag(i, "blocking", "blocking" not in ld.flags))
             if ld.special == 0:
                 edits += [CopySpecial(j, i) for j in sorted(near_lines, key=near_lines.get)  # type: ignore[arg-type]
                           if j != i and tm.linedefs[j].special
@@ -210,7 +219,14 @@ def build_menu(tm: udmf.TextMap, report: Report, radius: float = RADIUS_MU,
         if edits:
             entities.append(Entity("linedef", i, dist, _line_summary(lv, i), tuple(edits)))
 
-    for s in near_sectors:
+    # A lift platform (the sector a Plat_ line's tag names) bridges a height difference on
+    # purpose: neither it nor the rooms beside it get floor edits. Flattening a lift's
+    # lower room "repairs" a one-way lift by making the lift pointless (seen in the first
+    # loop batch); the repair is the missing trigger. Pits never border a lift.
+    lifts = {s for ld in tm.linedefs if ld.special == PLAT_DOWN_WAIT_UP_STAY and ld.args
+             for s in lv.tagged.get(ld.args[0], [])}  # fmt: skip
+    no_floor_edit = lifts | {n for s in lifts for n in lv.neighbours.get(s, ())}
+    for s in near_sectors - no_floor_edit:
         sec = tm.sectors[s]
         floors = sorted({tm.sectors[n].heightfloor for n in lv.neighbours.get(s, ())}
                         - {sec.heightfloor})  # fmt: skip

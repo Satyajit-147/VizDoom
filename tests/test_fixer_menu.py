@@ -27,7 +27,7 @@ from doomdriver import Driver
 from test_defects_engine import SCENARIOS
 from test_fixer_edits import reference_patch
 
-from qatester.fixer.edits import Edit, MoveThing, apply, write_level
+from qatester.fixer.edits import Edit, MoveThing, SetFlag, SetFloor, apply, write_level
 from qatester.fixer.menu import MAX_EDITS, MAX_ENTITIES, Report, build_menu
 from qatester.mapgen.cli import build, render_cfg
 from qatester.mapgen.geometry import CompiledMap
@@ -139,6 +139,44 @@ def test_the_menus_own_teleport_moves_repair_the_loop_in_the_engine(
                 assert SCENARIOS["teleport_loop"](d, cm, defect) is want, f"{name}{n}"
             finally:
                 d.close()
+
+
+def test_the_menu_never_offers_to_wall_off_an_opening_or_a_trigger(
+    bugs: list[tuple[CompiledMap, CompiledMap, Defect]],
+) -> None:
+    """Regression (first loop batch, level 1302): the Fixer made a teleport loop 'go
+    away' by blocking the teleport pad's four edges, which also cut off a room hiding a
+    trap. 'Make blocking' is offered only on lines drawn as a wall and with no special."""
+    for cm, _, defect in bugs:
+        tm = cm.textmap()
+        menu = build_menu(tm, Report(defect.expected_oracle, "", _record(cm, defect)))
+        for e in menu.all_edits():
+            if isinstance(e, SetFlag) and e.flag == "blocking" and e.on:
+                ld = tm.linedefs[e.linedef]
+                assert ld.special == 0, f"would block trigger line {e.linedef}"
+                assert ld.sideback is not None and any(
+                    tm.sidedefs[s].texturemiddle for s in (ld.sidefront, ld.sideback)
+                ), f"would wall off open line {e.linedef}"
+
+
+def test_the_menu_never_flattens_a_lift_or_the_rooms_it_joins(
+    bugs: list[tuple[CompiledMap, CompiledMap, Defect]],
+) -> None:
+    """Regression (first loop batch, level 403): a one-way lift was 'repaired' by raising
+    its lower room to the top of the lift. A lift sector and its neighbours get no floor
+    edits; the repair is the missing trigger (CopySpecial), still in the menu (F1)."""
+    checked = 0
+    for cm, _, defect in bugs:
+        if defect.kind != "one_way_lift":
+            continue
+        p = cm.spec.portal(defect.target)
+        lift = list(cm.sectors).index(f"lift:{p.id}")
+        rooms = {list(cm.sectors).index(cm.room_sector(r)) for r in (p.a, p.b)}
+        menu = build_menu(cm.textmap(), Report(defect.expected_oracle, "", _record(cm, defect)))
+        floors = {e.sector for e in menu.all_edits() if isinstance(e, SetFloor)}
+        assert not floors & ({lift} | rooms), f"{defect.id}: would flatten {floors & rooms}"
+        checked += 1
+    assert checked
 
 
 def test_the_menu_depends_only_on_the_level_and_the_report(

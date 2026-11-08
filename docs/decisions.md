@@ -940,6 +940,30 @@ entity is the nearest. The F3 baselines therefore include nearest-first (no lear
 the Fixer must beat it, which leaves one_way_lift, teleport_loop and multi-bug levels as
 the real test. `prompt.py` moves to F4, where the option format of the LLM is fixed.
 
+### D51. Two "repairs" the first loop batch found, and the menu rules that stop them (2026-11-08)
+The first run of the detect -> fix -> re-test loop (`scripts/fix_loop.py`, 8 generated
+levels, 16 planted bugs) kept 9 fixes. Reading each one against the level:
+1. **Walling off a teleporter** (level 1302). To make a teleport loop "go away" the
+   Fixer set `blocking` on the teleport pad's four edges (special 70, drawn open). QA
+   stopped reporting the loop and cell coverage fell less than 20%, so the fix passed;
+   it also cut off a room holding the level's second bug, a pit, which QA then never
+   reported again. The loop scenario counted the loop as repaired because nobody could
+   reach the pad. Rule: "make blocking" is offered only on two-sided lines drawn as a
+   solid wall (a middle texture) and carrying no special: what a walk-through wall looks
+   like. Openings, doorways and pad edges are drawn open.
+2. **Flattening a lift** (level 403). A one-way lift was "repaired" by raising its lower
+   room to the top of the lift: the player can walk out, but the lift is now pointless
+   and the missing trigger is still missing. Rule: a lift sector (the one a Plat_ line's
+   tag names) and the rooms beside it get no floor edits; pits never border a lift
+   (`defects.geometry_trap` refuses one), so the pit repair is untouched.
+Both rules use the level only. F1 stays at 114/114 (100%); each rule has a regression
+test that fails without it. The coverage guard (-1 below 80% of the old coverage) was
+too weak to catch case 1; a stronger damage check (no room reached before may become
+unreached) is left for the learned Fixer, which will search harder for such shortcuts.
+The other 7 kept fixes were real: 3 switch tags restored, 2 pits raised, a teleport
+pair moved back to its room centres, and an over-cap pickup changed to a stimpack (not
+the original medikit, but no longer over the cap).
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

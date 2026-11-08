@@ -84,8 +84,18 @@ def test_a_level_without_reports_is_left_alone(tmp_path: Path) -> None:
     assert res.attempts == [] and len(calls) == 1 and res.final_level.to_text() == tm.to_text()
 
 
-def test_candidates_group_edits_that_belong_together() -> None:
+def test_candidates_never_wall_off_an_open_line() -> None:
+    """Line 0 is an open passage (no middle texture): the menu may raise the pit's floor
+    but must not offer to block the passage, which would hide the pit, not repair it."""
     fixes = candidate_fixes(_level(), PIT)
     assert (SetFloor(1, 0),) in fixes
-    blocking = [f for f in fixes if isinstance(f[0], SetFlag)]
-    assert blocking and all(len({e.flag for e in f}) == 1 for f in blocking)
+    assert not [f for f in fixes if isinstance(f[0], SetFlag) and f[0].on]
+
+
+def test_candidates_group_edits_that_belong_together() -> None:
+    """Every walk-through wall line between the same two sectors is one attempt."""
+    tm = _level()
+    tm.sidedefs = [udmf.Sidedef(0, texturemiddle="STARTAN2"), udmf.Sidedef(1, texturemiddle="STARTAN2"),
+                   *tm.sidedefs[2:]]  # fmt: skip  (line 0 is now drawn as a wall)
+    blocking = [f for f in candidate_fixes(tm, PIT) if isinstance(f[0], SetFlag)]
+    assert blocking == [(SetFlag(0, "blocking", True),)]
