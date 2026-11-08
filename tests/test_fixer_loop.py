@@ -11,7 +11,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from qatester.fixer.edits import SetFlag, SetFloor
-from qatester.fixer.loop import QAResult, candidate_fixes, fix_level, reward, same_bug
+from qatester.fixer.loop import (
+    QAResult,
+    candidate_fixes,
+    fix_level,
+    fix_until_quiet,
+    reward,
+    same_bug,
+)
 from qatester.fixer.menu import Report
 from qatester.mapgen import udmf
 from qatester.mapgen.wad import read_wad
@@ -82,6 +89,53 @@ def test_a_level_without_reports_is_left_alone(tmp_path: Path) -> None:
     tm.sectors[1] = udmf.Sector(0, 128)
     res = fix_level(tm, "MAP01", CFG, _fake_qa(calls), tmp_path, log=lambda s: None)
     assert res.attempts == [] and len(calls) == 1 and res.final_level.to_text() == tm.to_text()
+
+
+def test_rounds_continue_down_the_candidate_list_on_the_same_level(tmp_path: Path) -> None:
+    """One candidate per round: round 1 tries the first (it fails and is undone), round 2
+    goes on with the second instead of repeating the first; then two quiet rounds stop it."""
+    calls: list[Path] = []
+    res, rounds = fix_until_quiet(_level(), "MAP01", CFG, lambda r: _fake_qa(calls), tmp_path,
+                                  max_attempts=1, quiet=2, max_rounds=10, log=lambda s: None)  # fmt: skip
+    assert [a.edits for a in res.attempts] == [(SetFloor(0, -64),), (SetFloor(1, 0),)]
+    assert [len(x.attempts) for x in rounds] == [1, 1, 0, 0]
+    assert res.initial.reports == (PIT,) and res.final.reports == ()
+    assert res.final_level.sectors[1].heightfloor == 0
+
+
+def test_a_bug_qa_misses_at_first_is_fixed_in_a_later_round(tmp_path: Path) -> None:
+    """QA spots the pit only from round 2 on (as a longer run with a new seed may); the
+    loop keeps going on the same level and repairs it there."""
+    calls: list[Path] = []
+    seeds: list[int] = []
+
+    def qa_for_round(r: int):  # type: ignore[no-untyped-def]
+        inner = _fake_qa(calls)
+
+        def qa(cfg: Path, seed: int) -> QAResult:
+            seeds.append(seed)
+            found = inner(cfg, seed)
+            return found if r >= 1 else QAResult((), found.coverage)
+
+        return qa
+
+    res, rounds = fix_until_quiet(_level(), "MAP01", CFG, qa_for_round, tmp_path, seed=5,
+                                  quiet=2, max_rounds=10, log=lambda s: None)  # fmt: skip
+    assert rounds[0].initial.reports == () and rounds[1].initial.reports == (PIT,)
+    assert res.final_level.sectors[1].heightfloor == 0 and res.final.reports == ()
+    assert len(rounds) == 4  # quiet, fixed, quiet, quiet
+    assert seeds[0] == 5 and len(set(seeds)) == 4  # a new QA seed every round
+
+
+def test_rounds_stop_at_the_cap(tmp_path: Path) -> None:
+    """A report the Fixer keeps trying never makes QA quiet; max_rounds ends it."""
+
+    def stubborn(cfg: Path, seed: int) -> QAResult:
+        return QAResult((PIT,), 0.9)
+
+    res, rounds = fix_until_quiet(_level(), "MAP01", CFG, lambda r: stubborn, tmp_path,
+                                  max_attempts=1, quiet=2, max_rounds=2, log=lambda s: None)  # fmt: skip
+    assert len(rounds) == 2 and not res.fixes and res.final_level.to_text() == _level().to_text()
 
 
 def test_candidates_never_wall_off_an_open_line() -> None:

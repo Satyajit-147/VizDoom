@@ -15,6 +15,14 @@ One level at a time:
    otherwise it is undone and the next one is tried.
 4. Stop when no report is left, or every remaining one has used its attempts.
 
+`fix_until_quiet` repeats this on the SAME level (same planted bugs, nothing new
+planted): each round QA plays the level as fixed so far with a new seed (and, from the
+script, more steps), so it can spot bugs the earlier rounds missed, and a report that
+was already tried continues further down its candidate list instead of repeating the
+same attempts. It stops after `quiet` rounds in a row in which QA reported nothing the
+Fixer could still try, or after `max_rounds`. "All bugs found" is never known inside the
+loop (that would need the answer key); QA staying quiet is the stopping rule.
+
 This Fixer is the plan's nearest-first baseline, plus QA's verdict to pick among
 candidates; the learned Fixer (F4-F5) replaces the candidate order with a policy.
 """
@@ -123,10 +131,23 @@ def candidate_fixes(tm: udmf.TextMap, target: Report) -> list[tuple[Edit, ...]]:
     return out
 
 
+@dataclass
+class Effort:
+    """How far down its candidate list a report has been tried (kept across rounds)."""
+
+    report: Report
+    used: int = 0
+
+
 def fix_level(tm: udmf.TextMap, map_lump: str, cfg_text: str, qa: QA, work: Path,
               seed: int = 0, max_attempts: int = MAX_ATTEMPTS,
-              log: Callable[[str], None] = print) -> LevelResult:  # fmt: skip
-    """Run the loop on one level until no report is left or all have been tried."""
+              log: Callable[[str], None] = print,
+              effort: list[Effort] | None = None) -> LevelResult:  # fmt: skip
+    """Run the loop on one level until no report is left or all have been tried.
+
+    `effort` (from earlier rounds on this level) makes a report seen before continue
+    with its next untried candidates."""
+    effort = [] if effort is None else effort
     cfg = write_level(tm, map_lump, cfg_text, work, "level0")
     before = qa(cfg, seed)
     result = LevelResult(before, before, tm, cfg)
@@ -137,9 +158,17 @@ def fix_level(tm: udmf.TextMap, map_lump: str, cfg_text: str, qa: QA, work: Path
     while queue:
         target = queue.pop(0)
         tried.append(target)
+        eff = next((e for e in effort if same_bug(e.report, target)), None)
+        if eff is None:
+            eff = Effort(target)
+            effort.append(eff)
+        cands = candidate_fixes(result.final_level, target)[eff.used:eff.used + max_attempts]
         log(f"report {target.oracle}/{target.kind} at ({target.position[0]:.0f}, "
-            f"{target.position[1]:.0f})")  # fmt: skip
-        for edits in candidate_fixes(result.final_level, target)[:max_attempts]:
+            f"{target.position[1]:.0f})"
+            + (f", candidates {eff.used + 1}-{eff.used + len(cands)}" if eff.used else "")
+            + ("" if cands else ": no untried candidates left"))  # fmt: skip
+        for edits in cands:
+            eff.used += 1
             n += 1
             level = apply(result.final_level, list(edits))
             cand = write_level(level, map_lump, cfg_text, work, f"try{n}")
@@ -155,3 +184,32 @@ def fix_level(tm: udmf.TextMap, map_lump: str, cfg_text: str, qa: QA, work: Path
                 queue = [q for q in after.reports if not any(same_bug(q, t) for t in tried)]
                 break
     return result
+
+
+def fix_until_quiet(tm: udmf.TextMap, map_lump: str, cfg_text: str,
+                    qa_for_round: Callable[[int], QA], work: Path, seed: int = 0,
+                    max_attempts: int = MAX_ATTEMPTS, quiet: int = 2, max_rounds: int = 5,
+                    log: Callable[[str], None] = print) -> tuple[LevelResult, list[LevelResult]]:  # fmt: skip
+    """Rounds of `fix_level` on the same level until QA stays quiet (module docstring).
+
+    Round r uses QA `qa_for_round(r)` with seed `seed + r`. A round is quiet when it made
+    no attempt: QA reported nothing, or only reports with no untried candidate left.
+    Returns the whole run as one LevelResult (first QA run, last level) and each round."""
+    effort: list[Effort] = []
+    rounds: list[LevelResult] = []
+    level, calm = tm, 0
+    for r in range(max_rounds):
+        log(f"--- round {r + 1}")
+        res = fix_level(level, map_lump, cfg_text, qa_for_round(r), work / f"round{r + 1}",
+                        seed + r, max_attempts, log, effort)  # fmt: skip
+        rounds.append(res)
+        level = res.final_level
+        calm = 0 if res.attempts else calm + 1
+        if calm >= quiet:
+            log(f"quiet for {quiet} round(s): stop")
+            break
+    else:
+        log(f"stopped after {max_rounds} rounds")
+    total = LevelResult(rounds[0].initial, rounds[-1].final, rounds[-1].final_level,
+                        rounds[-1].final_cfg, [a for x in rounds for a in x.attempts])  # fmt: skip
+    return total, rounds

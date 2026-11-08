@@ -2,6 +2,7 @@
 
     python scripts/fix_loop.py --out runs/fixloop --levels 3 --seed-start 100
     python scripts/fix_loop.py --out runs/fixloop --forever          # the endless loop
+    python scripts/fix_loop.py --out runs/fixloop --max-rounds 5     # each level until QA is quiet
     python scripts/fix_loop.py --summarize runs/fixloop               # table of all levels
 
 Per level: generate a map with random planted bugs; QA (Go-Explore with patience + the
@@ -38,7 +39,7 @@ from qatester.coverage import CoverageTracker
 from qatester.demo.lab import LabLevel, make_level
 from qatester.env.vizdoom_env import QADoomEnv, wad_of
 from qatester.fixer.edits import describe
-from qatester.fixer.loop import QAResult, fix_level
+from qatester.fixer.loop import QAResult, fix_level, fix_until_quiet
 from qatester.fixer.menu import Report
 from qatester.mapgen.cli import compile_checked
 from qatester.mapgen.geometry import EXIT_NORMAL, CompiledMap
@@ -121,13 +122,25 @@ def run_level(seed: int, kinds: list[str], args: argparse.Namespace) -> dict[str
     cm = compile_checked(level.spec)  # the buggy level the Fixer starts from
     qa = make_qa(level, args.qa_steps, args.patience, work)
     print(f"=== level seed {seed} ({level.name}), planted kinds {kinds}", flush=True)
-    res = fix_level(cm.textmap(), level.spec.map_lump, level.cfg_path.read_text(), qa,
-                    work / "levels", seed=seed, max_attempts=args.max_attempts,
-                    log=lambda s: print("  " + s, flush=True))  # fmt: skip
+    def log(s: str) -> None:
+        print("  " + s, flush=True)
+
+    if args.max_rounds > 1:  # same level, same planted bugs, until QA stays quiet
+        res, rounds = fix_until_quiet(
+            cm.textmap(), level.spec.map_lump, level.cfg_path.read_text(),
+            lambda r: make_qa(level, int(args.qa_steps * args.step_growth ** r),
+                              args.patience, work),
+            work / "levels", seed=seed, max_attempts=args.max_attempts, quiet=args.quiet,
+            max_rounds=args.max_rounds, log=log)  # fmt: skip
+    else:
+        res = fix_level(cm.textmap(), level.spec.map_lump, level.cfg_path.read_text(), qa,
+                        work / "levels", seed=seed, max_attempts=args.max_attempts, log=log)  # fmt: skip
+        rounds = [res]
 
     # --- scoring, after the loop: the answer key is read only from here on ---
     defects = level.defects
     before = score(_as_findings(res.initial.reports), defects)
+    seen = score(_as_findings(tuple(r for x in rounds for r in x.initial.reports)), defects)
     fresh = qa(res.final_cfg, seed + 1000)
     after = score(_as_findings(fresh.reports), defects)
     bugs = []
@@ -135,6 +148,7 @@ def run_level(seed: int, kinds: list[str], args: argparse.Namespace) -> dict[str
         bugs.append({
             "id": d.id, "kind": d.kind,
             "qa_found_before": bool(before["found"][d.id]),
+            "qa_found_any_round": bool(seen["found"][d.id]),
             "engine_shows_before": shows(level.cfg_path, cm, d),
             "engine_shows_after": shows(res.final_cfg, cm, d),
             "qa_found_after_fresh_seed": bool(after["found"][d.id]),
@@ -142,6 +156,10 @@ def run_level(seed: int, kinds: list[str], args: argparse.Namespace) -> dict[str
     out = {
         "seed": seed, "map": level.name, "kinds": kinds, "qa_steps": args.qa_steps,
         "patience": args.patience,
+        "rounds": [{"qa_steps": int(args.qa_steps * args.step_growth ** i),
+                    "reports": len(x.initial.reports), "coverage": x.initial.coverage,
+                    "attempts": len(x.attempts), "kept": len(x.fixes)}
+                   for i, x in enumerate(rounds)],
         "initial": {"reports": len(res.initial.reports), "coverage": res.initial.coverage,
                     "false_alarms": len(before["false_alarms"])},
         "final": {"reports": len(res.final.reports), "coverage": res.final.coverage,
@@ -155,7 +173,7 @@ def run_level(seed: int, kinds: list[str], args: argparse.Namespace) -> dict[str
         "bugs": bugs,
     }  # fmt: skip
     (args.out / f"level_{seed}.json").write_text(json.dumps(out, indent=1) + "\n")
-    rep = [f"{b['kind']}: QA found {b['qa_found_before']}, engine shows "
+    rep = [f"{b['kind']}: QA found {b['qa_found_any_round']}, engine shows "
            f"{b['engine_shows_before']} -> {b['engine_shows_after']}" for b in bugs]
     print("  RESULT: " + "; ".join(rep), flush=True)
     return out
@@ -166,14 +184,22 @@ def summarize(out: Path) -> str:
     bugs = [b for r in rows for b in r["bugs"]]
     planted = len(bugs)
     real = [b for b in bugs if b["engine_shows_before"]]  # control passed
-    found = [b for b in real if b["qa_found_before"]]
+
+    def qa_found(b: dict[str, Any]) -> bool:  # any round (older results: the one round)
+        return bool(b.get("qa_found_any_round", b["qa_found_before"]))
+
+    found = [b for b in real if qa_found(b)]
     repaired = [b for b in found if not b["engine_shows_after"]]
-    repaired_unfound = [b for b in real if not b["qa_found_before"] and not b["engine_shows_after"]]
+    repaired_unfound = [b for b in real if not qa_found(b) and not b["engine_shows_after"]]
     attempts = [a for r in rows for a in r["attempts"]]
+    n_rounds = [len(r.get("rounds", [None])) for r in rows]
     lines = [
         f"# Fixer loop results ({len(rows)} generated levels, non-learned Fixer)", "",
         f"- planted bugs: {planted} ({len(real)} confirmed in the engine before any fix)",
-        f"- found by QA: {len(found)} / {len(real)}",
+        (f"- rounds per level (same level, same bugs, until QA is quiet): "
+         f"{min(n_rounds)}-{max(n_rounds)}"),
+        f"- found by QA in the first round: {sum(b['qa_found_before'] for b in real)} / {len(real)}",
+        f"- found by QA in any round: {len(found)} / {len(real)}",
         f"- **repaired (engine scenario no longer shows): {len(repaired)} / {len(found)} of those QA found**",
         f"- repaired although QA never reported them (side effects): {len(repaired_unfound)}",
         f"- fix attempts: {len(attempts)}, kept: {sum(a['kept'] for a in attempts)}",
@@ -186,7 +212,7 @@ def summarize(out: Path) -> str:
     ]  # fmt: skip
     for k in sorted({b["kind"] for b in bugs}):
         kb = [b for b in real if b["kind"] == k]
-        kf = [b for b in kb if b["qa_found_before"]]
+        kf = [b for b in kb if qa_found(b)]
         lines.append(f"| {k} | {len(kb)} | {len(kf)} | "
                      f"{sum(not b['engine_shows_after'] for b in kf)} | "
                      f"{sum(b['qa_found_after_fresh_seed'] for b in kb)} |")  # fmt: skip
@@ -202,7 +228,13 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--kinds", nargs="*", help="bug kinds to plant (default: 2 random)")
     ap.add_argument("--qa-steps", type=int, default=40_000)
     ap.add_argument("--patience", type=float, default=0.1)
-    ap.add_argument("--max-attempts", type=int, default=6)
+    ap.add_argument("--max-attempts", type=int, default=6, help="candidates per report per round")
+    ap.add_argument("--max-rounds", type=int, default=1,
+                    help="rounds on the same level (1 = a single QA pass)")
+    ap.add_argument("--quiet", type=int, default=2,
+                    help="stop after this many rounds in a row with nothing left to try")
+    ap.add_argument("--step-growth", type=float, default=1.5,
+                    help="QA steps grow by this factor each round")
     ap.add_argument("--summarize", type=Path, help="print the table for a results folder")
     args = ap.parse_args(argv)
     if args.summarize:
