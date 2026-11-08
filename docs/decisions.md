@@ -893,6 +893,26 @@ Windows, so every local `train.py` run died at start. Both now use SIGKILL where
 unchanged. `test_env_contract`'s crash and hang tests stay POSIX-only (they find the engine
 PID through /proc and freeze it with SIGSTOP).
 
+### D50. The Fixer's edit menu (F1) (2026-11-08)
+`qatester/fixer/menu.py` builds, from one QA report and the current level only, the
+entities worth editing and their candidate edits (FIXER_PLAN section 3). Beyond lines
+near the report it also takes trigger lines whose target tag points at a nearby sector or
+at no sector at all: a dead switch is reported at the door it fails to open, while the
+broken line is the switch, often rooms away; a dangling tag is visible in the level
+itself. Teleport destinations of nearby teleport lines are included for the same reason.
+Acceptance (`tests/test_fixer_menu.py`, 114 bugs on 50 generated maps, all 7 kinds):
+the reference patch is in the menu for 100% of bugs, and still 100% with the report moved
+up to 128 mu. One test was corrected after its first run: it demanded an exact match for
+teleport destinations and missed all 14 loops, because the true fix (the room's centre)
+cannot be pinned to the unit from the level: the room's sector stops 8 mu short at a
+wall strip and reaches 8 mu further into an open doorway it owns. A move now counts
+within 16 mu, and a new engine test applies the menu's own moves to 4 loops: each loop
+shows before and is gone after.
+Menus are small (median 5 entities / 12 edits), and for 5 of the 7 kinds the right
+entity is the nearest. The F3 baselines therefore include nearest-first (no learning);
+the Fixer must beat it, which leaves one_way_lift, teleport_loop and multi-bug levels as
+the real test. `prompt.py` moves to F4, where the option format of the LLM is fixed.
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.

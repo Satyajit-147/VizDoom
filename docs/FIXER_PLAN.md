@@ -143,8 +143,14 @@ On held-out procgen **test** seeds the Fixer never trained on (D31 split):
   affected entities (functionally equivalent fixes also count via the first metric).
 - **Damage rate:** fixes that broke the level or added new bugs.
 - **Edits per repair.**
-- Baselines: random menu choice; "oracle-menu" upper bound (the correct edit is in the
-  menu: measures the menu, not the Fixer); untrained Qwen; GRPO-trained Qwen.
+- Baselines: random menu choice; **nearest-first** (the nearest entity's first edit, no
+  learning); "oracle-menu" upper bound (the correct edit is in the menu: measures the
+  menu, not the Fixer); untrained Qwen; GRPO-trained Qwen.
+  F1 measured (114 bugs, 50 generated maps): menus have a median of 5 entities / 12
+  edits, and for 5 of the 7 kinds the right entity is the nearest one, so nearest-first
+  should already repair those. The Fixer has to beat nearest-first to show any value; the
+  real test is one_way_lift (3 edits, right entity ~4th) and teleport_loop (2 edits,
+  right entity ~9th), and multi-bug levels where the nearest entity belongs to another bug.
 
 ## 7. Code layout (new package `qatester/fixer/`)
 
