@@ -327,6 +327,6 @@ def close_bounded(venv: VecEnv, timeout_s: float = 120.0) -> None:
         for p in procs:
             if p.is_alive():
                 p.kill()
-        for pid in engines:
-            with contextlib.suppress(ProcessLookupError):
-                os.kill(pid, signal.SIGKILL)
+        for pid in engines:  # SIGKILL is POSIX; on Windows SIGTERM is TerminateProcess
+            with contextlib.suppress(OSError):
+                os.kill(pid, getattr(signal, "SIGKILL", signal.SIGTERM))

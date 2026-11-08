@@ -39,3 +39,20 @@ def test_agents_do_not_import_groundtruth() -> None:
 
 def test_oracles_do_not_import_vizdoom() -> None:
     assert _violations("oracles", ("vizdoom",)) == []
+
+
+def test_fixer_never_sees_the_answer_key() -> None:
+    """docs/FIXER_PLAN.md: the Fixer repairs from QA's reports only. It may not import the
+    answer key, the defect planter or the scorer, nor read any `defects` field (a spec's,
+    a CompiledMap's or a ground-truth dict's); only the evaluation after the loop may."""
+    assert _violations("fixer", ("qatester.mapgen.groundtruth", "qatester.groundtruth",
+                                 "qatester.mapgen.defects", "qatester.report.scoring")) == []  # fmt: skip
+    reads = []
+    for path in sorted((PKG / "fixer").rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            attr = isinstance(node, ast.Attribute) and node.attr in ("defects", "without_defects")
+            key = (isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant)
+                   and node.slice.value == "defects")  # fmt: skip
+            if attr or key:
+                reads.append(f"{path.relative_to(PKG.parent)}:{node.lineno}")
+    assert reads == [], "the Fixer reads defects: " + ", ".join(reads)

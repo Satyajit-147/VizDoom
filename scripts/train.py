@@ -41,7 +41,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--run-id")
     args = ap.parse_args(argv)
     exit_on_sigterm()
-    faulthandler.register(signal.SIGUSR1, all_threads=True)  # `kill -USR1` dumps stacks
+    if hasattr(faulthandler, "register") and hasattr(signal, "SIGUSR1"):  # POSIX only
+        faulthandler.register(signal.SIGUSR1, all_threads=True)  # `kill -USR1` dumps stacks
     overrides: dict[str, Any] = {
         k: v for k, v in {"seed": args.seed, "total_steps": args.total_steps,
                           "n_envs": args.n_envs, "runs_dir": args.runs_dir,

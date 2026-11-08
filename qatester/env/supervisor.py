@@ -156,8 +156,12 @@ class Supervisor:
                 self.kill_engine()
 
     def kill_engine(self) -> None:
+        # SIGKILL does not exist on Windows; there os.kill(pid, SIGTERM) is TerminateProcess,
+        # an equally hard kill. A pid that is already gone raises ProcessLookupError on POSIX
+        # and a plain OSError on Windows.
+        kill = getattr(signal, "SIGKILL", signal.SIGTERM)
         for pid in self.engine_pids:
             try:
-                os.kill(pid, signal.SIGKILL)
-            except ProcessLookupError:
+                os.kill(pid, kill)
+            except OSError:
                 pass

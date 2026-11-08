@@ -869,6 +869,30 @@ None of these adds a threshold. Regression tests:
 engine-checked positions), `test_moves_commanded_mid_jump_are_not_escape_attempts`, and
 `test_the_teleport_margin_grows_with_a_longer_step`. Each fails without its fix.
 
+### D49. The Fixer's edit operations (F0, docs/FIXER_PLAN.md) (2026-11-08)
+The Fixer loop needs a repair action space before any learning. Bugs live in the compiled
+level, not the MapSpec (D20), so the Fixer edits the compiled `udmf.TextMap`
+(`qatester/fixer/edits.py`) with six generic ops: SetFlag, SetArg, CopySpecial, SetFloor,
+SetThingType (within a thing class) and MoveThing (teleport destinations only). None is
+specific to a bug kind, and nothing can be deleted, since deleting is the easiest way to
+hide a bug instead of fixing it. `twosided` is not editable (it is structure), and a floor
+may not come within 56 mu of its ceiling.
+Acceptance (`tests/test_fixer_edits.py`): all 16 planted bugs of the hand-made maps plus a
+generated `teleport_loop` (the one kind the hand-made maps lack), each repaired by a patch
+made only of these ops, written back with `write_level`, then played with the bug's own
+engine scenario from `test_defects_engine`: every bug still shows on the rewritten
+unpatched level (control), none shows after its patch, and every exit still works. With an
+empty patch the test fails. The patches are written from the answer key, as the scenarios
+are: this shows the ops *can* express every fix, not that a learned Fixer finds them.
+`tests/test_no_groundtruth_leak.py` now also forbids `qatester/fixer/` from importing the
+answer key, the planter or the scorer, or reading any `defects` field.
+Windows portability found on the way: `scripts/train.py` registered `SIGUSR1`, and
+`supervisor.py` / `ppo_runner.py` killed engines with `SIGKILL`; neither exists on
+Windows, so every local `train.py` run died at start. Both now use SIGKILL where it exists
+(SIGTERM, i.e. TerminateProcess, on Windows) and catch `OSError`. Linux behaviour is
+unchanged. `test_env_contract`'s crash and hang tests stay POSIX-only (they find the engine
+PID through /proc and freeze it with SIGSTOP).
+
 ## Open issues found in PLAN.md
 
 Each must be decided before the milestone named.
