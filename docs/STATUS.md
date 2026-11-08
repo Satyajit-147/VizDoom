@@ -25,7 +25,7 @@ pass before the next one starts.
 | — | Go-Explore patience: confirm "stuck forever" bugs | ✅ 4/4 MAP07 bugs on all 5 seeds (D48) |
 | Fixer F0 | Six edit ops that can repair every bug kind | ✅ all 16 planted bugs, all 7 kinds, in the engine (D49) |
 | Fixer F1 | Edit menu built from QA's report and the level only | ✅ right fix in the menu for 114/114 bugs (D50) |
-| Fixer loop | detect → fix → re-test on generated levels, **non-learned** Fixer | ✅ working; results below |
+| Fixer loop | detect → fix → re-test on generated levels, **non-learned** Fixer | ✅ working; 13 of 16 planted bugs repaired in rounds (results below) |
 | Fixer F2-F6 | LLM Fixer, GRPO training, Planter co-evolution | ❌ not built ([FIXER_PLAN.md](FIXER_PLAN.md)) |
 
 ## Results
@@ -122,6 +122,33 @@ other lines removed the report but QA then reported something new, so the loop r
 it (the rule is strict on purpose; whether that new report was real is not checked). 5 bugs were never
 reported by QA at 40k steps, so the Fixer never saw them; those are QA's recall, not the
 Fixer's.
+
+#### Rounds until QA is quiet (same levels, same planted bugs)
+
+`--max-rounds 4 --quiet 2 --step-growth 2`: after the first pass, QA plays the level as
+fixed so far again with a new seed and twice the steps (40k → 80k → 160k → 320k), and a
+report seen before continues with its next untried candidates. A level stops after 2
+rounds in a row with nothing left to try, or after 4 rounds. Nothing new is planted.
+
+| | One pass (batch 2) | **Rounds until quiet** |
+|---|---|---|
+| found by QA | 11 / 16 | **14 / 16** |
+| **truly repaired (engine scenario gone)** | 9 | **13 of 14** |
+| levels whose exit still works | 8 / 8 | 8 / 8 |
+| false alarms on the final levels | 0 | 1 |
+| rounds per level | 1 | 2-4 |
+
+By kind: dead switches 3/3 found and repaired, broken locks 3/3 and 3/3 (0 in one pass),
+trap pits 3/3 and 3/3, teleport loops 2/2 and 2/2, bad pickups 1/2 and 1/2, one-way lifts
+2/3 found and 1/3 repaired (the first lift repair).
+
+What is left: level 1504, where QA never reported either bug (a bad pickup and a one-way
+lift) even at 80k steps; the one-way lift on level 403 (found, no candidate worked); and
+on level 1403, after both planted bugs were repaired, QA kept reporting a broken trigger
+that is not a planted bug, so the loop spent 10 attempts on it and the fresh-seed check
+counts it as the one false alarm. On level 1201 a third edit was kept in round 3 (a tag
+change after a softlock report) on top of the two repairs; both bugs stay repaired and the
+exit works, but whether that report was real was not checked.
 
 ## What is not done
 
