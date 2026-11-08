@@ -1,4 +1,4 @@
-# Project status (2026-11-03)
+# Project status (2026-11-08)
 
 What is built, what the results are, what is missing. The *why* behind every change from
 the plan is in [decisions.md](decisions.md) (cited as D-numbers below).
@@ -22,6 +22,11 @@ pass before the next one starts.
 | M8 | T4 Go-Explore covers ≥ 80% of MAP07 at 1M steps | ✅ passed: 92% on all 5 seeds (D46) |
 | M9 | Full evaluation E1-E7, figures, calibration | 🟡 partial (see below) |
 | Demo | QA Lab app: generate maps, plant bugs, watch a tester, reveal the answer key | ✅ done |
+| — | Go-Explore patience: confirm "stuck forever" bugs | ✅ 4/4 MAP07 bugs on all 5 seeds (D48) |
+| Fixer F0 | Six edit ops that can repair every bug kind | ✅ all 16 planted bugs, all 7 kinds, in the engine (D49) |
+| Fixer F1 | Edit menu built from QA's report and the level only | ✅ right fix in the menu for 114/114 bugs (D50) |
+| Fixer loop | detect → fix → re-test on generated levels, **non-learned** Fixer | ✅ working; results below |
+| Fixer F2-F6 | LLM Fixer, GRPO training, Planter co-evolution | ❌ not built ([FIXER_PLAN.md](FIXER_PLAN.md)) |
 
 ## Results
 
@@ -34,11 +39,14 @@ pass before the next one starts.
 | T3a PPO (play reward) | 600k | 64% ± 12 | 1.0 (2 seeds with reports) |
 | T3b PPO + curiosity | 600k | 60% ± 20 | 1.3 (3 seeds with reports) |
 | **T4 Go-Explore** | 1M | **92% ± 0** | **3 of 4, every seed** |
+| **T4 + patience** (D48) | 1M | **92%, every seed** | **4 of 4, every seed** (0 false alarms) |
 
 - T4 > T3a and T4 > T1 on coverage: one-sided Mann-Whitney U = 25, p = 0.004, A12 = 1.00
   (the strongest possible result with 5 vs 5 seeds).
 - T3b > T3a: U = 13, p = 0.50, A12 = 0.52 → M7 fails.
-- The one MAP07 bug Go-Explore misses is the one-way lift: see "Known limitations".
+- The one MAP07 bug plain Go-Explore misses is the one-way lift: see "Known limitations".
+  With patience (10% of steps on runs that play until the episode times out) it is found
+  on every seed, at the same coverage (D48; local Windows runs, 5 seeds).
 
 These numbers are from the first Kaggle run of these configs. A rerun on the final
 detector code (D47) is in progress; `scripts/make_results.py` turns its output into
@@ -72,6 +80,49 @@ goal: reaching the bugs, not judging them, is the bottleneck.
 - Go-Explore (M8) fixes exactly this failure: it saves the game at every new place and
   restarts from there, so progress past a door is never lost.
 
+### Fixer loop: detect → fix → re-test (non-learned Fixer)
+
+8 generated levels (seeds 201, 302, 403, 504, 1201, 1302, 1403, 1504), 2 planted bugs each.
+QA is T4 Go-Explore + patience, 40k steps per run. The Fixer sees only QA's report and the
+level; for each report it tries the menu's candidate fixes nearest-first (at most 6), and
+keeps a fix only if a fresh QA run no longer reports the bug, coverage stays ≥ 80% of the
+first run and no new bug appears; anything else is undone. The answer key is used **only
+afterwards**, to score: each bug's engine scenario is replayed on the final level, and a
+fresh QA seed checks for false alarms. Run: `scripts/fix_loop.py`.
+
+| | Batch 1 (first menu) | **Batch 2 (menu rules D51)** |
+|---|---|---|
+| planted bugs (all confirmed in the engine) | 16 | 16 |
+| found by QA | 11 | 11 |
+| fixes kept | 9 | 9 |
+| **truly repaired (engine scenario gone)** | 7 + 2 shortcuts | **9 of 11, no shortcuts** |
+| levels whose exit still works | 8 / 8 | 8 / 8 |
+| false alarms on the final levels | 0 | 0 |
+
+Batch 1 exposed two shortcuts the reward allowed: a teleport loop "fixed" by walling off
+the teleport pad (which also hid a trap behind it), and a one-way lift "fixed" by raising
+the lower room to the top of the lift. The menu no longer offers either (D51, regression
+tests in `tests/test_fixer_menu.py`); in batch 2 the same levels get real repairs:
+teleport destinations moved back to their rooms, and the hidden trap found and raised.
+
+Batch 2 by bug kind:
+
+| Bug kind | planted | found by QA | repaired |
+|---|---|---|---|
+| wrong_tag (dead switch) | 3 | 3 | 3 |
+| geometry_trap (pit) | 3 | 3 | 3 |
+| teleport_loop | 2 | 2 | 2 |
+| bad_pickup | 2 | 1 | 1 |
+| one_way_lift | 3 | 1 | 0 |
+| wrong_special (broken lock) | 3 | 1 | 0 |
+
+The two found-but-unrepaired bugs: a broken lock (level 1403), where 6 attempts did not
+remove the report, and a one-way lift (level 403), where copying the lift's trigger to its
+other lines removed the report but QA then reported something new, so the loop rejected
+it (the rule is strict on purpose; whether that new report was real is not checked). 5 bugs were never
+reported by QA at 40k steps, so the Fixer never saw them; those are QA's recall, not the
+Fixer's.
+
 ## What is not done
 
 | Item | Why not / what it needs |
@@ -85,16 +136,18 @@ goal: reaching the bugs, not judging them, is the bottleneck.
 | **Calibration** (fit temperature on MAP02/04/06, report ECE on MAP03/05/07) | CPU only; `qatester/report/calibrate.py` exists; needs runs + a script |
 | **PPO in the demo app** | CPU PyTorch locally + a checkpoint from the Kaggle outputs |
 | Higher recall from PPO | research: the agent must reach more of each level |
+| **Learned Fixer** (F2-F6 in [FIXER_PLAN.md](FIXER_PLAN.md)) | the loop runs with a non-learned Fixer; an LLM Fixer (Qwen + GRPO, rewarded by QA's re-test) and the Planter that makes the loop co-evolve are designed, not built |
+| **LLM co-evolution, full run** (repo `Sanjayazhagan/game-qa-coevolution`) | Phase 2 trained twice: the GRPO planner barely beats untrained Qwen (scale run: 69% vs 63% of the oracle on training levels, 63% vs 76% on unseen ones). Phase 3 co-evolution ran once as a 1-round check (Mistake Book 3, QA findings 0); the 8-round run crashed on a checkpoint bug, since fixed, and was not rerun (~3.5 GPU hours) |
 
-Kaggle GPU quota left this week: about 8 hours of 30.
+Kaggle GPU quota: 30 hours a week per account, reset every Saturday 00:00 UTC.
 
 ## Known limitations (be upfront about these)
 
-1. **Go-Explore can't confirm "stuck forever" bugs.** The softlock detector confirms a
-   one-way lift or a trap only when an episode *times out* with the player stuck, and
-   Go-Explore restarts every 500 steps, so its episodes rarely time out. That's why it
-   misses MAP07's one-way lift. The random and scripted testers play full episodes and do
-   find these. Possible fix: let some Go-Explore iterations run until time-out.
+1. **Go-Explore can't confirm "stuck forever" bugs** (fixed for MAP07 by patience, D48).
+   The softlock detector confirms a one-way lift or a trap only when an episode *times
+   out* with the player stuck, and plain Go-Explore restarts every 500 steps. Patience
+   lets 10% of its steps play to the time-out and finds the lift on every seed; it is off
+   by default, so turn it on (`goexplore.patience: 0.1`) for new runs.
 2. **Go-Explore findings have no replay.** A ViZDoom demo replays only from the map start,
    and in a process that has recorded a demo, ViZDoom freezes the clock after every
    load (D46). Go-Explore reports carry a position but no `.lmp`.
