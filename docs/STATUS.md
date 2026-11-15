@@ -1,4 +1,4 @@
-# Project status (2026-11-08)
+# Project status (2026-11-15)
 
 What is built, what the results are, what is missing. The *why* behind every change from
 the plan is in [decisions.md](decisions.md) (cited as D-numbers below).
@@ -20,7 +20,7 @@ pass before the next one starts.
 | M6 | Testers T1 (random), T2 (scripted), T3a (PPO) running; PPO learns MAP01 | ✅ passed: 100% / 90% goal rate at eval (D40) |
 | M7 | T3b (PPO + curiosity + Bug Book) explores MAP07 significantly better than T3a | ❌ failed twice (D44, D45): a documented negative result |
 | M8 | T4 Go-Explore covers ≥ 80% of MAP07 at 1M steps | ✅ passed: 92% on all 5 seeds (D46) |
-| M9 | Full evaluation E1-E7, figures, calibration | 🟡 partial (see below) |
+| M9 | Full evaluation E1-E7, figures, calibration | 🟡 partial: E1, E2, E6 done with figures ([results/RESULTS.md](results/RESULTS.md)); E3, E4, E5, E7, calibration not done |
 | Demo | QA Lab app: generate maps, plant bugs, watch a tester, reveal the answer key | ✅ done |
 | — | Go-Explore patience: confirm "stuck forever" bugs | ✅ 4/4 MAP07 bugs on all 5 seeds (D48) |
 | Fixer F0 | Six edit ops that can repair every bug kind | ✅ all 16 planted bugs, all 7 kinds, in the engine (D49) |
@@ -48,9 +48,29 @@ pass before the next one starts.
   With patience (10% of steps on runs that play until the episode times out) it is found
   on every seed, at the same coverage (D48; local Windows runs, 5 seeds).
 
-These numbers are from the first Kaggle run of these configs. A rerun on the final
-detector code (D47) is in progress; `scripts/make_results.py` turns its output into
-`docs/results/RESULTS.md` and figures.
+The T1, T2 and T4 rows are the Kaggle rerun on the final detector code (D47): plain
+Go-Explore now has **0 false alarms** on MAP07 (the earlier run had 5, all the mid-jump
+"wedge" fixed in D47). The T4 + patience row is from local runs (D48). Every report,
+with its answer key, is in `results/`; `python scripts/make_results.py build` regenerates
+[results/RESULTS.md](results/RESULTS.md) and the figures from it.
+
+### Maps no tester was tuned on (E6)
+
+39 maps: the 32 generated *test*-split maps (never used in training), MAP08 HOLDOUT, and
+the hand-made MAP01-MAP06 (MAP01 has no bugs). About 100k steps per map; 66 planted bugs.
+
+| Tester | Bug reports | False alarms | Precision | Planted bugs found | Recall | Map explored |
+|---|---|---|---|---|---|---|
+| T1 Random | 65 | 1 | 98% | 51 / 66 | 77% | 69% |
+| T2 Scripted | 59 | 1 | 98% | 48 / 66 | 73% | 60% |
+| T4 Go-Explore + patience | *run in progress* | | | | | |
+
+By type (random / scripted): trap pits 11/12 and 11/12, broken locks 11/11 and 10/11,
+teleport loops 9/10 and 9/10, one-way lifts 6/7 and 5/7, bad pickups 6/8 and 6/8, leaky
+walls 6/10 and 7/10, dead switches 2/8 and 0/8. The two false alarms are on generated
+maps with no planted bug: a "confined" in a lift's lower room (GEN1000003) and a
+"wedge" in a corner (GEN1000024). Neither has been replayed yet, so whether each is a
+detector edge case or a real flaw in the generated level is open.
 
 ### Bug detectors (precision)
 
@@ -158,7 +178,7 @@ exit works, but whether that report was real was not checked.
 | **E3** alpha sweep (reward balance α ∈ {0, 0.5, 1} on T3b, 3 seeds) | ~4 GPU hours |
 | **E5** component ablations (no Bug Book, no productivity guard, absolute position) | ~6 GPU hours |
 | **E4** reset heuristic comparison (mixed vs frontier vs uniform on T4) | CPU only now that T4 is CPU: configs + runs, ~half a day |
-| **E6** T4 on unseen maps | running now (`configs/unseen_*.yaml`) |
+| **E6** on unseen maps | ✅ done for T1, T2 and T4 + patience (above); the trained PPO agent was not evaluated there |
 | **E7** regression: replay the Bug Book of a buggy build on the fixed build | CPU only; `qatester/replay.py` exists; needs a script |
 | **Calibration** (fit temperature on MAP02/04/06, report ECE on MAP03/05/07) | CPU only; `qatester/report/calibrate.py` exists; needs runs + a script |
 | **PPO in the demo app** | CPU PyTorch locally + a checkpoint from the Kaggle outputs |

@@ -136,6 +136,10 @@ loop:
   (1 + new cells found after restarts) / (1 + restarts). The `count`, `frontier` and
   `uniform` heuristics are also available.
 - Save 3.6 ms, load 8.6 ms on MAP07; a save file is 37 KB; LRU eviction past 20,000 cells.
+- **Patience** (`goexplore.patience`, D48): a share of steps (0.1 in the demo and the
+  patience configs) goes to runs that are not cut at 500 steps but play until the episode
+  ends, started from archive cells whose restarts never got far (`max_reach`). Only an
+  episode that times out lets the softlock family confirm a one-way lift or a trap.
 
 ### The Bug Book: `qatester/bugbook.py`
 
@@ -192,9 +196,25 @@ experiment: `t1_random_map03`, `t3a_map01`, `t3a_map07` / `t3b_map07` (M7), `t3b
 (curriculum with 64 generated maps), `t4_goexplore_map07` / `random_map07` /
 `scripted_map07` (M8, E1), `unseen_*` (E6).
 
-## 10. Tests: `tests/`
+## 10. The Fixer: `qatester/fixer/` (D49-D51, [FIXER_PLAN.md](FIXER_PLAN.md))
 
-About 450 tests. The important groups:
+Detect → fix → re-test, with QA (Go-Explore + patience) as the judge:
+
+| File | Role |
+|---|---|
+| `edits.py` | six generic edit ops on the compiled level (`SetFlag`, `SetArg`, `CopySpecial`, `SetFloor`, `SetThingType`, `MoveThing`); nothing can be deleted, since deleting is the easiest way to hide a bug |
+| `menu.py` | from one QA report and the level only: the entities worth editing near it (plus trigger lines whose tag points there, and teleport destinations) and their candidate edits; rules forbid walling off openings and flattening lifts (D51) |
+| `loop.py` | for each report, try candidates nearest-first; keep a fix only if a fresh QA run no longer reports the bug, coverage stays ≥ 80% and nothing new appears; otherwise undo. Optionally repeat rounds with more steps until QA is quiet |
+
+`scripts/fix_loop.py` runs it on generated levels and scores the outcome afterwards
+against the answer key (each bug's engine scenario replayed on the final level). The
+Fixer itself never reads the answer key (enforced by `tests/test_no_groundtruth_leak.py`).
+The current Fixer is not learned; an LLM Fixer trained with GRPO is designed in
+FIXER_PLAN.md, not built.
+
+## 11. Tests: `tests/`
+
+About 490 tests. The important groups:
 
 - `test_oracles.py`: every detector on hand-written traces (`tracebuilder.py`): each
   family fires on its positive case and stays silent on near-misses, plus a regression

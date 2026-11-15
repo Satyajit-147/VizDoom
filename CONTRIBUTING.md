@@ -10,7 +10,7 @@ How to change this project without breaking it. Read [README.md](README.md),
 - Before opening a PR, everything below must pass:
 
 ```bash
-env -u PYTHONPATH .venv/bin/python -m pytest -q        # ~450 tests, ~4 min
+env -u PYTHONPATH .venv/bin/python -m pytest -q        # ~490 tests, ~7 min
 env -u PYTHONPATH .venv/bin/ruff check qatester tests scripts
 env -u PYTHONPATH .venv/bin/mypy qatester
 ```
