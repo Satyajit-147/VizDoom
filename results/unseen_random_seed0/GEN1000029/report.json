@@ -1,0 +1,78 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "GEN1000029",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.4671280276816609,
+  "entity": 0.25,
+  "connection": 0.375,
+  "abstract_states": 374
+ },
+ "findings": [
+  {
+   "id": "GEN1000029-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.64,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    1417.1646118164062,
+    1416.5290985107422,
+    0.0
+   ],
+   "room": "r33",
+   "cluster_size": 12,
+   "first_seen_step": 142696,
+   "repro": {
+    "demo": "demos/GEN1000029-inv-01.lmp",
+    "save": null,
+    "episode": 13,
+    "env_seed": 1,
+    "tic_range": [
+     2302,
+     2302
+    ],
+    "steps": 575
+   },
+   "evidence": {
+    "episode": 13,
+    "health": 100.0,
+    "ammo": 15.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_r32_r33"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in r33 near (1417, 1417)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r01",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r10",
+   "cells_unvisited": 64,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r11",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP30",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 12,
+ "temperature": 1.0
+}

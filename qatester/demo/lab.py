@@ -133,7 +133,7 @@ class Session:
         self.agent: Any = None
         self.goexplore: GoExplore | None = None
         if self.tester == "goexplore":
-            self.goexplore = GoExplore()
+            self.goexplore = GoExplore(patience=0.1)  # patience confirms "stuck forever" bugs (D48)
             self._walk = self.goexplore.walk(self.env, rng)
             self._iteration = 0
             return

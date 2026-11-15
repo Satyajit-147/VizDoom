@@ -1,0 +1,97 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "MAP02",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.8782287822878229,
+  "entity": 0.5,
+  "connection": 1.0,
+  "abstract_states": 311
+ },
+ "findings": [
+  {
+   "id": "MAP02-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1350.0539855957031,
+    472.0256805419922,
+    0.0
+   ],
+   "room": "pit",
+   "cluster_size": 16,
+   "first_seen_step": 334126,
+   "repro": {
+    "demo": "demos/MAP02-stuck-01.lmp",
+    "save": null,
+    "episode": 154,
+    "env_seed": 1001,
+    "tic_range": [
+     294,
+     294
+    ],
+    "steps": 73
+   },
+   "evidence": {
+    "episode": 154,
+    "sector": 4,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "pit"
+    ]
+   },
+   "summary": "The player fell into a pit in pit near (1350, 472): its floor is 96 mu below every way out and nothing lifts them back."
+  },
+  {
+   "id": "MAP02-stuck-02",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.38,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    727.7571563720703,
+    -16.999114990234375,
+    0.0
+   ],
+   "room": "alcove",
+   "cluster_size": 2,
+   "first_seen_step": 226412,
+   "repro": {
+    "demo": "demos/MAP02-stuck-02.lmp",
+    "save": null,
+    "episode": 103,
+    "env_seed": 1000,
+    "tic_range": [
+     2890,
+     2890
+    ],
+    "steps": 722
+   },
+   "evidence": {
+    "episode": 103,
+    "sector": 2,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "alcove"
+    ]
+   },
+   "summary": "The player fell into a pit in alcove near (728, -17): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP02",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 18,
+ "temperature": 1.0
+}

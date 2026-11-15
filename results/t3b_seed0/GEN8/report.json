@@ -1,0 +1,96 @@
+{
+ "run_id": "t3b_seed0",
+ "map": "GEN8",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9325.3,
+ "coverage": {
+  "cell": 0.2533632286995516,
+  "entity": 0.3333333333333333,
+  "connection": 0.125,
+  "abstract_states": 113
+ },
+ "findings": [
+  {
+   "id": "GEN8-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.54,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    158.6630096435547,
+    188.56619262695312,
+    -64.0
+   ],
+   "room": "r00",
+   "cluster_size": 5,
+   "first_seen_step": 859766,
+   "repro": {
+    "demo": "demos/GEN8-inv-01.lmp",
+    "save": null,
+    "episode": 162,
+    "env_seed": 0,
+    "tic_range": [
+     934,
+     934
+    ],
+    "steps": 233
+   },
+   "evidence": {
+    "episode": 162,
+    "health": 200.0,
+    "ammo": 36.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in r00 near (159, 189)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r02",
+   "cells_unvisited": 64,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r03",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r13",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r23",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r32",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP09",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 5,
+ "temperature": 1.0
+}

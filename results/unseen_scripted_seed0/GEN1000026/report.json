@@ -1,0 +1,22 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000026",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.9183673469387755,
+  "entity": 1.0,
+  "connection": 1.0,
+  "abstract_states": 279
+ },
+ "findings": [],
+ "coverage_gaps": [],
+ "map_lump": "MAP27",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 0,
+ "temperature": 1.0
+}

@@ -1,0 +1,132 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000008",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.7420634920634921,
+  "entity": 0.5,
+  "connection": 0.8571428571428571,
+  "abstract_states": 267
+ },
+ "findings": [
+  {
+   "id": "GEN1000008-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.91,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    624.0,
+    816.0,
+    0.0
+   ],
+   "room": "r12",
+   "cluster_size": 8,
+   "first_seen_step": 468532,
+   "repro": {
+    "demo": "demos/GEN1000008-soft-01.lmp",
+    "save": null,
+    "episode": 338,
+    "env_seed": 0,
+    "tic_range": [
+     2098,
+     2174
+    ],
+    "steps": 543
+   },
+   "evidence": {
+    "episode": 338,
+    "hops": 4,
+    "sectors": [
+     3,
+     4
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r12 near (624, 816)."
+  },
+  {
+   "id": "GEN1000008-soft-02",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.66,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    848.0,
+    1264.0,
+    0.0
+   ],
+   "room": "r13",
+   "cluster_size": 6,
+   "first_seen_step": 491788,
+   "repro": {
+    "demo": "demos/GEN1000008-soft-02.lmp",
+    "save": null,
+    "episode": 127,
+    "env_seed": 0,
+    "tic_range": [
+     678,
+     750
+    ],
+    "steps": 187
+   },
+   "evidence": {
+    "episode": 127,
+    "hops": 4,
+    "sectors": [
+     4,
+     3
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r13 near (848, 1264)."
+  },
+  {
+   "id": "GEN1000008-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.5,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    688.00634765625,
+    681.9358825683594,
+    0.0
+   ],
+   "room": "r11",
+   "cluster_size": 8,
+   "first_seen_step": 496416,
+   "repro": {
+    "demo": "demos/GEN1000008-stuck-01.lmp",
+    "save": null,
+    "episode": 276,
+    "env_seed": 3,
+    "tic_range": [
+     3226,
+     3226
+    ],
+    "steps": 806
+   },
+   "evidence": {
+    "episode": 276,
+    "sector": 2,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r11"
+    ]
+   },
+   "summary": "The player fell into a pit in r11 near (688, 682): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP09",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 22,
+ "temperature": 1.0
+}

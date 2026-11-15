@@ -1,0 +1,112 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "GEN1000013",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.5017301038062284,
+  "entity": 0.7142857142857143,
+  "connection": 0.7142857142857143,
+  "abstract_states": 244
+ },
+ "findings": [
+  {
+   "id": "GEN1000013-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.79,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    689.6551513671875,
+    1164.4235382080078,
+    11.0
+   ],
+   "room": "r13",
+   "cluster_size": 7,
+   "first_seen_step": 531912,
+   "repro": {
+    "demo": "demos/GEN1000013-inv-01.lmp",
+    "save": null,
+    "episode": 105,
+    "env_seed": 3,
+    "tic_range": [
+     906,
+     906
+    ],
+    "steps": 226
+   },
+   "evidence": {
+    "episode": 105,
+    "health": 100.0,
+    "ammo": 40.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_r12_r13"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in r13 near (690, 1164)."
+  },
+  {
+   "id": "GEN1000013-unreach-01",
+   "oracle": "unreachable",
+   "kind": "broken_trigger",
+   "severity": 0.47,
+   "confidence_raw": 0.85,
+   "confidence_calibrated": 0.85,
+   "position": [
+    512.0,
+    544.0,
+    0.0
+   ],
+   "room": "r01",
+   "cluster_size": 4,
+   "first_seen_step": 222668,
+   "repro": {
+    "demo": "demos/GEN1000013-unreach-01.lmp",
+    "save": null,
+    "episode": 204,
+    "env_seed": 3,
+    "tic_range": [
+     0,
+     1897
+    ],
+    "steps": 474
+   },
+   "evidence": {
+    "episode": 204,
+    "rooms": [
+     "r01",
+     "r02"
+    ],
+    "cells_unvisited": 104,
+    "failed_attempts": {
+     "p_r11_r01": 5
+    }
+   },
+   "summary": "Repeated tries to open the way into r01, r02 failed in r01 near (512, 544)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r01",
+   "cells_unvisited": 56,
+   "portals_attempted": 36
+  },
+  {
+   "room": "r02",
+   "cells_unvisited": 48,
+   "portals_attempted": 36
+  }
+ ],
+ "map_lump": "MAP14",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 11,
+ "temperature": 1.0
+}

@@ -1,0 +1,848 @@
+{
+ "schema_version": 1,
+ "map": "MAP05",
+ "name": "PHANTOM",
+ "slot": 5,
+ "variant": "buggy",
+ "cell_size": 64,
+ "spawn": {
+  "room": "start",
+  "pos": [
+   256,
+   256
+  ]
+ },
+ "rooms": [
+  {
+   "id": "start",
+   "rect": [
+    0,
+    0,
+    512,
+    512
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 0
+  },
+  {
+   "id": "armory",
+   "rect": [
+    512,
+    0,
+    960,
+    512
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 1
+  },
+  {
+   "id": "keyroom",
+   "rect": [
+    0,
+    512,
+    512,
+    896
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 2
+  },
+  {
+   "id": "vault",
+   "rect": [
+    512,
+    512,
+    960,
+    896
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 3
+  },
+  {
+   "id": "exitroom",
+   "rect": [
+    960,
+    512,
+    1344,
+    896
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 4
+  }
+ ],
+ "walkable": {
+  "origin": [
+   0,
+   0
+  ],
+  "cell_size": 64,
+  "width": 21,
+  "height": 14,
+  "rows": [
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111000000",
+   "111111111111111111111",
+   "111111111111111111111",
+   "111111111111111111111",
+   "111111111111111111111",
+   "111111111111111111111",
+   "111111111111111111111"
+  ]
+ },
+ "walls": [
+  [
+   0,
+   0,
+   0,
+   504
+  ],
+  [
+   0,
+   520,
+   0,
+   896
+  ],
+  [
+   208,
+   504,
+   208,
+   520
+  ],
+  [
+   304,
+   520,
+   304,
+   504
+  ],
+  [
+   504,
+   192,
+   504,
+   0
+  ],
+  [
+   504,
+   504,
+   504,
+   320
+  ],
+  [
+   504,
+   896,
+   504,
+   520
+  ],
+  [
+   520,
+   0,
+   520,
+   192
+  ],
+  [
+   520,
+   320,
+   520,
+   504
+  ],
+  [
+   520,
+   520,
+   520,
+   896
+  ],
+  [
+   688,
+   504,
+   688,
+   520
+  ],
+  [
+   784,
+   520,
+   784,
+   504
+  ],
+  [
+   952,
+   640,
+   952,
+   520
+  ],
+  [
+   952,
+   896,
+   952,
+   768
+  ],
+  [
+   960,
+   504,
+   960,
+   0
+  ],
+  [
+   968,
+   512,
+   968,
+   640
+  ],
+  [
+   968,
+   768,
+   968,
+   896
+  ],
+  [
+   1344,
+   672,
+   1344,
+   512
+  ],
+  [
+   1344,
+   736,
+   1344,
+   672
+  ],
+  [
+   1344,
+   896,
+   1344,
+   736
+  ],
+  [
+   504,
+   0,
+   0,
+   0
+  ],
+  [
+   960,
+   0,
+   520,
+   0
+  ],
+  [
+   520,
+   192,
+   504,
+   192
+  ],
+  [
+   504,
+   320,
+   520,
+   320
+  ],
+  [
+   0,
+   504,
+   208,
+   504
+  ],
+  [
+   304,
+   504,
+   504,
+   504
+  ],
+  [
+   520,
+   504,
+   688,
+   504
+  ],
+  [
+   784,
+   504,
+   960,
+   504
+  ],
+  [
+   1344,
+   512,
+   968,
+   512
+  ],
+  [
+   208,
+   520,
+   0,
+   520
+  ],
+  [
+   504,
+   520,
+   304,
+   520
+  ],
+  [
+   688,
+   520,
+   520,
+   520
+  ],
+  [
+   952,
+   520,
+   784,
+   520
+  ],
+  [
+   968,
+   640,
+   952,
+   640
+  ],
+  [
+   952,
+   768,
+   968,
+   768
+  ],
+  [
+   0,
+   896,
+   504,
+   896
+  ],
+  [
+   520,
+   896,
+   952,
+   896
+  ],
+  [
+   968,
+   896,
+   1344,
+   896
+  ]
+ ],
+ "sectors": [
+  {
+   "index": 0,
+   "key": "start",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "start"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    1,
+    5
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 1,
+   "key": "armory",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "armory"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    0,
+    6
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 2,
+   "key": "keyroom",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "keyroom"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    5
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 3,
+   "key": "vault",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "vault"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    4,
+    6
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 4,
+   "key": "exitroom",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "exitroom"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    3
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 5,
+   "key": "door:p_start_keyroom",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_start_keyroom",
+   "tag": 0,
+   "neighbours": [
+    0,
+    2
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 6,
+   "key": "door:p_armory_vault",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_armory_vault",
+   "tag": 0,
+   "neighbours": [
+    1,
+    3
+   ],
+   "lift_trigger": false
+  }
+ ],
+ "sector_grid": {
+  "xs": [
+   0,
+   208,
+   304,
+   504,
+   512,
+   520,
+   688,
+   784,
+   952,
+   960,
+   968,
+   1344
+  ],
+  "ys": [
+   0,
+   192,
+   320,
+   504,
+   512,
+   520,
+   640,
+   672,
+   736,
+   768,
+   896
+  ],
+  "owner": [
+   [
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   [
+    0,
+    0,
+    0,
+    5,
+    5,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   [
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   [
+    -1,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   [
+    1,
+    1,
+    1,
+    6,
+    6,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   [
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   [
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+   ]
+  ]
+ },
+ "portals": [
+  {
+   "id": "p_start_armory",
+   "a": "start",
+   "b": "armory",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    504,
+    192,
+    520,
+    320
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_start_keyroom",
+   "a": "start",
+   "b": "keyroom",
+   "kind": "door",
+   "requires": null,
+   "switch": null,
+   "area": [
+    208,
+    504,
+    304,
+    520
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_armory_vault",
+   "a": "armory",
+   "b": "vault",
+   "kind": "locked_door",
+   "requires": "key_blue",
+   "switch": null,
+   "area": [
+    688,
+    504,
+    784,
+    520
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_vault_exit",
+   "a": "vault",
+   "b": "exitroom",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    952,
+    640,
+    968,
+    768
+   ],
+   "dest": null
+  }
+ ],
+ "switch_lines": {
+  "exitsw": [
+   1344,
+   672,
+   1344,
+   736
+  ]
+ },
+ "portal_graph": [
+  {
+   "from": "start",
+   "to": "armory",
+   "via": "p_start_armory",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "armory",
+   "to": "start",
+   "via": "p_start_armory",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "start",
+   "to": "keyroom",
+   "via": "p_start_keyroom",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "keyroom",
+   "to": "start",
+   "via": "p_start_keyroom",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "armory",
+   "to": "vault",
+   "via": "p_armory_vault",
+   "key": "key_blue",
+   "switch": null
+  },
+  {
+   "from": "vault",
+   "to": "armory",
+   "via": "p_armory_vault",
+   "key": "key_blue",
+   "switch": null
+  },
+  {
+   "from": "vault",
+   "to": "exitroom",
+   "via": "p_vault_exit",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "exitroom",
+   "to": "vault",
+   "via": "p_vault_exit",
+   "key": null,
+   "switch": null
+  }
+ ],
+ "things": [
+  {
+   "id": "spawn",
+   "type": "player_start",
+   "room": "start",
+   "pos": [
+    256,
+    256
+   ],
+   "interactive": false
+  },
+  {
+   "id": "bluekey",
+   "type": "key_blue",
+   "room": "keyroom",
+   "pos": [
+    256,
+    704
+   ],
+   "interactive": true
+  },
+  {
+   "id": "medkit",
+   "type": "health",
+   "room": "armory",
+   "pos": [
+    736,
+    256
+   ],
+   "interactive": true
+  },
+  {
+   "id": "ammo",
+   "type": "ammo",
+   "room": "vault",
+   "pos": [
+    736,
+    704
+   ],
+   "interactive": true
+  },
+  {
+   "id": "exitsw",
+   "type": "exit_switch",
+   "room": "exitroom",
+   "pos": [
+    1320,
+    704
+   ],
+   "interactive": true
+  }
+ ],
+ "monster_count": 0,
+ "goal": {
+  "kind": "reach_exit",
+  "target": "exitsw",
+  "requires": [
+   "key_blue"
+  ],
+  "time_limit_tics": 10500,
+  "room": "exitroom"
+ },
+ "defects": [
+  {
+   "id": "d_phantom_lock",
+   "kind": "wrong_special",
+   "target": "p_armory_vault",
+   "expected_oracle": "invariant",
+   "severity": "high",
+   "params": {},
+   "notes": "The blue locked door is emitted with lock 0, so it opens without the blue key: a sequence break.",
+   "position": [
+    736.0,
+    512,
+    0.0
+   ],
+   "region": [
+    [
+     688,
+     504,
+     784,
+     520
+    ]
+   ],
+   "affected_rooms": [
+    "armory",
+    "vault"
+   ],
+   "change": "p_armory_vault emitted with lock 0 instead of 2 (key_blue)"
+  },
+  {
+   "id": "d_phantom_health",
+   "kind": "bad_pickup",
+   "target": "medkit",
+   "expected_oracle": "invariant",
+   "severity": "low",
+   "params": {},
+   "notes": "The armory medkit is a Soulsphere, taking the player above the 100 health cap.",
+   "position": [
+    736.0,
+    256.0,
+    0.0
+   ],
+   "region": [],
+   "affected_rooms": [
+    "armory"
+   ],
+   "change": "medkit is a Soulsphere (+100 health, cap 200)"
+  }
+ ]
+}

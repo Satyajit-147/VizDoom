@@ -1,0 +1,96 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000011",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.9057971014492754,
+  "entity": 0.875,
+  "connection": 1.0,
+  "abstract_states": 351
+ },
+ "findings": [
+  {
+   "id": "GEN1000011-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.9,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    1424.70654296875,
+    1496.767318725586,
+    0.0
+   ],
+   "room": "r33",
+   "cluster_size": 60,
+   "first_seen_step": 172744,
+   "repro": {
+    "demo": "demos/GEN1000011-oob-01.lmp",
+    "save": null,
+    "episode": 312,
+    "env_seed": 3,
+    "tic_range": [
+     714,
+     874
+    ],
+    "steps": 218
+   },
+   "evidence": {
+    "episode": 312,
+    "exit_point": [
+     1424.70654296875,
+     1496.767318725586
+    ],
+    "depth_beyond_mu": 112.0
+   },
+   "summary": "The player left the level in r33 near (1425, 1497) and travelled 112 mu into undefined space."
+  },
+  {
+   "id": "GEN1000011-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.48,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    770.8953247070312,
+    519.586181640625,
+    0.0
+   ],
+   "room": "r11",
+   "cluster_size": 2,
+   "first_seen_step": 2106900,
+   "repro": {
+    "demo": "demos/GEN1000011-inv-01.lmp",
+    "save": null,
+    "episode": 184,
+    "env_seed": 1,
+    "tic_range": [
+     1554,
+     1554
+    ],
+    "steps": 388
+   },
+   "evidence": {
+    "episode": 184,
+    "health": 200.0,
+    "ammo": 49.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in r11 near (771, 520)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP12",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 62,
+ "temperature": 1.0
+}

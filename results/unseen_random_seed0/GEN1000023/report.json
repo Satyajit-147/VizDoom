@@ -1,0 +1,123 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "GEN1000023",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.41595441595441596,
+  "entity": 0.5,
+  "connection": 0.2857142857142857,
+  "abstract_states": 283
+ },
+ "findings": [
+  {
+   "id": "GEN1000023-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    310.5238494873047,
+    1139.5889434814453,
+    -96.0
+   ],
+   "room": "r03",
+   "cluster_size": 26,
+   "first_seen_step": 26472,
+   "repro": {
+    "demo": "demos/GEN1000023-stuck-01.lmp",
+    "save": null,
+    "episode": 206,
+    "env_seed": 3,
+    "tic_range": [
+     186,
+     186
+    ],
+    "steps": 46
+   },
+   "evidence": {
+    "episode": 206,
+    "sector": 2,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r03"
+    ]
+   },
+   "summary": "The player fell into a pit in r03 near (311, 1140): its floor is 96 mu below every way out and nothing lifts them back."
+  },
+  {
+   "id": "GEN1000023-stuck-02",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.36,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    224.95196533203125,
+    1204.2835998535156,
+    -96.0
+   ],
+   "room": "r03",
+   "cluster_size": 1,
+   "first_seen_step": 3215148,
+   "repro": {
+    "demo": "demos/GEN1000023-stuck-02.lmp",
+    "save": null,
+    "episode": 292,
+    "env_seed": 3,
+    "tic_range": [
+     7078,
+     7078
+    ],
+    "steps": 1769
+   },
+   "evidence": {
+    "episode": 292,
+    "sector": 2,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r03"
+    ]
+   },
+   "summary": "The player fell into a pit in r03 near (225, 1204): its floor is 96 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r11",
+   "cells_unvisited": 36,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r12",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 35,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r23",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP24",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 27,
+ "temperature": 1.0
+}

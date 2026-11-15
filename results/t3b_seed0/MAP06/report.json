@@ -1,0 +1,59 @@
+{
+ "run_id": "t3b_seed0",
+ "map": "MAP06",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9325.3,
+ "coverage": {
+  "cell": 0.9772727272727273,
+  "entity": 0.3333333333333333,
+  "connection": 1.0,
+  "abstract_states": 375
+ },
+ "findings": [
+  {
+   "id": "MAP06-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.62,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    231.71756901120366,
+    704.7078790659688,
+    -62.992158912702564
+   ],
+   "room": "pit",
+   "cluster_size": 4,
+   "first_seen_step": 964950,
+   "repro": {
+    "demo": "demos/MAP06-soft-01.lmp",
+    "save": null,
+    "episode": 171,
+    "env_seed": 0,
+    "tic_range": [
+     2866,
+     10514
+    ],
+    "steps": 2628
+   },
+   "evidence": {
+    "episode": 171,
+    "sector": 1,
+    "rooms": [
+     "pit"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in pit: every way out was tried and failed."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP06",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 4,
+ "temperature": 1.0
+}

@@ -1,0 +1,135 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "MAP08",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.9743589743589743,
+  "entity": 1.0,
+  "connection": 1.0,
+  "abstract_states": 761
+ },
+ "findings": [
+  {
+   "id": "MAP08-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.85,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    1166.5711975097656,
+    607.9830474853516,
+    0.0
+   ],
+   "room": "end",
+   "cluster_size": 12,
+   "first_seen_step": 255916,
+   "repro": {
+    "demo": "demos/MAP08-inv-01.lmp",
+    "save": null,
+    "episode": 318,
+    "env_seed": 1,
+    "tic_range": [
+     406,
+     406
+    ],
+    "steps": 101
+   },
+   "evidence": {
+    "episode": 318,
+    "health": 100.0,
+    "ammo": 50.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_corr_end"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in end near (1167, 608)."
+  },
+  {
+   "id": "MAP08-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.69,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    1636.9803771972656,
+    1209.0403900146484,
+    0.0
+   ],
+   "room": "annex",
+   "cluster_size": 70,
+   "first_seen_step": 284540,
+   "repro": {
+    "demo": "demos/MAP08-oob-01.lmp",
+    "save": null,
+    "episode": 87,
+    "env_seed": 1,
+    "tic_range": [
+     1166,
+     1226
+    ],
+    "steps": 306
+   },
+   "evidence": {
+    "episode": 87,
+    "exit_point": [
+     1636.9803771972656,
+     1209.0403900146484
+    ],
+    "depth_beyond_mu": 112.0
+   },
+   "summary": "The player left the level in annex near (1637, 1209) and travelled 112 mu into undefined space."
+  },
+  {
+   "id": "MAP08-inv-02",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.6,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    160.7841339111328,
+    635.3974914550781,
+    48.0
+   ],
+   "room": "upper",
+   "cluster_size": 8,
+   "first_seen_step": 271772,
+   "repro": {
+    "demo": "demos/MAP08-inv-02.lmp",
+    "save": null,
+    "episode": 84,
+    "env_seed": 3,
+    "tic_range": [
+     1122,
+     1122
+    ],
+    "steps": 280
+   },
+   "evidence": {
+    "episode": 84,
+    "health": 200.0,
+    "ammo": 50.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in upper near (161, 635)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP08",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 90,
+ "temperature": 1.0
+}

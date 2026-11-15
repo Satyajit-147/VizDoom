@@ -1,0 +1,98 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000002",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.7580645161290323,
+  "entity": 0.4,
+  "connection": 1.0,
+  "abstract_states": 529
+ },
+ "findings": [
+  {
+   "id": "GEN1000002-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.85,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    1035.7933654785156,
+    232.56277465820312,
+    0.0
+   ],
+   "room": "r20",
+   "cluster_size": 10,
+   "first_seen_step": 633748,
+   "repro": {
+    "demo": "demos/GEN1000002-inv-01.lmp",
+    "save": null,
+    "episode": 248,
+    "env_seed": 0,
+    "tic_range": [
+     374,
+     374
+    ],
+    "steps": 93
+   },
+   "evidence": {
+    "episode": 248,
+    "health": 100.0,
+    "ammo": 50.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_r10_r20"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in r20 near (1036, 233)."
+  },
+  {
+   "id": "GEN1000002-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.53,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    532.23486328125,
+    661.5790405273438,
+    0.0
+   ],
+   "room": "r01",
+   "cluster_size": 2,
+   "first_seen_step": 3304212,
+   "repro": {
+    "demo": "demos/GEN1000002-oob-01.lmp",
+    "save": null,
+    "episode": 286,
+    "env_seed": 2,
+    "tic_range": [
+     10034,
+     10458
+    ],
+    "steps": 2614
+   },
+   "evidence": {
+    "episode": 286,
+    "exit_point": [
+     532.23486328125,
+     661.5790405273438
+    ],
+    "depth_beyond_mu": 112.0
+   },
+   "summary": "The player left the level in r01 near (532, 662) and travelled 112 mu into undefined space."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP03",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 12,
+ "temperature": 1.0
+}

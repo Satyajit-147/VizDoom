@@ -1,0 +1,165 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "MAP02",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.7269372693726938,
+  "entity": 0.75,
+  "connection": 1.0,
+  "abstract_states": 248
+ },
+ "findings": [
+  {
+   "id": "MAP02-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.68,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    1299.4253362153543,
+    596.4722490630745,
+    -95.46138293570561
+   ],
+   "room": "pit",
+   "cluster_size": 7,
+   "first_seen_step": 688228,
+   "repro": {
+    "demo": "demos/MAP02-soft-01.lmp",
+    "save": null,
+    "episode": 61,
+    "env_seed": 1,
+    "tic_range": [
+     626,
+     10514
+    ],
+    "steps": 2628
+   },
+   "evidence": {
+    "episode": 61,
+    "sector": 4,
+    "rooms": [
+     "pit"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in pit: every way out was tried and failed."
+  },
+  {
+   "id": "MAP02-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1273.9261016845703,
+    461.5531311035156,
+    0.0
+   ],
+   "room": "pit",
+   "cluster_size": 24,
+   "first_seen_step": 131992,
+   "repro": {
+    "demo": "demos/MAP02-stuck-01.lmp",
+    "save": null,
+    "episode": 319,
+    "env_seed": 0,
+    "tic_range": [
+     546,
+     546
+    ],
+    "steps": 136
+   },
+   "evidence": {
+    "episode": 319,
+    "sector": 4,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "pit"
+    ]
+   },
+   "summary": "The player fell into a pit in pit near (1274, 462): its floor is 96 mu below every way out and nothing lifts them back."
+  },
+  {
+   "id": "MAP02-stuck-02",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.52,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    727.9796142578125,
+    -12.669204711914062,
+    0.0
+   ],
+   "room": "alcove",
+   "cluster_size": 9,
+   "first_seen_step": 1006116,
+   "repro": {
+    "demo": "demos/MAP02-stuck-02.lmp",
+    "save": null,
+    "episode": 128,
+    "env_seed": 2,
+    "tic_range": [
+     130,
+     130
+    ],
+    "steps": 32
+   },
+   "evidence": {
+    "episode": 128,
+    "sector": 2,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "alcove"
+    ]
+   },
+   "summary": "The player fell into a pit in alcove near (728, -13): its floor is 64 mu below every way out and nothing lifts them back."
+  },
+  {
+   "id": "MAP02-stuck-03",
+   "oracle": "stuck",
+   "kind": "wedge",
+   "severity": 0.42,
+   "confidence_raw": 0.4686,
+   "confidence_calibrated": 0.4686,
+   "position": [
+    727.9772033691406,
+    -174.64706420898438,
+    -64.0
+   ],
+   "room": "alcove",
+   "cluster_size": 4,
+   "first_seen_step": 1006600,
+   "repro": {
+    "demo": "demos/MAP02-stuck-03.lmp",
+    "save": null,
+    "episode": 93,
+    "env_seed": 0,
+    "tic_range": [
+     1298,
+     1462
+    ],
+    "steps": 365
+   },
+   "evidence": {
+    "episode": 93,
+    "duration_tics": 164
+   },
+   "summary": "The player got wedged in alcove near (728, -175) and could not move in 3+ directions."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP02",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 44,
+ "temperature": 1.0
+}

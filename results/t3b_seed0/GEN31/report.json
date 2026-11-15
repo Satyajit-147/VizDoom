@@ -1,0 +1,60 @@
+{
+ "run_id": "t3b_seed0",
+ "map": "GEN31",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9325.3,
+ "coverage": {
+  "cell": 0.9442724458204335,
+  "entity": 0.6666666666666666,
+  "connection": 1.0,
+  "abstract_states": 305
+ },
+ "findings": [
+  {
+   "id": "GEN31-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.38,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    271.99896240234375,
+    820.9102325439453,
+    0.0
+   ],
+   "room": "r01",
+   "cluster_size": 2,
+   "first_seen_step": 363748,
+   "repro": {
+    "demo": "demos/GEN31-stuck-01.lmp",
+    "save": null,
+    "episode": 66,
+    "env_seed": 0,
+    "tic_range": [
+     1254,
+     1254
+    ],
+    "steps": 313
+   },
+   "evidence": {
+    "episode": 66,
+    "sector": 0,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r01"
+    ]
+   },
+   "summary": "The player fell into a pit in r01 near (272, 821): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP32",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 2,
+ "temperature": 1.0
+}

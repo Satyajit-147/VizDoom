@@ -1,0 +1,146 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "GEN1000007",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.6528301886792452,
+  "entity": 0.6,
+  "connection": 0.75,
+  "abstract_states": 318
+ },
+ "findings": [
+  {
+   "id": "GEN1000007-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.76,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    434.40618896484375,
+    -16.904006958007812,
+    33.0
+   ],
+   "room": "r10",
+   "cluster_size": 3,
+   "first_seen_step": 518704,
+   "repro": {
+    "demo": "demos/GEN1000007-oob-01.lmp",
+    "save": null,
+    "episode": 45,
+    "env_seed": 1,
+    "tic_range": [
+     5982,
+     6030
+    ],
+    "steps": 1507
+   },
+   "evidence": {
+    "episode": 45,
+    "exit_point": [
+     434.40618896484375,
+     -16.904006958007812
+    ],
+    "depth_beyond_mu": 50.8
+   },
+   "summary": "The player left the level in r10 near (434, -17) and travelled 51 mu into undefined space."
+  },
+  {
+   "id": "GEN1000007-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.69,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    517.6902923583984,
+    388.0037536621094,
+    0.0
+   ],
+   "room": "r11",
+   "cluster_size": 2,
+   "first_seen_step": 1837400,
+   "repro": {
+    "demo": "demos/GEN1000007-inv-01.lmp",
+    "save": null,
+    "episode": 173,
+    "env_seed": 0,
+    "tic_range": [
+     10218,
+     10218
+    ],
+    "steps": 2554
+   },
+   "evidence": {
+    "episode": 173,
+    "health": 200.0,
+    "ammo": 0.0,
+    "keys": [
+     "key_red"
+    ],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in r11 near (518, 388)."
+  },
+  {
+   "id": "GEN1000007-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.5,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    309.24365234375,
+    207.98617553710938,
+    0.0
+   ],
+   "room": "r00",
+   "cluster_size": 8,
+   "first_seen_step": 521312,
+   "repro": {
+    "demo": "demos/GEN1000007-stuck-01.lmp",
+    "save": null,
+    "episode": 331,
+    "env_seed": 0,
+    "tic_range": [
+     5558,
+     5558
+    ],
+    "steps": 1389
+   },
+   "evidence": {
+    "episode": 331,
+    "sector": 0,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r00"
+    ]
+   },
+   "summary": "The player fell into a pit in r00 near (309, 208): its floor is 96 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r03",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r13",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP08",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 13,
+ "temperature": 1.0
+}

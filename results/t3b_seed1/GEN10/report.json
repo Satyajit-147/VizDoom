@@ -1,0 +1,58 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "GEN10",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.23119777158774374,
+  "entity": 0.42857142857142855,
+  "connection": 0.125,
+  "abstract_states": 87
+ },
+ "findings": [],
+ "coverage_gaps": [
+  {
+   "room": "r00",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r01",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r02",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r12",
+   "cells_unvisited": 30,
+   "portals_attempted": 2
+  },
+  {
+   "room": "r20",
+   "cells_unvisited": 36,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r32",
+   "cells_unvisited": 35,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP11",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 0,
+ "temperature": 1.0
+}

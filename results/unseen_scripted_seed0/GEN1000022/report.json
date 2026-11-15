@@ -1,0 +1,75 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000022",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.4033333333333333,
+  "entity": 0.625,
+  "connection": 0.4,
+  "abstract_states": 214
+ },
+ "findings": [
+  {
+   "id": "GEN1000022-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.7,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    1494.393687204949,
+    1241.696371403845,
+    -63.347417840375584
+   ],
+   "room": "r32",
+   "cluster_size": 8,
+   "first_seen_step": 521968,
+   "repro": {
+    "demo": "demos/GEN1000022-soft-01.lmp",
+    "save": null,
+    "episode": 47,
+    "env_seed": 1,
+    "tic_range": [
+     294,
+     10514
+    ],
+    "steps": 2628
+   },
+   "evidence": {
+    "episode": 47,
+    "sector": 5,
+    "rooms": [
+     "r32"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in r32: every way out was tried and failed."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r01",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r11",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 56,
+   "portals_attempted": 1
+  }
+ ],
+ "map_lump": "MAP23",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 8,
+ "temperature": 1.0
+}

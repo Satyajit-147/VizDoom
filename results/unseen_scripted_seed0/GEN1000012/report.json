@@ -1,0 +1,96 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000012",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.8847583643122676,
+  "entity": 0.6666666666666666,
+  "connection": 0.875,
+  "abstract_states": 418
+ },
+ "findings": [
+  {
+   "id": "GEN1000012-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.93,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    656.0,
+    752.0,
+    0.0
+   ],
+   "room": "r12",
+   "cluster_size": 9,
+   "first_seen_step": 24032,
+   "repro": {
+    "demo": "demos/GEN1000012-soft-01.lmp",
+    "save": null,
+    "episode": 172,
+    "env_seed": 0,
+    "tic_range": [
+     790,
+     858
+    ],
+    "steps": 214
+   },
+   "evidence": {
+    "episode": 172,
+    "hops": 4,
+    "sectors": [
+     1,
+     6
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r12 near (656, 752)."
+  },
+  {
+   "id": "GEN1000012-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.36,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    374.2192687988281,
+    829.1659545898438,
+    0.0
+   ],
+   "room": "r02",
+   "cluster_size": 1,
+   "first_seen_step": 3668056,
+   "repro": {
+    "demo": "demos/GEN1000012-stuck-01.lmp",
+    "save": null,
+    "episode": 325,
+    "env_seed": 0,
+    "tic_range": [
+     8758,
+     8758
+    ],
+    "steps": 2189
+   },
+   "evidence": {
+    "episode": 325,
+    "sector": 0,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r02"
+    ]
+   },
+   "summary": "The player fell into a pit in r02 near (374, 829): its floor is 96 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP13",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 10,
+ "temperature": 1.0
+}

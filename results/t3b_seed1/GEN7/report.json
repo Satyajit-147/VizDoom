@@ -1,0 +1,107 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "GEN7",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.5223097112860893,
+  "entity": 0.4,
+  "connection": 0.75,
+  "abstract_states": 294
+ },
+ "findings": [
+  {
+   "id": "GEN7-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.56,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    1594.911110803919,
+    1487.6847211597035,
+    -63.61165048543689
+   ],
+   "room": "r33",
+   "cluster_size": 1,
+   "first_seen_step": 1089152,
+   "repro": {
+    "demo": "demos/GEN7-soft-01.lmp",
+    "save": null,
+    "episode": 197,
+    "env_seed": 1000,
+    "tic_range": [
+     9178,
+     15764
+    ],
+    "steps": 3941
+   },
+   "evidence": {
+    "episode": 197,
+    "sector": 8,
+    "rooms": [
+     "r33"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in r33: every way out was tried and failed."
+  },
+  {
+   "id": "GEN7-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.38,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    759.2164611816406,
+    820.8435668945312,
+    0.0
+   ],
+   "room": "r11",
+   "cluster_size": 2,
+   "first_seen_step": 377066,
+   "repro": {
+    "demo": "demos/GEN7-stuck-01.lmp",
+    "save": null,
+    "episode": 71,
+    "env_seed": 1000,
+    "tic_range": [
+     718,
+     718
+    ],
+    "steps": 179
+   },
+   "evidence": {
+    "episode": 71,
+    "sector": 2,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r11"
+    ]
+   },
+   "summary": "The player fell into a pit in r11 near (759, 821): its floor is 96 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r02",
+   "cells_unvisited": 64,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r03",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP08",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 3,
+ "temperature": 1.0
+}

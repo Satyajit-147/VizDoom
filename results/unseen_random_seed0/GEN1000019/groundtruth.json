@@ -1,0 +1,1610 @@
+{
+ "schema_version": 1,
+ "map": "MAP20",
+ "name": "GEN1000019",
+ "slot": 20,
+ "variant": "buggy",
+ "cell_size": 64,
+ "spawn": {
+  "room": "r01",
+  "pos": [
+   160,
+   608
+  ]
+ },
+ "rooms": [
+  {
+   "id": "r00",
+   "rect": [
+    0,
+    0,
+    320,
+    384
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 0
+  },
+  {
+   "id": "r01",
+   "rect": [
+    0,
+    384,
+    320,
+    832
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 1
+  },
+  {
+   "id": "r02",
+   "rect": [
+    0,
+    832,
+    320,
+    1344
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 2
+  },
+  {
+   "id": "r03",
+   "rect": [
+    0,
+    1344,
+    320,
+    1856
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 3
+  },
+  {
+   "id": "r10",
+   "rect": [
+    320,
+    0,
+    640,
+    384
+   ],
+   "floor": 0,
+   "ceiling": 160,
+   "sector": 4
+  },
+  {
+   "id": "r11",
+   "rect": [
+    320,
+    384,
+    640,
+    832
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 5
+  },
+  {
+   "id": "r12",
+   "rect": [
+    320,
+    832,
+    640,
+    1344
+   ],
+   "floor": 0,
+   "ceiling": 160,
+   "sector": 6
+  },
+  {
+   "id": "r13",
+   "rect": [
+    320,
+    1344,
+    640,
+    1856
+   ],
+   "floor": 0,
+   "ceiling": 160,
+   "sector": 7
+  },
+  {
+   "id": "r23",
+   "rect": [
+    640,
+    1344,
+    960,
+    1856
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 8
+  }
+ ],
+ "walkable": {
+  "origin": [
+   0,
+   0
+  ],
+  "cell_size": 64,
+  "width": 15,
+  "height": 29,
+  "rows": [
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111100000",
+   "111111111111111",
+   "111111111111111",
+   "111111111111111",
+   "111111111111111",
+   "111111111111111",
+   "111111111111111",
+   "111111111111111",
+   "111111111111111"
+  ]
+ },
+ "walls": [
+  [
+   0,
+   0,
+   0,
+   376
+  ],
+  [
+   0,
+   392,
+   0,
+   824
+  ],
+  [
+   0,
+   840,
+   0,
+   1336
+  ],
+  [
+   0,
+   1352,
+   0,
+   1856
+  ],
+  [
+   112,
+   376,
+   112,
+   392
+  ],
+  [
+   112,
+   824,
+   112,
+   840
+  ],
+  [
+   112,
+   1336,
+   112,
+   1352
+  ],
+  [
+   208,
+   392,
+   208,
+   376
+  ],
+  [
+   208,
+   840,
+   208,
+   824
+  ],
+  [
+   208,
+   1352,
+   208,
+   1336
+  ],
+  [
+   312,
+   128,
+   312,
+   0
+  ],
+  [
+   312,
+   376,
+   312,
+   256
+  ],
+  [
+   312,
+   560,
+   312,
+   392
+  ],
+  [
+   312,
+   824,
+   312,
+   656
+  ],
+  [
+   312,
+   1040,
+   312,
+   840
+  ],
+  [
+   312,
+   1336,
+   312,
+   1136
+  ],
+  [
+   312,
+   1552,
+   312,
+   1352
+  ],
+  [
+   312,
+   1856,
+   312,
+   1648
+  ],
+  [
+   328,
+   0,
+   328,
+   128
+  ],
+  [
+   328,
+   256,
+   328,
+   376
+  ],
+  [
+   328,
+   392,
+   328,
+   560
+  ],
+  [
+   328,
+   656,
+   328,
+   824
+  ],
+  [
+   328,
+   840,
+   328,
+   1040
+  ],
+  [
+   328,
+   1136,
+   328,
+   1336
+  ],
+  [
+   328,
+   1352,
+   328,
+   1552
+  ],
+  [
+   328,
+   1648,
+   328,
+   1856
+  ],
+  [
+   632,
+   1536,
+   632,
+   1352
+  ],
+  [
+   632,
+   1856,
+   632,
+   1664
+  ],
+  [
+   640,
+   376,
+   640,
+   0
+  ],
+  [
+   640,
+   576,
+   640,
+   392
+  ],
+  [
+   640,
+   640,
+   640,
+   576
+  ],
+  [
+   640,
+   824,
+   640,
+   640
+  ],
+  [
+   640,
+   1336,
+   640,
+   840
+  ],
+  [
+   648,
+   1344,
+   648,
+   1536
+  ],
+  [
+   648,
+   1664,
+   648,
+   1856
+  ],
+  [
+   960,
+   1856,
+   960,
+   1344
+  ],
+  [
+   312,
+   0,
+   0,
+   0
+  ],
+  [
+   640,
+   0,
+   328,
+   0
+  ],
+  [
+   328,
+   128,
+   312,
+   128
+  ],
+  [
+   312,
+   256,
+   328,
+   256
+  ],
+  [
+   0,
+   376,
+   112,
+   376
+  ],
+  [
+   208,
+   376,
+   312,
+   376
+  ],
+  [
+   328,
+   376,
+   640,
+   376
+  ],
+  [
+   112,
+   392,
+   0,
+   392
+  ],
+  [
+   312,
+   392,
+   208,
+   392
+  ],
+  [
+   640,
+   392,
+   328,
+   392
+  ],
+  [
+   328,
+   560,
+   312,
+   560
+  ],
+  [
+   312,
+   656,
+   328,
+   656
+  ],
+  [
+   0,
+   824,
+   112,
+   824
+  ],
+  [
+   208,
+   824,
+   312,
+   824
+  ],
+  [
+   328,
+   824,
+   640,
+   824
+  ],
+  [
+   112,
+   840,
+   0,
+   840
+  ],
+  [
+   312,
+   840,
+   208,
+   840
+  ],
+  [
+   640,
+   840,
+   328,
+   840
+  ],
+  [
+   328,
+   1040,
+   312,
+   1040
+  ],
+  [
+   312,
+   1136,
+   328,
+   1136
+  ],
+  [
+   0,
+   1336,
+   112,
+   1336
+  ],
+  [
+   208,
+   1336,
+   312,
+   1336
+  ],
+  [
+   328,
+   1336,
+   640,
+   1336
+  ],
+  [
+   768,
+   1344,
+   648,
+   1344
+  ],
+  [
+   832,
+   1344,
+   768,
+   1344
+  ],
+  [
+   960,
+   1344,
+   832,
+   1344
+  ],
+  [
+   112,
+   1352,
+   0,
+   1352
+  ],
+  [
+   312,
+   1352,
+   208,
+   1352
+  ],
+  [
+   632,
+   1352,
+   328,
+   1352
+  ],
+  [
+   648,
+   1536,
+   632,
+   1536
+  ],
+  [
+   328,
+   1552,
+   312,
+   1552
+  ],
+  [
+   312,
+   1648,
+   328,
+   1648
+  ],
+  [
+   632,
+   1664,
+   648,
+   1664
+  ],
+  [
+   0,
+   1856,
+   312,
+   1856
+  ],
+  [
+   328,
+   1856,
+   632,
+   1856
+  ],
+  [
+   648,
+   1856,
+   960,
+   1856
+  ]
+ ],
+ "sectors": [
+  {
+   "index": 0,
+   "key": "r00",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "r00"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    4,
+    11
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 1,
+   "key": "r01",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "r01"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    9,
+    10,
+    11
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 2,
+   "key": "r02",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "r02"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    10,
+    12,
+    13
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 3,
+   "key": "r03",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "r03"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    13,
+    14
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 4,
+   "key": "r10",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 160,
+   "rooms": [
+    "r10"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    0
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 5,
+   "key": "r11",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "r11"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    9
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 6,
+   "key": "r12",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 160,
+   "rooms": [
+    "r12"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    12
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 7,
+   "key": "r13",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 160,
+   "rooms": [
+    "r13"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    8,
+    14
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 8,
+   "key": "r23",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "r23"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    7
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 9,
+   "key": "door:p_r01_r11",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_r01_r11",
+   "tag": 0,
+   "neighbours": [
+    1,
+    5
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 10,
+   "key": "door:p_r01_r02",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_r01_r02",
+   "tag": 0,
+   "neighbours": [
+    1,
+    2
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 11,
+   "key": "door:p_r01_r00",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_r01_r00",
+   "tag": 0,
+   "neighbours": [
+    0,
+    1
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 12,
+   "key": "door:p_r02_r12",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_r02_r12",
+   "tag": 100,
+   "neighbours": [
+    2,
+    6
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 13,
+   "key": "door:p_r02_r03",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_r02_r03",
+   "tag": 0,
+   "neighbours": [
+    2,
+    3
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 14,
+   "key": "door:p_r03_r13",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_r03_r13",
+   "tag": 0,
+   "neighbours": [
+    3,
+    7
+   ],
+   "lift_trigger": false
+  }
+ ],
+ "sector_grid": {
+  "xs": [
+   0,
+   112,
+   208,
+   312,
+   320,
+   328,
+   632,
+   640,
+   648,
+   768,
+   832,
+   960
+  ],
+  "ys": [
+   0,
+   128,
+   256,
+   376,
+   384,
+   392,
+   560,
+   576,
+   640,
+   656,
+   824,
+   832,
+   840,
+   1040,
+   1136,
+   1336,
+   1344,
+   1352,
+   1536,
+   1552,
+   1648,
+   1664,
+   1856
+  ],
+  "owner": [
+   [
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    2,
+    2,
+    2,
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   [
+    0,
+    0,
+    0,
+    11,
+    11,
+    1,
+    1,
+    1,
+    1,
+    1,
+    10,
+    10,
+    2,
+    2,
+    2,
+    13,
+    13,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   [
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    2,
+    2,
+    2,
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   [
+    -1,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    9,
+    9,
+    9,
+    -1,
+    -1,
+    -1,
+    -1,
+    12,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    14,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    9,
+    9,
+    9,
+    -1,
+    -1,
+    -1,
+    -1,
+    12,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    14,
+    -1,
+    -1
+   ],
+   [
+    4,
+    4,
+    4,
+    -1,
+    -1,
+    5,
+    5,
+    5,
+    5,
+    5,
+    -1,
+    -1,
+    6,
+    6,
+    6,
+    -1,
+    -1,
+    7,
+    7,
+    7,
+    7,
+    7
+   ],
+   [
+    4,
+    4,
+    4,
+    -1,
+    -1,
+    5,
+    5,
+    5,
+    5,
+    5,
+    -1,
+    -1,
+    6,
+    6,
+    6,
+    -1,
+    -1,
+    -1,
+    7,
+    7,
+    7,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    7,
+    7,
+    7,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  ]
+ },
+ "portals": [
+  {
+   "id": "p_r01_r11",
+   "a": "r01",
+   "b": "r11",
+   "kind": "door",
+   "requires": null,
+   "switch": null,
+   "area": [
+    312,
+    560,
+    328,
+    656
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r01_r02",
+   "a": "r01",
+   "b": "r02",
+   "kind": "door",
+   "requires": null,
+   "switch": null,
+   "area": [
+    112,
+    824,
+    208,
+    840
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r01_r00",
+   "a": "r01",
+   "b": "r00",
+   "kind": "locked_door",
+   "requires": "key_red",
+   "switch": null,
+   "area": [
+    112,
+    376,
+    208,
+    392
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r00_r10",
+   "a": "r00",
+   "b": "r10",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    312,
+    128,
+    328,
+    256
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r02_r12",
+   "a": "r02",
+   "b": "r12",
+   "kind": "door",
+   "requires": null,
+   "switch": "sw_p_r02_r12",
+   "area": [
+    312,
+    1040,
+    328,
+    1136
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r02_r03",
+   "a": "r02",
+   "b": "r03",
+   "kind": "door",
+   "requires": null,
+   "switch": null,
+   "area": [
+    112,
+    1336,
+    208,
+    1352
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r03_r13",
+   "a": "r03",
+   "b": "r13",
+   "kind": "locked_door",
+   "requires": "key_blue",
+   "switch": null,
+   "area": [
+    312,
+    1552,
+    328,
+    1648
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_r13_r23",
+   "a": "r13",
+   "b": "r23",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    632,
+    1536,
+    648,
+    1664
+   ],
+   "dest": null
+  }
+ ],
+ "switch_lines": {
+  "exitsw": [
+   768,
+   1344,
+   832,
+   1344
+  ],
+  "sw_p_r02_r12": [
+   640,
+   576,
+   640,
+   640
+  ]
+ },
+ "portal_graph": [
+  {
+   "from": "r01",
+   "to": "r11",
+   "via": "p_r01_r11",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r11",
+   "to": "r01",
+   "via": "p_r01_r11",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r01",
+   "to": "r02",
+   "via": "p_r01_r02",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r02",
+   "to": "r01",
+   "via": "p_r01_r02",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r01",
+   "to": "r00",
+   "via": "p_r01_r00",
+   "key": "key_red",
+   "switch": null
+  },
+  {
+   "from": "r00",
+   "to": "r01",
+   "via": "p_r01_r00",
+   "key": "key_red",
+   "switch": null
+  },
+  {
+   "from": "r00",
+   "to": "r10",
+   "via": "p_r00_r10",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r10",
+   "to": "r00",
+   "via": "p_r00_r10",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r02",
+   "to": "r12",
+   "via": "p_r02_r12",
+   "key": null,
+   "switch": "sw_p_r02_r12"
+  },
+  {
+   "from": "r12",
+   "to": "r02",
+   "via": "p_r02_r12",
+   "key": null,
+   "switch": "sw_p_r02_r12"
+  },
+  {
+   "from": "r02",
+   "to": "r03",
+   "via": "p_r02_r03",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r03",
+   "to": "r02",
+   "via": "p_r02_r03",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r03",
+   "to": "r13",
+   "via": "p_r03_r13",
+   "key": "key_blue",
+   "switch": null
+  },
+  {
+   "from": "r13",
+   "to": "r03",
+   "via": "p_r03_r13",
+   "key": "key_blue",
+   "switch": null
+  },
+  {
+   "from": "r13",
+   "to": "r23",
+   "via": "p_r13_r23",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "r23",
+   "to": "r13",
+   "via": "p_r13_r23",
+   "key": null,
+   "switch": null
+  }
+ ],
+ "things": [
+  {
+   "id": "spawn",
+   "type": "player_start",
+   "room": "r01",
+   "pos": [
+    160,
+    608
+   ],
+   "interactive": false
+  },
+  {
+   "id": "exitsw",
+   "type": "exit_switch",
+   "room": "r23",
+   "pos": [
+    800,
+    1384
+   ],
+   "interactive": true
+  },
+  {
+   "id": "key_p_r01_r00",
+   "type": "key_red",
+   "room": "r11",
+   "pos": [
+    461,
+    652
+   ],
+   "interactive": true
+  },
+  {
+   "id": "sw_p_r02_r12",
+   "type": "switch",
+   "room": "r11",
+   "pos": [
+    600,
+    608
+   ],
+   "interactive": true
+  },
+  {
+   "id": "key_p_r03_r13",
+   "type": "key_blue",
+   "room": "r11",
+   "pos": [
+    496,
+    561
+   ],
+   "interactive": true
+  },
+  {
+   "id": "health0",
+   "type": "health",
+   "room": "r00",
+   "pos": [
+    213,
+    268
+   ],
+   "interactive": true
+  },
+  {
+   "id": "health1",
+   "type": "health",
+   "room": "r00",
+   "pos": [
+    218,
+    185
+   ],
+   "interactive": true
+  },
+  {
+   "id": "armour0",
+   "type": "armour",
+   "room": "r01",
+   "pos": [
+    185,
+    731
+   ],
+   "interactive": true
+  },
+  {
+   "id": "armour1",
+   "type": "armour",
+   "room": "r02",
+   "pos": [
+    180,
+    931
+   ],
+   "interactive": true
+  },
+  {
+   "id": "ammo0",
+   "type": "ammo",
+   "room": "r00",
+   "pos": [
+    114,
+    183
+   ],
+   "interactive": true
+  },
+  {
+   "id": "ammo1",
+   "type": "ammo",
+   "room": "r13",
+   "pos": [
+    458,
+    1702
+   ],
+   "interactive": true
+  },
+  {
+   "id": "ammo2",
+   "type": "ammo",
+   "room": "r12",
+   "pos": [
+    487,
+    1140
+   ],
+   "interactive": true
+  }
+ ],
+ "monster_count": 0,
+ "goal": {
+  "kind": "reach_exit",
+  "target": "exitsw",
+  "requires": [
+   "key_blue"
+  ],
+  "time_limit_tics": 15750,
+  "room": "r23"
+ },
+ "defects": [
+  {
+   "id": "d0_wrong_tag",
+   "kind": "wrong_tag",
+   "target": "sw_p_r02_r12",
+   "expected_oracle": "unreachable",
+   "severity": "high",
+   "params": {},
+   "notes": "",
+   "position": [
+    320,
+    1088.0,
+    0.0
+   ],
+   "region": [
+    [
+     320,
+     832,
+     640,
+     1344
+    ]
+   ],
+   "affected_rooms": [
+    "r12"
+   ],
+   "change": "switch sw_p_r02_r12 targets tag 101 instead of door p_r02_r12 (tag 100)"
+  },
+  {
+   "id": "d1_missing_blocking",
+   "kind": "missing_blocking",
+   "target": "r03",
+   "expected_oracle": "out_of_bounds",
+   "severity": "high",
+   "params": {
+    "wall": "north",
+    "segment": [
+     96,
+     224
+    ]
+   },
+   "notes": "",
+   "position": [
+    160.0,
+    1856.0,
+    0.0
+   ],
+   "region": [
+    [
+     96,
+     1856,
+     224,
+     1984
+    ]
+   ],
+   "affected_rooms": [
+    "r03"
+   ],
+   "change": "north wall of r03 [96,224] is passable; 128 mu pocket behind it"
+  },
+  {
+   "id": "d2_bad_pickup",
+   "kind": "bad_pickup",
+   "target": "health1",
+   "expected_oracle": "invariant",
+   "severity": "low",
+   "params": {},
+   "notes": "",
+   "position": [
+    218.0,
+    185.0,
+    0.0
+   ],
+   "region": [],
+   "affected_rooms": [
+    "r00"
+   ],
+   "change": "health1 is a Soulsphere (+100 health, cap 200)"
+  }
+ ]
+}

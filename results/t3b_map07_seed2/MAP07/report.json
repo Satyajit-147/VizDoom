@@ -1,0 +1,107 @@
+{
+ "run_id": "t3b_map07_seed2",
+ "map": "MAP07",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "e64595940686746df50797df0b5266e8f366eb8077ccc9dc27040a329a22f681"
+ },
+ "git_sha": "unknown",
+ "env_steps": 600064,
+ "wall_clock_s": 2922.3,
+ "coverage": {
+  "cell": 0.7925170068027211,
+  "entity": 0.5714285714285714,
+  "connection": 0.8181818181818182,
+  "abstract_states": 1013
+ },
+ "findings": [
+  {
+   "id": "MAP07-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.8,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    672.4238128662109,
+    1375.648208618164,
+    36.0
+   ],
+   "room": "r21",
+   "cluster_size": 5,
+   "first_seen_step": 303354,
+   "repro": {
+    "demo": "demos/MAP07-oob-01.lmp",
+    "save": null,
+    "episode": 53,
+    "env_seed": 2000,
+    "tic_range": [
+     5722,
+     5754
+    ],
+    "steps": 1438
+   },
+   "evidence": {
+    "episode": 53,
+    "exit_point": [
+     672.4238128662109,
+     1375.648208618164
+    ],
+    "depth_beyond_mu": 71.4
+   },
+   "summary": "The player left the level in r21 near (672, 1376) and travelled 71 mu into undefined space."
+  },
+  {
+   "id": "MAP07-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1415.2370300292969,
+    1143.526351928711,
+    -64.0
+   ],
+   "room": "r23",
+   "cluster_size": 11,
+   "first_seen_step": 209684,
+   "repro": {
+    "demo": "demos/MAP07-stuck-01.lmp",
+    "save": null,
+    "episode": 53,
+    "env_seed": 2000,
+    "tic_range": [
+     6910,
+     6910
+    ],
+    "steps": 1727
+   },
+   "evidence": {
+    "episode": 53,
+    "sector": 11,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r23"
+    ]
+   },
+   "summary": "The player fell into a pit in r23 near (1415, 1144): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r12",
+   "cells_unvisited": 49,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r13",
+   "cells_unvisited": 49,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP07",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 16,
+ "temperature": 1.0
+}

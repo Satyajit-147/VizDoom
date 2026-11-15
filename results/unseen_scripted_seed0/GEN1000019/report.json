@@ -1,0 +1,115 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000019",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.6303030303030303,
+  "entity": 0.5454545454545454,
+  "connection": 0.625,
+  "abstract_states": 636
+ },
+ "findings": [
+  {
+   "id": "GEN1000019-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.9,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    168.0429229736328,
+    1889.3503875732422,
+    0.0
+   ],
+   "room": "r03",
+   "cluster_size": 369,
+   "first_seen_step": 752868,
+   "repro": {
+    "demo": "demos/GEN1000019-oob-01.lmp",
+    "save": null,
+    "episode": 62,
+    "env_seed": 2,
+    "tic_range": [
+     1086,
+     1154
+    ],
+    "steps": 288
+   },
+   "evidence": {
+    "episode": 62,
+    "exit_point": [
+     168.0429229736328,
+     1889.3503875732422
+    ],
+    "depth_beyond_mu": 111.9
+   },
+   "summary": "The player left the level in r03 near (168, 1889) and travelled 112 mu into undefined space."
+  },
+  {
+   "id": "GEN1000019-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.5,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    253.531982421875,
+    155.766845703125,
+    0.0
+   ],
+   "room": "r00",
+   "cluster_size": 3,
+   "first_seen_step": 1879536,
+   "repro": {
+    "demo": "demos/GEN1000019-inv-01.lmp",
+    "save": null,
+    "episode": 169,
+    "env_seed": 0,
+    "tic_range": [
+     13174,
+     13174
+    ],
+    "steps": 3293
+   },
+   "evidence": {
+    "episode": 169,
+    "health": 200.0,
+    "ammo": 51.0,
+    "keys": [
+     "key_blue",
+     "key_red"
+    ],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in r00 near (254, 156)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r12",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r13",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r23",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP20",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 372,
+ "temperature": 1.0
+}

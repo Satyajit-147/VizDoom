@@ -1,0 +1,126 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "GEN59",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.20118343195266272,
+  "entity": 0.42857142857142855,
+  "connection": 0.2,
+  "abstract_states": 122
+ },
+ "findings": [
+  {
+   "id": "GEN59-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.58,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    1528.6088873757683,
+    1397.825873828174,
+    -63.42937625754527
+   ],
+   "room": "r33",
+   "cluster_size": 2,
+   "first_seen_step": 1741296,
+   "repro": {
+    "demo": "demos/GEN59-soft-01.lmp",
+    "save": null,
+    "episode": 301,
+    "env_seed": 1001,
+    "tic_range": [
+     5830,
+     15764
+    ],
+    "steps": 3941
+   },
+   "evidence": {
+    "episode": 301,
+    "sector": 8,
+    "rooms": [
+     "r33"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in r33: every way out was tried and failed."
+  },
+  {
+   "id": "GEN59-soft-02",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.56,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    1465.2296908534142,
+    1575.182779763571,
+    -54.321801208127404
+   ],
+   "room": "r33",
+   "cluster_size": 1,
+   "first_seen_step": 555442,
+   "repro": {
+    "demo": "demos/GEN59-soft-02.lmp",
+    "save": null,
+    "episode": 101,
+    "env_seed": 1000,
+    "tic_range": [
+     1202,
+     15764
+    ],
+    "steps": 3941
+   },
+   "evidence": {
+    "episode": 101,
+    "sector": 8,
+    "rooms": [
+     "r33"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in r33: every way out was tried and failed."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r01",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r10",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r11",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r12",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r31",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP28",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 3,
+ "temperature": 1.0
+}

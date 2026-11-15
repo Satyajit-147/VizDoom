@@ -1,0 +1,95 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "MAP06",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.8831168831168831,
+  "entity": 0.6666666666666666,
+  "connection": 1.0,
+  "abstract_states": 300
+ },
+ "findings": [
+  {
+   "id": "MAP06-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.77,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1120.0,
+    256.0,
+    26.0
+   ],
+   "room": "tele_a",
+   "cluster_size": 1,
+   "first_seen_step": 941878,
+   "repro": {
+    "demo": "demos/MAP06-soft-01.lmp",
+    "save": null,
+    "episode": 173,
+    "env_seed": 1001,
+    "tic_range": [
+     1002,
+     1098
+    ],
+    "steps": 274
+   },
+   "evidence": {
+    "episode": 173,
+    "hops": 4,
+    "sectors": [
+     3,
+     4
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in tele_a near (1120, 256)."
+  },
+  {
+   "id": "MAP06-soft-02",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.74,
+   "confidence_raw": 0.95,
+   "confidence_calibrated": 0.95,
+   "position": [
+    321.435989196954,
+    708.6973225600269,
+    -61.57420421661844
+   ],
+   "room": "pit",
+   "cluster_size": 18,
+   "first_seen_step": 652578,
+   "repro": {
+    "demo": "demos/MAP06-soft-02.lmp",
+    "save": null,
+    "episode": 197,
+    "env_seed": 1001,
+    "tic_range": [
+     842,
+     10514
+    ],
+    "steps": 2628
+   },
+   "evidence": {
+    "episode": 197,
+    "sector": 1,
+    "rooms": [
+     "pit"
+    ],
+    "episodes_confined_here": 2
+   },
+   "summary": "The player ended episodes stranded in pit: every way out was tried and failed."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP06",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 19,
+ "temperature": 1.0
+}

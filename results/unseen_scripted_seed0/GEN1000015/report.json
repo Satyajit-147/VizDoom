@@ -1,0 +1,107 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000015",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.5772946859903382,
+  "entity": 0.2857142857142857,
+  "connection": 0.7777777777777778,
+  "abstract_states": 401
+ },
+ "findings": [
+  {
+   "id": "GEN1000015-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.77,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    400.0,
+    1008.0,
+    0.0
+   ],
+   "room": "r02",
+   "cluster_size": 1,
+   "first_seen_step": 2025216,
+   "repro": {
+    "demo": "demos/GEN1000015-soft-01.lmp",
+    "save": null,
+    "episode": 176,
+    "env_seed": 1,
+    "tic_range": [
+     9758,
+     9830
+    ],
+    "steps": 2457
+   },
+   "evidence": {
+    "episode": 176,
+    "hops": 4,
+    "sectors": [
+     2,
+     3
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r02 near (400, 1008)."
+  },
+  {
+   "id": "GEN1000015-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.36,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    285.72300720214844,
+    373.4421844482422,
+    0.0
+   ],
+   "room": "r00",
+   "cluster_size": 1,
+   "first_seen_step": 3599528,
+   "repro": {
+    "demo": "demos/GEN1000015-stuck-01.lmp",
+    "save": null,
+    "episode": 315,
+    "env_seed": 3,
+    "tic_range": [
+     3514,
+     3514
+    ],
+    "steps": 878
+   },
+   "evidence": {
+    "episode": 315,
+    "sector": 0,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r00"
+    ]
+   },
+   "summary": "The player fell into a pit in r00 near (286, 373): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r12",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 64,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP16",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 2,
+ "temperature": 1.0
+}

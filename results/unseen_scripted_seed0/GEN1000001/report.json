@@ -1,0 +1,68 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000001",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.7534246575342466,
+  "entity": 0.75,
+  "connection": 0.8333333333333334,
+  "abstract_states": 443
+ },
+ "findings": [
+  {
+   "id": "GEN1000001-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.62,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    427.6542510986328,
+    960.01123046875,
+    0.0
+   ],
+   "room": "r02",
+   "cluster_size": 9,
+   "first_seen_step": 20440,
+   "repro": {
+    "demo": "demos/GEN1000001-inv-01.lmp",
+    "save": null,
+    "episode": 108,
+    "env_seed": 0,
+    "tic_range": [
+     2082,
+     2082
+    ],
+    "steps": 520
+   },
+   "evidence": {
+    "episode": 108,
+    "health": 100.0,
+    "ammo": 59.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_r12_r02"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in r02 near (428, 960)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r32",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP02",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 9,
+ "temperature": 1.0
+}

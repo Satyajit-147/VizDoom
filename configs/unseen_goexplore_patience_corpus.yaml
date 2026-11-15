@@ -1,0 +1,16 @@
+# Go-Explore + patience on the unseen set, part 2 of 2: the hand-made maps MAP01-MAP06 and
+# MAP08 HOLDOUT (MAP01 has no bugs), 100k steps per map. See part 1 for why it is split.
+run_name: unseen_goexplore_patience
+agent: goexplore
+total_steps: 700_000
+n_envs: 4
+seed: 0
+maps:
+  variant: buggy
+  curriculum:
+    - {until: 700_000, maps: [MAP01, MAP02, MAP03, MAP04, MAP05, MAP06, MAP08],
+       weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}
+reward:
+  alpha: 0.5
+goexplore:
+  patience: 0.1

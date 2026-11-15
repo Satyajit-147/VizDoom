@@ -1,0 +1,99 @@
+{
+ "run_id": "t3b_seed0",
+ "map": "MAP05",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9325.3,
+ "coverage": {
+  "cell": 0.959349593495935,
+  "entity": 0.75,
+  "connection": 1.0,
+  "abstract_states": 303
+ },
+ "findings": [
+  {
+   "id": "MAP05-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.85,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    726.4197387695312,
+    264.79827880859375,
+    0.0
+   ],
+   "room": "armory",
+   "cluster_size": 46,
+   "first_seen_step": 242692,
+   "repro": {
+    "demo": "demos/MAP05-inv-01.lmp",
+    "save": null,
+    "episode": 142,
+    "env_seed": 0,
+    "tic_range": [
+     102,
+     102
+    ],
+    "steps": 25
+   },
+   "evidence": {
+    "episode": 142,
+    "health": 200.0,
+    "ammo": 49.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in armory near (726, 265)."
+  },
+  {
+   "id": "MAP05-inv-02",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.67,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    704.0224304199219,
+    524.4594421386719,
+    0.0
+   ],
+   "room": "vault",
+   "cluster_size": 1,
+   "first_seen_step": 596100,
+   "repro": {
+    "demo": "demos/MAP05-inv-02.lmp",
+    "save": null,
+    "episode": 106,
+    "env_seed": 1,
+    "tic_range": [
+     506,
+     506
+    ],
+    "steps": 126
+   },
+   "evidence": {
+    "episode": 106,
+    "health": 100.0,
+    "ammo": 47.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_armory_vault"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in vault near (704, 524)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP05",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 47,
+ "temperature": 1.0
+}

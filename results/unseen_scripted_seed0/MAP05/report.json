@@ -1,0 +1,99 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "MAP05",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.9878048780487805,
+  "entity": 1.0,
+  "connection": 1.0,
+  "abstract_states": 382
+ },
+ "findings": [
+  {
+   "id": "MAP05-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.83,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    702.5333404541016,
+    231.98922729492188,
+    0.0
+   ],
+   "room": "armory",
+   "cluster_size": 9,
+   "first_seen_step": 431900,
+   "repro": {
+    "demo": "demos/MAP05-inv-01.lmp",
+    "save": null,
+    "episode": 329,
+    "env_seed": 3,
+    "tic_range": [
+     566,
+     566
+    ],
+    "steps": 141
+   },
+   "evidence": {
+    "episode": 329,
+    "health": 200.0,
+    "ammo": 50.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in armory near (703, 232)."
+  },
+  {
+   "id": "MAP05-inv-02",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.77,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    704.0874328613281,
+    528.9039001464844,
+    0.0
+   ],
+   "room": "vault",
+   "cluster_size": 6,
+   "first_seen_step": 729620,
+   "repro": {
+    "demo": "demos/MAP05-inv-02.lmp",
+    "save": null,
+    "episode": 116,
+    "env_seed": 0,
+    "tic_range": [
+     2918,
+     2918
+    ],
+    "steps": 729
+   },
+   "evidence": {
+    "episode": 116,
+    "health": 100.0,
+    "ammo": 48.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_armory_vault"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in vault near (704, 529)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP05",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 15,
+ "temperature": 1.0
+}

@@ -1,0 +1,76 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "GEN19",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.4981684981684982,
+  "entity": 0.375,
+  "connection": 0.5,
+  "abstract_states": 217
+ },
+ "findings": [
+  {
+   "id": "GEN19-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.52,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    494.3965759277344,
+    1450.8379669189453,
+    0.0
+   ],
+   "room": "r13",
+   "cluster_size": 4,
+   "first_seen_step": 882898,
+   "repro": {
+    "demo": "demos/GEN19-inv-01.lmp",
+    "save": null,
+    "episode": 242,
+    "env_seed": 1000,
+    "tic_range": [
+     986,
+     986
+    ],
+    "steps": 246
+   },
+   "evidence": {
+    "episode": 242,
+    "health": 200.0,
+    "ammo": 57.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in r13 near (494, 1451)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r02",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r31",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP20",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 4,
+ "temperature": 1.0
+}

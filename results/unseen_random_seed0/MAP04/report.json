@@ -1,0 +1,38 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "MAP04",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.6016483516483516,
+  "entity": 0.5,
+  "connection": 0.5714285714285714,
+  "abstract_states": 324
+ },
+ "findings": [],
+ "coverage_gaps": [
+  {
+   "room": "f",
+   "cells_unvisited": 49,
+   "portals_attempted": 1
+  },
+  {
+   "room": "g",
+   "cells_unvisited": 42,
+   "portals_attempted": 1
+  },
+  {
+   "room": "h",
+   "cells_unvisited": 49,
+   "portals_attempted": 1
+  }
+ ],
+ "map_lump": "MAP04",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 0,
+ "temperature": 1.0
+}

@@ -1,0 +1,104 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000020",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.7575757575757576,
+  "entity": 0.6,
+  "connection": 0.8571428571428571,
+  "abstract_states": 495
+ },
+ "findings": [
+  {
+   "id": "GEN1000020-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.69,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    883.7060089111328,
+    1440.007797241211,
+    0.0
+   ],
+   "room": "r13",
+   "cluster_size": 2,
+   "first_seen_step": 670248,
+   "repro": {
+    "demo": "demos/GEN1000020-inv-01.lmp",
+    "save": null,
+    "episode": 59,
+    "env_seed": 3,
+    "tic_range": [
+     1294,
+     1294
+    ],
+    "steps": 323
+   },
+   "evidence": {
+    "episode": 59,
+    "health": 100.0,
+    "ammo": 57.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_r23_r13"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in r13 near (884, 1440)."
+  },
+  {
+   "id": "GEN1000020-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.64,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    1151.6346081043635,
+    1016.1992620115151,
+    -63.33756949960286
+   ],
+   "room": "r22",
+   "cluster_size": 5,
+   "first_seen_step": 2655088,
+   "repro": {
+    "demo": "demos/GEN1000020-soft-01.lmp",
+    "save": null,
+    "episode": 232,
+    "env_seed": 3,
+    "tic_range": [
+     3946,
+     14014
+    ],
+    "steps": 3503
+   },
+   "evidence": {
+    "episode": 232,
+    "sector": 4,
+    "rooms": [
+     "r22"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in r22: every way out was tried and failed."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r32",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP21",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 7,
+ "temperature": 1.0
+}

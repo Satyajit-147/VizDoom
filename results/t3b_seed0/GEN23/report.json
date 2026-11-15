@@ -1,0 +1,22 @@
+{
+ "run_id": "t3b_seed0",
+ "map": "GEN23",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9325.3,
+ "coverage": {
+  "cell": 0.6994535519125683,
+  "entity": 0.4,
+  "connection": 1.0,
+  "abstract_states": 128
+ },
+ "findings": [],
+ "coverage_gaps": [],
+ "map_lump": "MAP24",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 0,
+ "temperature": 1.0
+}

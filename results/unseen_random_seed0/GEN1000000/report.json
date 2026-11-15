@@ -1,0 +1,134 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "GEN1000000",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.9333333333333333,
+  "entity": 0.7142857142857143,
+  "connection": 1.0,
+  "abstract_states": 593
+ },
+ "findings": [
+  {
+   "id": "GEN1000000-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.74,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1104.0,
+    1456.0,
+    0.0
+   ],
+   "room": "r23",
+   "cluster_size": 28,
+   "first_seen_step": 15852,
+   "repro": {
+    "demo": "demos/GEN1000000-soft-01.lmp",
+    "save": null,
+    "episode": 240,
+    "env_seed": 2,
+    "tic_range": [
+     138,
+     198
+    ],
+    "steps": 49
+   },
+   "evidence": {
+    "episode": 240,
+    "hops": 4,
+    "sectors": [
+     6,
+     1
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r23 near (1104, 1456)."
+  },
+  {
+   "id": "GEN1000000-soft-02",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.58,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    112.0,
+    1456.0,
+    0.0
+   ],
+   "room": "r03",
+   "cluster_size": 2,
+   "first_seen_step": 440900,
+   "repro": {
+    "demo": "demos/GEN1000000-soft-02.lmp",
+    "save": null,
+    "episode": 131,
+    "env_seed": 1,
+    "tic_range": [
+     354,
+     430
+    ],
+    "steps": 107
+   },
+   "evidence": {
+    "episode": 131,
+    "hops": 4,
+    "sectors": [
+     1,
+     6
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r03 near (112, 1456)."
+  },
+  {
+   "id": "GEN1000000-inv-01",
+   "oracle": "invariant",
+   "kind": "locked_needs_key",
+   "severity": 0.56,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    757.8238525390625,
+    1103.7533264160156,
+    0.0
+   ],
+   "room": "r12",
+   "cluster_size": 6,
+   "first_seen_step": 82732,
+   "repro": {
+    "demo": "demos/GEN1000000-inv-01.lmp",
+    "save": null,
+    "episode": 349,
+    "env_seed": 1,
+    "tic_range": [
+     2762,
+     2762
+    ],
+    "steps": 690
+   },
+   "evidence": {
+    "episode": 349,
+    "health": 100.0,
+    "ammo": 21.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [
+     "p_r12_r22"
+    ],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `locked_needs_key` broke in r12 near (758, 1104)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP01",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 36,
+ "temperature": 1.0
+}

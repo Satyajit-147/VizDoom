@@ -1,0 +1,81 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000014",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.3741496598639456,
+  "entity": 0.0,
+  "connection": 0.3333333333333333,
+  "abstract_states": 182
+ },
+ "findings": [
+  {
+   "id": "GEN1000014-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    982.7808685302734,
+    1470.462158203125,
+    0.0
+   ],
+   "room": "r23",
+   "cluster_size": 18,
+   "first_seen_step": 189884,
+   "repro": {
+    "demo": "demos/GEN1000014-stuck-01.lmp",
+    "save": null,
+    "episode": 228,
+    "env_seed": 3,
+    "tic_range": [
+     182,
+     182
+    ],
+    "steps": 45
+   },
+   "evidence": {
+    "episode": 228,
+    "sector": 5,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r23"
+    ]
+   },
+   "summary": "The player fell into a pit in r23 near (983, 1470): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r03",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r31",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP15",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 18,
+ "temperature": 1.0
+}

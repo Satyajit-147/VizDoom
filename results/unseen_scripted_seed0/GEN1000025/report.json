@@ -1,0 +1,59 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000025",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.5922619047619048,
+  "entity": 0.0,
+  "connection": 0.875,
+  "abstract_states": 218
+ },
+ "findings": [
+  {
+   "id": "GEN1000025-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.77,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    112.0,
+    1168.0,
+    0.0
+   ],
+   "room": "r02",
+   "cluster_size": 1,
+   "first_seen_step": 1625208,
+   "repro": {
+    "demo": "demos/GEN1000025-soft-01.lmp",
+    "save": null,
+    "episode": 142,
+    "env_seed": 1,
+    "tic_range": [
+     9718,
+     9778
+    ],
+    "steps": 2444
+   },
+   "evidence": {
+    "episode": 142,
+    "hops": 4,
+    "sectors": [
+     2,
+     0
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r02 near (112, 1168)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP26",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 1,
+ "temperature": 1.0
+}

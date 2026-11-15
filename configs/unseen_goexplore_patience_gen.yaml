@@ -1,0 +1,19 @@
+# Go-Explore + patience on the unseen set, part 1 of 2: the 32 generated test-split maps
+# (never used in training, D18), 100k steps per map. Split from unseen_goexplore_patience
+# because those maps and the corpus live in different WADs: Go-Explore restarts every 500
+# steps on a random map, and every WAD switch restarts the engine, which made one mixed
+# run take hours. Both parts share the run name, so make_results merges them.
+run_name: unseen_goexplore_patience
+agent: goexplore
+total_steps: 3_200_000
+n_envs: 4            # a Kaggle CPU session has 4 cores
+seed: 0
+maps:
+  variant: buggy
+  generated: {split: test, count: 32, start: 0}
+  curriculum:
+    - {until: 3_200_000, maps: [], weights: [], generated_weight: 1.0}
+reward:
+  alpha: 0.5
+goexplore:
+  patience: 0.1

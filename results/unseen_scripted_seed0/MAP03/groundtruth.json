@@ -1,0 +1,709 @@
+{
+ "schema_version": 1,
+ "map": "MAP03",
+ "name": "LEAK",
+ "slot": 3,
+ "variant": "buggy",
+ "cell_size": 64,
+ "spawn": {
+  "room": "start",
+  "pos": [
+   -160,
+   -160
+  ]
+ },
+ "rooms": [
+  {
+   "id": "start",
+   "rect": [
+    -320,
+    -320,
+    0,
+    0
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 0
+  },
+  {
+   "id": "hall",
+   "rect": [
+    0,
+    -224,
+    640,
+    -96
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 1
+  },
+  {
+   "id": "vault",
+   "rect": [
+    640,
+    -320,
+    960,
+    0
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 2
+  },
+  {
+   "id": "balcony",
+   "rect": [
+    -320,
+    0,
+    0,
+    256
+   ],
+   "floor": 64,
+   "ceiling": 192,
+   "sector": 3
+  }
+ ],
+ "walkable": {
+  "origin": [
+   -320,
+   -320
+  ],
+  "cell_size": 64,
+  "width": 20,
+  "height": 9,
+  "rows": [
+   "11111000000000011111",
+   "11111111111111111111",
+   "11111111111111111111",
+   "11111000000000011111",
+   "11111000000000011111",
+   "11111000000000000000",
+   "11111000000000000000",
+   "11111000000000000000",
+   "11111000000000000000"
+  ]
+ },
+ "walls": [
+  [
+   -320,
+   -320,
+   -320,
+   -8
+  ],
+  [
+   -320,
+   8,
+   -320,
+   256
+  ],
+  [
+   -208,
+   -8,
+   -208,
+   8
+  ],
+  [
+   -112,
+   8,
+   -112,
+   -8
+  ],
+  [
+   0,
+   -224,
+   0,
+   -320
+  ],
+  [
+   0,
+   -8,
+   0,
+   -96
+  ],
+  [
+   0,
+   256,
+   0,
+   8
+  ],
+  [
+   632,
+   -208,
+   632,
+   -224
+  ],
+  [
+   632,
+   -96,
+   632,
+   -112
+  ],
+  [
+   640,
+   -320,
+   640,
+   -224
+  ],
+  [
+   640,
+   -96,
+   640,
+   0
+  ],
+  [
+   648,
+   -224,
+   648,
+   -208
+  ],
+  [
+   648,
+   -112,
+   648,
+   -96
+  ],
+  [
+   960,
+   -192,
+   960,
+   -320
+  ],
+  [
+   960,
+   -128,
+   960,
+   -192
+  ],
+  [
+   960,
+   0,
+   960,
+   -128
+  ],
+  [
+   0,
+   -320,
+   -320,
+   -320
+  ],
+  [
+   960,
+   -320,
+   640,
+   -320
+  ],
+  [
+   8,
+   -224,
+   0,
+   -224
+  ],
+  [
+   632,
+   -224,
+   8,
+   -224
+  ],
+  [
+   640,
+   -224,
+   648,
+   -224
+  ],
+  [
+   648,
+   -208,
+   632,
+   -208
+  ],
+  [
+   632,
+   -112,
+   648,
+   -112
+  ],
+  [
+   0,
+   -96,
+   8,
+   -96
+  ],
+  [
+   8,
+   -96,
+   632,
+   -96
+  ],
+  [
+   648,
+   -96,
+   640,
+   -96
+  ],
+  [
+   -320,
+   -8,
+   -208,
+   -8
+  ],
+  [
+   -112,
+   -8,
+   0,
+   -8
+  ],
+  [
+   640,
+   0,
+   960,
+   0
+  ],
+  [
+   -208,
+   8,
+   -320,
+   8
+  ],
+  [
+   0,
+   8,
+   -112,
+   8
+  ],
+  [
+   -320,
+   256,
+   0,
+   256
+  ]
+ ],
+ "sectors": [
+  {
+   "index": 0,
+   "key": "start",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "start"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    1,
+    5
+   ],
+   "lift_trigger": true
+  },
+  {
+   "index": 1,
+   "key": "hall",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "hall"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    0,
+    4
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 2,
+   "key": "vault",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "vault"
+   ],
+   "portal": null,
+   "tag": 10,
+   "neighbours": [
+    4
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 3,
+   "key": "balcony",
+   "kind": "room",
+   "floor": 64,
+   "ceiling": 192,
+   "rooms": [
+    "balcony"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    5
+   ],
+   "lift_trigger": true
+  },
+  {
+   "index": 4,
+   "key": "door:p_hall_vault",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_hall_vault",
+   "tag": 0,
+   "neighbours": [
+    1,
+    2
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 5,
+   "key": "lift:p_start_balc",
+   "kind": "lift",
+   "floor": 64,
+   "ceiling": 192,
+   "rooms": [],
+   "portal": "p_start_balc",
+   "tag": 100,
+   "neighbours": [
+    0,
+    3
+   ],
+   "lift_trigger": true
+  }
+ ],
+ "sector_grid": {
+  "xs": [
+   -320,
+   -208,
+   -112,
+   -8,
+   0,
+   8,
+   632,
+   640,
+   648,
+   960
+  ],
+  "ys": [
+   -320,
+   -224,
+   -208,
+   -192,
+   -128,
+   -112,
+   -96,
+   -72,
+   -8,
+   0,
+   8,
+   256
+  ],
+  "owner": [
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    3
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5,
+    5,
+    5,
+    3
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    3
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    3
+   ],
+   [
+    -1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    4,
+    4,
+    4,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    2,
+    -1,
+    4,
+    4,
+    4,
+    -1,
+    2,
+    2,
+    2,
+    -1,
+    -1
+   ],
+   [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    -1,
+    -1
+   ]
+  ]
+ },
+ "portals": [
+  {
+   "id": "p_start_hall",
+   "a": "start",
+   "b": "hall",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    -8,
+    -224,
+    8,
+    -96
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_hall_vault",
+   "a": "hall",
+   "b": "vault",
+   "kind": "locked_door",
+   "requires": "key_red",
+   "switch": null,
+   "area": [
+    632,
+    -208,
+    648,
+    -112
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_start_balc",
+   "a": "start",
+   "b": "balcony",
+   "kind": "lift",
+   "requires": null,
+   "switch": null,
+   "area": [
+    -208,
+    -72,
+    -112,
+    8
+   ],
+   "dest": null
+  }
+ ],
+ "switch_lines": {
+  "exitsw": [
+   960,
+   -192,
+   960,
+   -128
+  ]
+ },
+ "portal_graph": [
+  {
+   "from": "start",
+   "to": "hall",
+   "via": "p_start_hall",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "hall",
+   "to": "start",
+   "via": "p_start_hall",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "hall",
+   "to": "vault",
+   "via": "p_hall_vault",
+   "key": "key_red",
+   "switch": null
+  },
+  {
+   "from": "vault",
+   "to": "hall",
+   "via": "p_hall_vault",
+   "key": "key_red",
+   "switch": null
+  },
+  {
+   "from": "start",
+   "to": "balcony",
+   "via": "p_start_balc",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "balcony",
+   "to": "start",
+   "via": "p_start_balc",
+   "key": null,
+   "switch": null
+  }
+ ],
+ "things": [
+  {
+   "id": "spawn",
+   "type": "player_start",
+   "room": "start",
+   "pos": [
+    -160,
+    -160
+   ],
+   "interactive": false
+  },
+  {
+   "id": "redkey",
+   "type": "key_red",
+   "room": "balcony",
+   "pos": [
+    -160,
+    160
+   ],
+   "interactive": true
+  },
+  {
+   "id": "exitsw",
+   "type": "exit_switch",
+   "room": "vault",
+   "pos": [
+    900,
+    -160
+   ],
+   "interactive": true
+  },
+  {
+   "id": "medkit",
+   "type": "health",
+   "room": "hall",
+   "pos": [
+    320,
+    -160
+   ],
+   "interactive": true
+  }
+ ],
+ "monster_count": 0,
+ "goal": {
+  "kind": "reach_exit",
+  "target": "exitsw",
+  "requires": [
+   "key_red"
+  ],
+  "time_limit_tics": 10500,
+  "room": "vault"
+ },
+ "defects": [
+  {
+   "id": "d_leak_hall_north",
+   "kind": "missing_blocking",
+   "target": "hall",
+   "expected_oracle": "out_of_bounds",
+   "severity": "high",
+   "params": {
+    "wall": "north",
+    "segment": [
+     192,
+     320
+    ]
+   },
+   "notes": "A 128 mu segment of the hall's north wall looks solid but is passable. The player can walk out of the level into undefined space.",
+   "position": [
+    256.0,
+    -96.0,
+    0.0
+   ],
+   "region": [
+    [
+     192,
+     -96,
+     320,
+     32
+    ]
+   ],
+   "affected_rooms": [
+    "hall"
+   ],
+   "change": "north wall of hall [192,320] is passable; 128 mu pocket behind it"
+  }
+ ]
+}

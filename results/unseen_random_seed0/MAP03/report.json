@@ -1,0 +1,59 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "MAP03",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.8666666666666667,
+  "entity": 0.3333333333333333,
+  "connection": 1.0,
+  "abstract_states": 160
+ },
+ "findings": [
+  {
+   "id": "MAP03-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.9,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    303.9997100830078,
+    -73.94061279296875,
+    30.0
+   ],
+   "room": "hall",
+   "cluster_size": 61,
+   "first_seen_step": 352,
+   "repro": {
+    "demo": "demos/MAP03-oob-01.lmp",
+    "save": null,
+    "episode": 0,
+    "env_seed": 1,
+    "tic_range": [
+     334,
+     366
+    ],
+    "steps": 91
+   },
+   "evidence": {
+    "episode": 0,
+    "exit_point": [
+     303.9997100830078,
+     -73.94061279296875
+    ],
+    "depth_beyond_mu": 34.5
+   },
+   "summary": "The player left the level in hall near (304, -74) and travelled 34 mu into undefined space."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP03",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 61,
+ "temperature": 1.0
+}

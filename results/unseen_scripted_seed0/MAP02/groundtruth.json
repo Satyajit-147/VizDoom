@@ -1,0 +1,1232 @@
+{
+ "schema_version": 1,
+ "map": "MAP02",
+ "name": "WEDGE",
+ "slot": 2,
+ "variant": "buggy",
+ "cell_size": 64,
+ "spawn": {
+  "room": "start",
+  "pos": [
+   224,
+   224
+  ]
+ },
+ "rooms": [
+  {
+   "id": "start",
+   "rect": [
+    0,
+    0,
+    448,
+    448
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 0
+  },
+  {
+   "id": "gallery",
+   "rect": [
+    448,
+    0,
+    1088,
+    256
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 1
+  },
+  {
+   "id": "alcove",
+   "rect": [
+    704,
+    -192,
+    744,
+    0
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 2
+  },
+  {
+   "id": "hall2",
+   "rect": [
+    1088,
+    0,
+    1536,
+    448
+   ],
+   "floor": 0,
+   "ceiling": 160,
+   "sector": 3
+  },
+  {
+   "id": "pit",
+   "rect": [
+    1088,
+    448,
+    1536,
+    704
+   ],
+   "floor": 0,
+   "ceiling": 160,
+   "sector": 4
+  },
+  {
+   "id": "storage",
+   "rect": [
+    0,
+    448,
+    448,
+    832
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 5
+  },
+  {
+   "id": "exitroom",
+   "rect": [
+    448,
+    256,
+    1088,
+    640
+   ],
+   "floor": 0,
+   "ceiling": 128,
+   "sector": 6
+  }
+ ],
+ "walkable": {
+  "origin": [
+   0,
+   -192
+  ],
+  "cell_size": 64,
+  "width": 24,
+  "height": 16,
+  "rows": [
+   "000000000001000000000000",
+   "000000000001000000000000",
+   "000000000001000000000000",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111111111111111111111",
+   "111111100000000001111111",
+   "111111100000000000000000",
+   "111111100000000000000000"
+  ]
+ },
+ "walls": [
+  [
+   0,
+   0,
+   0,
+   440
+  ],
+  [
+   0,
+   456,
+   0,
+   832
+  ],
+  [
+   176,
+   440,
+   176,
+   456
+  ],
+  [
+   272,
+   456,
+   272,
+   440
+  ],
+  [
+   440,
+   64,
+   440,
+   0
+  ],
+  [
+   440,
+   440,
+   440,
+   192
+  ],
+  [
+   440,
+   640,
+   440,
+   456
+  ],
+  [
+   448,
+   832,
+   448,
+   640
+  ],
+  [
+   456,
+   0,
+   456,
+   64
+  ],
+  [
+   456,
+   192,
+   456,
+   248
+  ],
+  [
+   456,
+   264,
+   456,
+   640
+  ],
+  [
+   704,
+   -192,
+   704,
+   -8
+  ],
+  [
+   704,
+   -8,
+   704,
+   0
+  ],
+  [
+   720,
+   248,
+   720,
+   264
+  ],
+  [
+   744,
+   -8,
+   744,
+   -192
+  ],
+  [
+   744,
+   0,
+   744,
+   -8
+  ],
+  [
+   816,
+   264,
+   816,
+   248
+  ],
+  [
+   1080,
+   64,
+   1080,
+   0
+  ],
+  [
+   1080,
+   248,
+   1080,
+   192
+  ],
+  [
+   1080,
+   640,
+   1080,
+   264
+  ],
+  [
+   1088,
+   640,
+   1088,
+   704
+  ],
+  [
+   1096,
+   0,
+   1096,
+   64
+  ],
+  [
+   1096,
+   192,
+   1096,
+   440
+  ],
+  [
+   1096,
+   456,
+   1096,
+   640
+  ],
+  [
+   1248,
+   440,
+   1248,
+   456
+  ],
+  [
+   1376,
+   456,
+   1376,
+   440
+  ],
+  [
+   1536,
+   440,
+   1536,
+   0
+  ],
+  [
+   1536,
+   704,
+   1536,
+   456
+  ],
+  [
+   744,
+   -192,
+   704,
+   -192
+  ],
+  [
+   440,
+   0,
+   0,
+   0
+  ],
+  [
+   704,
+   0,
+   456,
+   0
+  ],
+  [
+   1080,
+   0,
+   744,
+   0
+  ],
+  [
+   1536,
+   0,
+   1096,
+   0
+  ],
+  [
+   456,
+   64,
+   440,
+   64
+  ],
+  [
+   1096,
+   64,
+   1080,
+   64
+  ],
+  [
+   440,
+   192,
+   456,
+   192
+  ],
+  [
+   1080,
+   192,
+   1096,
+   192
+  ],
+  [
+   456,
+   248,
+   720,
+   248
+  ],
+  [
+   816,
+   248,
+   1080,
+   248
+  ],
+  [
+   720,
+   264,
+   456,
+   264
+  ],
+  [
+   1080,
+   264,
+   816,
+   264
+  ],
+  [
+   0,
+   440,
+   176,
+   440
+  ],
+  [
+   272,
+   440,
+   440,
+   440
+  ],
+  [
+   1096,
+   440,
+   1248,
+   440
+  ],
+  [
+   1376,
+   440,
+   1536,
+   440
+  ],
+  [
+   176,
+   456,
+   0,
+   456
+  ],
+  [
+   440,
+   456,
+   272,
+   456
+  ],
+  [
+   1248,
+   456,
+   1096,
+   456
+  ],
+  [
+   1536,
+   456,
+   1376,
+   456
+  ],
+  [
+   448,
+   640,
+   440,
+   640
+  ],
+  [
+   456,
+   640,
+   736,
+   640
+  ],
+  [
+   736,
+   640,
+   800,
+   640
+  ],
+  [
+   800,
+   640,
+   1080,
+   640
+  ],
+  [
+   1096,
+   640,
+   1088,
+   640
+  ],
+  [
+   1088,
+   704,
+   1536,
+   704
+  ],
+  [
+   0,
+   832,
+   448,
+   832
+  ]
+ ],
+ "sectors": [
+  {
+   "index": 0,
+   "key": "start",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "start"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    1,
+    7
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 1,
+   "key": "gallery",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "gallery"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    0,
+    2,
+    3,
+    8
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 2,
+   "key": "alcove",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "alcove"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    1
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 3,
+   "key": "hall2",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 160,
+   "rooms": [
+    "hall2"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    1,
+    4
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 4,
+   "key": "pit",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 160,
+   "rooms": [
+    "pit"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    3
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 5,
+   "key": "storage",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "storage"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    7
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 6,
+   "key": "exitroom",
+   "kind": "room",
+   "floor": 0,
+   "ceiling": 128,
+   "rooms": [
+    "exitroom"
+   ],
+   "portal": null,
+   "tag": 0,
+   "neighbours": [
+    8
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 7,
+   "key": "door:p_start_storage",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_start_storage",
+   "tag": 0,
+   "neighbours": [
+    0,
+    5
+   ],
+   "lift_trigger": false
+  },
+  {
+   "index": 8,
+   "key": "door:p_gallery_exitroom",
+   "kind": "door",
+   "floor": 0,
+   "ceiling": 124,
+   "rooms": [],
+   "portal": "p_gallery_exitroom",
+   "tag": 0,
+   "neighbours": [
+    1,
+    6
+   ],
+   "lift_trigger": false
+  }
+ ],
+ "sector_grid": {
+  "xs": [
+   0,
+   176,
+   272,
+   440,
+   448,
+   456,
+   704,
+   720,
+   736,
+   744,
+   800,
+   816,
+   1080,
+   1088,
+   1096,
+   1248,
+   1376,
+   1536
+  ],
+  "ys": [
+   -192,
+   -8,
+   0,
+   8,
+   64,
+   192,
+   248,
+   256,
+   264,
+   440,
+   448,
+   456,
+   640,
+   704,
+   832
+  ],
+  "owner": [
+   [
+    -1,
+    -1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    5,
+    5,
+    5
+   ],
+   [
+    -1,
+    -1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7,
+    7,
+    5,
+    5,
+    5
+   ],
+   [
+    -1,
+    -1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    5,
+    5,
+    5
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    5,
+    5
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    8,
+    8,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    8,
+    8,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    8,
+    8,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    8,
+    8,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    6,
+    6,
+    6,
+    6,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    4,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    -1,
+    -1,
+    4,
+    4,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    4,
+    4,
+    -1
+   ],
+   [
+    -1,
+    -1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    -1,
+    -1,
+    4,
+    4,
+    -1
+   ]
+  ]
+ },
+ "portals": [
+  {
+   "id": "p_start_gallery",
+   "a": "start",
+   "b": "gallery",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    440,
+    64,
+    456,
+    192
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_gallery_alcove",
+   "a": "gallery",
+   "b": "alcove",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    704,
+    -8,
+    744,
+    8
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_gallery_hall2",
+   "a": "gallery",
+   "b": "hall2",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    1080,
+    64,
+    1096,
+    192
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_hall2_pit",
+   "a": "hall2",
+   "b": "pit",
+   "kind": "open",
+   "requires": null,
+   "switch": null,
+   "area": [
+    1248,
+    440,
+    1376,
+    456
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_start_storage",
+   "a": "start",
+   "b": "storage",
+   "kind": "door",
+   "requires": null,
+   "switch": null,
+   "area": [
+    176,
+    440,
+    272,
+    456
+   ],
+   "dest": null
+  },
+  {
+   "id": "p_gallery_exitroom",
+   "a": "gallery",
+   "b": "exitroom",
+   "kind": "door",
+   "requires": null,
+   "switch": null,
+   "area": [
+    720,
+    248,
+    816,
+    264
+   ],
+   "dest": null
+  }
+ ],
+ "switch_lines": {
+  "exitsw": [
+   736,
+   640,
+   800,
+   640
+  ]
+ },
+ "portal_graph": [
+  {
+   "from": "start",
+   "to": "gallery",
+   "via": "p_start_gallery",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "gallery",
+   "to": "start",
+   "via": "p_start_gallery",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "gallery",
+   "to": "alcove",
+   "via": "p_gallery_alcove",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "alcove",
+   "to": "gallery",
+   "via": "p_gallery_alcove",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "gallery",
+   "to": "hall2",
+   "via": "p_gallery_hall2",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "hall2",
+   "to": "gallery",
+   "via": "p_gallery_hall2",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "hall2",
+   "to": "pit",
+   "via": "p_hall2_pit",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "pit",
+   "to": "hall2",
+   "via": "p_hall2_pit",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "start",
+   "to": "storage",
+   "via": "p_start_storage",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "storage",
+   "to": "start",
+   "via": "p_start_storage",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "gallery",
+   "to": "exitroom",
+   "via": "p_gallery_exitroom",
+   "key": null,
+   "switch": null
+  },
+  {
+   "from": "exitroom",
+   "to": "gallery",
+   "via": "p_gallery_exitroom",
+   "key": null,
+   "switch": null
+  }
+ ],
+ "things": [
+  {
+   "id": "spawn",
+   "type": "player_start",
+   "room": "start",
+   "pos": [
+    224,
+    224
+   ],
+   "interactive": false
+  },
+  {
+   "id": "medkit",
+   "type": "health",
+   "room": "storage",
+   "pos": [
+    224,
+    640
+   ],
+   "interactive": true
+  },
+  {
+   "id": "armour",
+   "type": "armour",
+   "room": "gallery",
+   "pos": [
+    900,
+    128
+   ],
+   "interactive": true
+  },
+  {
+   "id": "ammo",
+   "type": "ammo",
+   "room": "pit",
+   "pos": [
+    1312,
+    600
+   ],
+   "interactive": true
+  },
+  {
+   "id": "exitsw",
+   "type": "exit_switch",
+   "room": "exitroom",
+   "pos": [
+    768,
+    620
+   ],
+   "interactive": true
+  }
+ ],
+ "monster_count": 0,
+ "goal": {
+  "kind": "reach_exit",
+  "target": "exitsw",
+  "requires": [],
+  "time_limit_tics": 10500,
+  "room": "exitroom"
+ },
+ "defects": [
+  {
+   "id": "d_alcove_trap",
+   "kind": "geometry_trap",
+   "target": "alcove",
+   "expected_oracle": "stuck",
+   "severity": "medium",
+   "params": {
+    "drop": 64
+   },
+   "notes": "The 40 mu alcove off the gallery sits 64 mu below its mouth. The player can drop in but neither walk (24 mu step) nor jump (~30 mu + step) back out. The plan's 48 mu is escapable by jumping (docs/decisions.md D21).",
+   "position": [
+    724.0,
+    -96.0,
+    -64.0
+   ],
+   "region": [
+    [
+     704,
+     -192,
+     744,
+     0
+    ]
+   ],
+   "affected_rooms": [
+    "alcove"
+   ],
+   "change": "alcove floor lowered 64 mu to -64"
+  },
+  {
+   "id": "d_pit_trap",
+   "kind": "geometry_trap",
+   "target": "pit",
+   "expected_oracle": "stuck",
+   "severity": "high",
+   "params": {
+    "drop": 96
+   },
+   "notes": "The pit room's floor is 96 mu below hall2 with no lift: a dead end the player cannot leave once they drop in.",
+   "position": [
+    1312.0,
+    576.0,
+    -96.0
+   ],
+   "region": [
+    [
+     1088,
+     448,
+     1536,
+     704
+    ]
+   ],
+   "affected_rooms": [
+    "pit"
+   ],
+   "change": "pit floor lowered 96 mu to -96"
+  }
+ ]
+}

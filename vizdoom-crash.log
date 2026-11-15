@@ -1,0 +1,152 @@
+*** Fatal Error ***
+Address not mapped to object (signal 11)
+Address: 0x2a440f38
+
+System: Linux satyajit-Inspiron-15-3520 7.0.0-42-generic #42~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Mon Oct 19 14:43:01 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+
+
+Executing: gdb --quiet --batch --command=gdb-respfile-ceYLRJ
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+0x000072eed09108d3 in __GI___wait4 (pid=91507, stat_loc=0x966c74, options=0, usage=0x0) at ../sysdeps/unix/sysv/linux/wait4.c:30
+
+* Loaded Libraries
+From                To                  Syms Read   Shared Object Library
+0x000072eed361c1d0  0x000072eed36f1c72  Yes (*)     /home/satyajit/DS/rl-qa-tester/.venv/lib/python3.12/site-packages/vizdoom/../vizdoom.libs/libSDL2-2-d214786e.0.so.0.10.0
+0x000072eed3a0a040  0x000072eed3a0a105  Yes         /lib/x86_64-linux-gnu/libpthread.so.0
+0x000072eed35fc080  0x000072eed35fc2b1  Yes         /lib/x86_64-linux-gnu/librt.so.1
+0x000072eed35e1260  0x000072eed35f2c80  Yes (*)     /lib/x86_64-linux-gnu/libz.so.1
+0x000072eed2c13880  0x000072eed2c22667  Yes (*)     /home/satyajit/DS/rl-qa-tester/.venv/lib/python3.12/site-packages/vizdoom/../vizdoom.libs/libboost_thread-473b539f.so.1.66.0
+0x000072eed2601c50  0x000072eed2602df8  Yes (*)     /home/satyajit/DS/rl-qa-tester/.venv/lib/python3.12/site-packages/vizdoom/../vizdoom.libs/libboost_system-69a6c43e.so.1.66.0
+0x000072eed2008fe0  0x000072eed200df92  Yes (*)     /home/satyajit/DS/rl-qa-tester/.venv/lib/python3.12/site-packages/vizdoom/../vizdoom.libs/libboost_date_time-bfc31cd3.so.1.66.0
+0x000072eed1603960  0x000072eed1606700  Yes (*)     /home/satyajit/DS/rl-qa-tester/.venv/lib/python3.12/site-packages/vizdoom/../vizdoom.libs/libboost_chrono-67089fad.so.1.66.0
+0x000072eed1000760  0x000072eed10008b5  Yes (*)     /home/satyajit/DS/rl-qa-tester/.venv/lib/python3.12/site-packages/vizdoom/../vizdoom.libs/libboost_atomic-fb1368c6.so.1.66.0
+0x000072eed35d9040  0x000072eed35d9105  Yes         /lib/x86_64-linux-gnu/libdl.so.2
+0x000072eed0ca55c0  0x000072eed0de4ce2  Yes (*)     /lib/x86_64-linux-gnu/libstdc++.so.6
+0x000072eed34ff420  0x000072eed357d3a6  Yes         /lib/x86_64-linux-gnu/libm.so.6
+0x000072eed34c3780  0x000072eed34e6745  Yes (*)     /lib/x86_64-linux-gnu/libgcc_s.so.1
+0x000072eed0828800  0x000072eed09b0039  Yes         /lib/x86_64-linux-gnu/libc.so.6
+0x000072eed3a3f000  0x000072eed3a69175  Yes         /lib64/ld-linux-x86-64.so.2
+0x000072eed347a9c0  0x000072eed347f607  Yes (*)     /lib/x86_64-linux-gnu/libcap.so.2
+0x000072eed2a7b7b0  0x000072eed2b242d5  Yes (*)     /lib/x86_64-linux-gnu/libopenal.so.1
+0x000072eed3467b80  0x000072eed346f9ef  Yes (*)     /lib/x86_64-linux-gnu/libsndio.so.7
+0x000072eed2522500  0x000072eed25bfd68  Yes (*)     /lib/x86_64-linux-gnu/libasound.so.2
+0x000072eed3452de0  0x000072eed345d4f6  Yes (*)     /lib/x86_64-linux-gnu/libbsd.so.0
+0x000072eed3441160  0x000072eed3449a7a  Yes (*)     /lib/x86_64-linux-gnu/libmd.so.0
+0x000072eed2449fc0  0x000072eed24af77c  Yes (*)     /lib/x86_64-linux-gnu/libpipewire-0.3.so.0
+0x000072eed3a167c0  0x000072eed3a2b1ad  Yes (*)     /usr/lib/x86_64-linux-gnu/spa-0.2/support/libspa-support.so
+0x000072eed343a240  0x000072eed343bafc  Yes (*)     /usr/lib/x86_64-linux-gnu/spa-0.2/support/libspa-journal.so
+0x000072eed1f37e20  0x000072eed1fc4770  Yes (*)     /lib/x86_64-linux-gnu/libsystemd.so.0
+0x000072eed14c6ac0  0x000072eed15ba91e  Yes (*)     /lib/x86_64-linux-gnu/libgcrypt.so.20
+0x000072eed2a49180  0x000072eed2a63e8c  Yes (*)     /lib/x86_64-linux-gnu/liblz4.so.1
+0x000072eed2a17400  0x000072eed2a3866f  Yes (*)     /lib/x86_64-linux-gnu/liblzma.so.5
+0x000072eed1e6a400  0x000072eed1f107b2  Yes (*)     /lib/x86_64-linux-gnu/libzstd.so.1
+0x000072eed1e45a20  0x000072eed1e5ad72  Yes (*)     /lib/x86_64-linux-gnu/libgpg-error.so.0
+(*): Shared library is missing debugging information.
+
+* Threads
+  Id   Target Id                                   Frame 
+* 1    Thread 0x72eed34ba740 (LWP 91181) "vizdoom" 0x000072eed09108d3 in __GI___wait4 (pid=91507, stat_loc=0x966c74, options=0, usage=0x0) at ../sysdeps/unix/sysv/linux/wait4.c:30
+
+* FPU Status
+  R7: Empty   0x00000000000000000000
+  R6: Empty   0x00000000000000000000
+  R5: Empty   0x00000000000000000000
+  R4: Empty   0x00000000000000000000
+  R3: Empty   0x00000000000000000000
+  R2: Empty   0x00000000000000000000
+  R1: Empty   0x00000000000000000000
+=>R0: Empty   0x00000000000000000000
+
+Status Word:         0x0000                                            
+                       TOP: 0
+Control Word:        0x037f   IM DM ZM OM UM PM
+                       PC: Extended Precision (64-bits)
+                       RC: Round to nearest
+Tag Word:            0xffff
+Instruction Pointer: 0x00:0x00000000
+Operand Pointer:     0x00:0x00000000
+Opcode:              0x0000
+
+* Registers
+rax            0xfffffffffffffe00  -512
+rbx            0x16573             91507
+rcx            0x72eed09108d3      126370026948819
+rdx            0x0                 0
+rsi            0x966c74            9858164
+rdi            0x16573             91507
+rbp            0x966c60            0x966c60
+rsp            0x966c40            0x966c40
+r8             0x0                 0
+r9             0x0                 0
+r10            0x0                 0
+r11            0x293               659
+r12            0x966c74            9858164
+r13            0x9648a0            9848992
+r14            0x4                 4
+r15            0x1090              4240
+rip            0x72eed09108d3      0x72eed09108d3 <__GI___wait4+83>
+eflags         0x293               [ CF AF SF IF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+fs_base        0x72eed34ba740      126370072733504
+gs_base        0x0                 0
+
+* Backtrace
+
+Thread 1 (Thread 0x72eed34ba740 (LWP 91181) "vizdoom"):
+#0  0x000072eed09108d3 in __GI___wait4 (pid=91507, stat_loc=0x966c74, options=0, usage=0x0) at ../sysdeps/unix/sysv/linux/wait4.c:30
+        sc_ret = -512
+        sc_cancel_oldtype = 0
+        sc_ret = <optimized out>
+#1  0x00000000004404fc in ?? ()
+No symbol table info available.
+#2  <signal handler called>
+No locals.
+#3  0x00000000004d1193 in ?? ()
+No symbol table info available.
+#4  0x000000000045c408 in ?? ()
+No symbol table info available.
+#5  0x000000000046014f in ?? ()
+No symbol table info available.
+#6  0x000072eed0847a76 in __run_exit_handlers (status=0, listp=<optimized out>, run_list_atexit=run_list_atexit@entry=true, run_dtors=run_dtors@entry=true) at ./stdlib/exit.c:108
+        atfct = <optimized out>
+        onfct = <optimized out>
+        cxafct = <optimized out>
+        arg = <optimized out>
+        f = <optimized out>
+        new_exitfn_called = 1662
+        cur = 0x29cd89c0
+        restart = <optimized out>
+#7  0x000072eed0847bbe in __GI_exit (status=<optimized out>) at ./stdlib/exit.c:138
+No locals.
+#8  0x000000000078865c in ?? ()
+No symbol table info available.
+#9  0x0000000000787bf5 in ?? ()
+No symbol table info available.
+#10 0x0000000000476393 in ?? ()
+No symbol table info available.
+#11 0x0000000000478ca0 in ?? ()
+No symbol table info available.
+#12 0x00000000004204fc in ?? ()
+No symbol table info available.
+#13 0x000072eed082a1ca in __libc_start_call_main (main=main@entry=0x4202b0, argc=argc@entry=54, argv=argv@entry=0x7fffb35ff198) at ../sysdeps/nptl/libc_start_call_main.h:58
+        self = <optimized out>
+        result = <optimized out>
+        unwind_buf = {cancel_jmp_buf = {{jmp_buf = {140736202797464, 7906137804035709461, 54, 0, 0, 126370078744576, 7906137804021029397, 8618475487669770773}, mask_was_saved = 0}}, priv = {pad = {0x0, 0x0, 0x36, 0x0}, data = {prev = 0x0, cleanup = 0x0, canceltype = 54}}}
+        not_first_call = <optimized out>
+#14 0x000072eed082a28b in __libc_start_main_impl (main=0x4202b0, argc=54, argv=0x7fffb35ff198, init=<optimized out>, fini=<optimized out>, rtld_fini=<optimized out>, stack_end=0x7fffb35ff188) at ../csu/libc-start.c:360
+No locals.
+#15 0x000000000043f76e in ?? ()
+No symbol table info available.
+[Inferior 1 (process 91181) detached]

@@ -1,0 +1,65 @@
+{
+ "run_id": "t3b_seed1",
+ "map": "GEN21",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9256.6,
+ "coverage": {
+  "cell": 0.6896551724137931,
+  "entity": 0.3333333333333333,
+  "connection": 0.7142857142857143,
+  "abstract_states": 331
+ },
+ "findings": [
+  {
+   "id": "GEN21-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.77,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    720.0,
+    816.0,
+    0.0
+   ],
+   "room": "r12",
+   "cluster_size": 1,
+   "first_seen_step": 1003680,
+   "repro": {
+    "demo": "demos/GEN21-soft-01.lmp",
+    "save": null,
+    "episode": 185,
+    "env_seed": 1001,
+    "tic_range": [
+     3054,
+     3146
+    ],
+    "steps": 786
+   },
+   "evidence": {
+    "episode": 185,
+    "hops": 4,
+    "sectors": [
+     1,
+     5
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in r12 near (720, 816)."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r30",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP22",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 1,
+ "temperature": 1.0
+}

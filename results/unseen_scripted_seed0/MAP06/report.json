@@ -1,0 +1,101 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "MAP06",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.6103896103896104,
+  "entity": 0.3333333333333333,
+  "connection": 0.8333333333333334,
+  "abstract_states": 211
+ },
+ "findings": [
+  {
+   "id": "MAP06-soft-01",
+   "oracle": "softlock",
+   "kind": "teleport_loop",
+   "severity": 0.81,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1120.0,
+    256.0,
+    0.0
+   ],
+   "room": "tele_a",
+   "cluster_size": 3,
+   "first_seen_step": 348344,
+   "repro": {
+    "demo": "demos/MAP06-soft-01.lmp",
+    "save": null,
+    "episode": 241,
+    "env_seed": 0,
+    "tic_range": [
+     818,
+     898
+    ],
+    "steps": 224
+   },
+   "evidence": {
+    "episode": 241,
+    "hops": 4,
+    "sectors": [
+     3,
+     4
+    ]
+   },
+   "summary": "The player bounced between teleports 4 times in tele_a near (1120, 256)."
+  },
+  {
+   "id": "MAP06-soft-02",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.74,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    250.65931135608304,
+    720.1149624439562,
+    -63.37445510026155
+   ],
+   "room": "pit",
+   "cluster_size": 11,
+   "first_seen_step": 33068,
+   "repro": {
+    "demo": "demos/MAP06-soft-02.lmp",
+    "save": null,
+    "episode": 3,
+    "env_seed": 1,
+    "tic_range": [
+     1342,
+     10514
+    ],
+    "steps": 2628
+   },
+   "evidence": {
+    "episode": 3,
+    "sector": 1,
+    "rooms": [
+     "pit"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in pit: every way out was tried and failed."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "exitroom",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP06",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 14,
+ "temperature": 1.0
+}

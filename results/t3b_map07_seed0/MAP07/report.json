@@ -1,0 +1,102 @@
+{
+ "run_id": "t3b_map07_seed0",
+ "map": "MAP07",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "e64595940686746df50797df0b5266e8f366eb8077ccc9dc27040a329a22f681"
+ },
+ "git_sha": "unknown",
+ "env_steps": 600064,
+ "wall_clock_s": 2780.3,
+ "coverage": {
+  "cell": 0.8163265306122449,
+  "entity": 0.7142857142857143,
+  "connection": 0.9090909090909091,
+  "abstract_states": 1025
+ },
+ "findings": [
+  {
+   "id": "MAP07-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.9,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    699.4943389892578,
+    1365.50390625,
+    0.0
+   ],
+   "room": "r21",
+   "cluster_size": 11,
+   "first_seen_step": 488772,
+   "repro": {
+    "demo": "demos/MAP07-oob-01.lmp",
+    "save": null,
+    "episode": 47,
+    "env_seed": 1,
+    "tic_range": [
+     6638,
+     6934
+    ],
+    "steps": 1733
+   },
+   "evidence": {
+    "episode": 47,
+    "exit_point": [
+     699.4943389892578,
+     1365.50390625
+    ],
+    "depth_beyond_mu": 112.0
+   },
+   "summary": "The player left the level in r21 near (699, 1366) and travelled 112 mu into undefined space."
+  },
+  {
+   "id": "MAP07-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.48,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1368.9562225341797,
+    1084.6669921875,
+    0.0
+   ],
+   "room": "r23",
+   "cluster_size": 7,
+   "first_seen_step": 496980,
+   "repro": {
+    "demo": "demos/MAP07-stuck-01.lmp",
+    "save": null,
+    "episode": 47,
+    "env_seed": 1,
+    "tic_range": [
+     7850,
+     7850
+    ],
+    "steps": 1962
+   },
+   "evidence": {
+    "episode": 47,
+    "sector": 11,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r23"
+    ]
+   },
+   "summary": "The player fell into a pit in r23 near (1369, 1085): its floor is 64 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r13",
+   "cells_unvisited": 49,
+   "portals_attempted": 1
+  }
+ ],
+ "map_lump": "MAP07",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 18,
+ "temperature": 1.0
+}

@@ -1,0 +1,75 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000004",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.4418604651162791,
+  "entity": 0.5,
+  "connection": 0.4,
+  "abstract_states": 242
+ },
+ "findings": [
+  {
+   "id": "GEN1000004-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.69,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    560.6563415527344,
+    -36.854705810546875,
+    0.0
+   ],
+   "room": "r10",
+   "cluster_size": 36,
+   "first_seen_step": 164512,
+   "repro": {
+    "demo": "demos/GEN1000004-oob-01.lmp",
+    "save": null,
+    "episode": 169,
+    "env_seed": 2,
+    "tic_range": [
+     150,
+     230
+    ],
+    "steps": 57
+   },
+   "evidence": {
+    "episode": 169,
+    "exit_point": [
+     560.6563415527344,
+     -36.854705810546875
+    ],
+    "depth_beyond_mu": 112.0
+   },
+   "summary": "The player left the level in r10 near (561, -37) and travelled 112 mu into undefined space."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r11",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r12",
+   "cells_unvisited": 40,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 64,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP05",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 36,
+ "temperature": 1.0
+}

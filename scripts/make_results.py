@@ -38,8 +38,10 @@ TIERS = {  # run_name -> (label, tier); the order is the tables' and the colours
     "t4_goexplore_map07": ("Go-Explore", "T4"),
     "unseen_random": ("Random", "T1"), "unseen_scripted": ("Scripted", "T2"),
     "unseen_goexplore": ("Go-Explore", "T4"), "t3b": ("PPO + curiosity (curriculum)", "T3b"),
+    "unseen_goexplore_patience": ("Go-Explore + patience", "T4p"),
 }  # fmt: skip
-COLOUR = {"T1": "#2a78d6", "T2": "#eb6834", "T3a": "#1baf7a", "T3b": "#eda100", "T4": "#e87ba4"}
+COLOUR = {"T1": "#2a78d6", "T2": "#eb6834", "T3a": "#1baf7a", "T3b": "#eda100", "T4": "#e87ba4",
+          "T4p": "#6250d6"}
 INK, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 KIND_LABEL = {"missing_blocking": "leaky wall", "geometry_trap": "trap pit",
               "wrong_tag": "dead switch", "wrong_special": "broken lock",
@@ -322,7 +324,8 @@ def build(results: Path, out: Path) -> None:
                "curve exists."), ""]  # fmt: skip
 
     # unseen maps
-    un = group(runs, ["unseen_random", "unseen_scripted", "unseen_goexplore"])
+    un = group(runs, ["unseen_random", "unseen_scripted", "unseen_goexplore",
+                      "unseen_goexplore_patience"])
     if un:
         md += ["## Maps no tester was tuned on", "",
                ("32 generated maps from the *test* split (never used in training), MAP08 "

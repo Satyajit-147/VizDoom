@@ -1,0 +1,164 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "GEN1000023",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.24786324786324787,
+  "entity": 0.0,
+  "connection": 0.14285714285714285,
+  "abstract_states": 87
+ },
+ "findings": [
+  {
+   "id": "GEN1000023-soft-01",
+   "oracle": "softlock",
+   "kind": "confined",
+   "severity": 0.58,
+   "confidence_raw": 0.8,
+   "confidence_calibrated": 0.8,
+   "position": [
+    266.0112365252599,
+    1369.976872439633,
+    -95.42772511848341
+   ],
+   "room": "r03",
+   "cluster_size": 2,
+   "first_seen_step": 1210136,
+   "repro": {
+    "demo": "demos/GEN1000023-soft-01.lmp",
+    "save": null,
+    "episode": 107,
+    "env_seed": 1,
+    "tic_range": [
+     514,
+     14014
+    ],
+    "steps": 3503
+   },
+   "evidence": {
+    "episode": 107,
+    "sector": 2,
+    "rooms": [
+     "r03"
+    ],
+    "episodes_confined_here": 1
+   },
+   "summary": "The player ended episodes stranded in r03: every way out was tried and failed."
+  },
+  {
+   "id": "GEN1000023-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    285.7460021972656,
+    1101.8626403808594,
+    0.0
+   ],
+   "room": "r03",
+   "cluster_size": 16,
+   "first_seen_step": 334344,
+   "repro": {
+    "demo": "demos/GEN1000023-stuck-01.lmp",
+    "save": null,
+    "episode": 234,
+    "env_seed": 2,
+    "tic_range": [
+     454,
+     454
+    ],
+    "steps": 113
+   },
+   "evidence": {
+    "episode": 234,
+    "sector": 2,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r03"
+    ]
+   },
+   "summary": "The player fell into a pit in r03 near (286, 1102): its floor is 96 mu below every way out and nothing lifts them back."
+  },
+  {
+   "id": "GEN1000023-stuck-02",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.42,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    297.4176025390625,
+    1246.7911224365234,
+    -96.0
+   ],
+   "room": "r03",
+   "cluster_size": 4,
+   "first_seen_step": 133912,
+   "repro": {
+    "demo": "demos/GEN1000023-stuck-02.lmp",
+    "save": null,
+    "episode": 110,
+    "env_seed": 0,
+    "tic_range": [
+     3270,
+     3270
+    ],
+    "steps": 817
+   },
+   "evidence": {
+    "episode": 110,
+    "sector": 2,
+    "floor": -96.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r03"
+    ]
+   },
+   "summary": "The player fell into a pit in r03 near (297, 1247): its floor is 96 mu below every way out and nothing lifts them back."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "r01",
+   "cells_unvisited": 48,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r11",
+   "cells_unvisited": 36,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r12",
+   "cells_unvisited": 30,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r21",
+   "cells_unvisited": 42,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r22",
+   "cells_unvisited": 35,
+   "portals_attempted": 0
+  },
+  {
+   "room": "r23",
+   "cells_unvisited": 56,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP24",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 22,
+ "temperature": 1.0
+}

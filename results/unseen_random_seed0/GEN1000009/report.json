@@ -1,0 +1,97 @@
+{
+ "run_id": "unseen_random_seed0",
+ "map": "GEN1000009",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2204.9,
+ "coverage": {
+  "cell": 0.9384057971014492,
+  "entity": 1.0,
+  "connection": 1.0,
+  "abstract_states": 385
+ },
+ "findings": [
+  {
+   "id": "GEN1000009-stuck-01",
+   "oracle": "stuck",
+   "kind": "vertical_trap",
+   "severity": 0.54,
+   "confidence_raw": 0.9,
+   "confidence_calibrated": 0.9,
+   "position": [
+    1161.3441772460938,
+    1547.0673522949219,
+    0.0
+   ],
+   "room": "r33",
+   "cluster_size": 26,
+   "first_seen_step": 195376,
+   "repro": {
+    "demo": "demos/GEN1000009-stuck-01.lmp",
+    "save": null,
+    "episode": 177,
+    "env_seed": 2,
+    "tic_range": [
+     182,
+     182
+    ],
+    "steps": 45
+   },
+   "evidence": {
+    "episode": 177,
+    "sector": 7,
+    "floor": -64.0,
+    "lowest_neighbour_floor": -0.0,
+    "rooms": [
+     "r33"
+    ]
+   },
+   "summary": "The player fell into a pit in r33 near (1161, 1547): its floor is 64 mu below every way out and nothing lifts them back."
+  },
+  {
+   "id": "GEN1000009-inv-01",
+   "oracle": "invariant",
+   "kind": "health_cap",
+   "severity": 0.48,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    1268.0311431884766,
+    1168.1201934814453,
+    8.0
+   ],
+   "room": "r32",
+   "cluster_size": 2,
+   "first_seen_step": 482932,
+   "repro": {
+    "demo": "demos/GEN1000009-inv-01.lmp",
+    "save": null,
+    "episode": 51,
+    "env_seed": 0,
+    "tic_range": [
+     2322,
+     2322
+    ],
+    "steps": 580
+   },
+   "evidence": {
+    "episode": 51,
+    "health": 200.0,
+    "ammo": 16.0,
+    "keys": [],
+    "killcount": 0,
+    "portals_traversed": [],
+    "previous_health": 100.0
+   },
+   "summary": "Invariant `health_cap` broke in r32 near (1268, 1168)."
+  }
+ ],
+ "coverage_gaps": [],
+ "map_lump": "MAP10",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 28,
+ "temperature": 1.0
+}

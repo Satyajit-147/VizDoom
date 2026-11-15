@@ -1,0 +1,28 @@
+{
+ "run_id": "unseen_scripted_seed0",
+ "map": "MAP01",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "a5acb4979ac643fe3566192469a6e4239822fdf5129088b9740292b86b2cd454"
+ },
+ "git_sha": "unknown",
+ "env_steps": 3900000,
+ "wall_clock_s": 2409.4,
+ "coverage": {
+  "cell": 0.5676691729323309,
+  "entity": 0.0,
+  "connection": 0.6666666666666666,
+  "abstract_states": 171
+ },
+ "findings": [],
+ "coverage_gaps": [
+  {
+   "room": "vault",
+   "cells_unvisited": 77,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP01",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 0,
+ "temperature": 1.0
+}

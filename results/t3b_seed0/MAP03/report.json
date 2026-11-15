@@ -1,0 +1,65 @@
+{
+ "run_id": "t3b_seed0",
+ "map": "MAP03",
+ "wad_sha256": {
+  "qa_scenarios_buggy.wad": "2fe16741cbc13e32671f1a526bd7ad665ec1dff11bbfb7f5cc1ce2b92321c499"
+ },
+ "git_sha": "unknown",
+ "env_steps": 2000896,
+ "wall_clock_s": 9325.3,
+ "coverage": {
+  "cell": 0.5444444444444444,
+  "entity": 0.0,
+  "connection": 0.6666666666666666,
+  "abstract_states": 63
+ },
+ "findings": [
+  {
+   "id": "MAP03-oob-01",
+   "oracle": "out_of_bounds",
+   "kind": "outside_level",
+   "severity": 0.9,
+   "confidence_raw": 1.0,
+   "confidence_calibrated": 1.0,
+   "position": [
+    255.1632537841797,
+    -76.18135070800781,
+    0.0
+   ],
+   "room": "hall",
+   "cluster_size": 199,
+   "first_seen_step": 362032,
+   "repro": {
+    "demo": "demos/MAP03-oob-01.lmp",
+    "save": null,
+    "episode": 245,
+    "env_seed": 0,
+    "tic_range": [
+     190,
+     294
+    ],
+    "steps": 73
+   },
+   "evidence": {
+    "episode": 245,
+    "exit_point": [
+     255.1632537841797,
+     -76.18135070800781
+    ],
+    "depth_beyond_mu": 97.5
+   },
+   "summary": "The player left the level in hall near (255, -76) and travelled 98 mu into undefined space."
+  }
+ ],
+ "coverage_gaps": [
+  {
+   "room": "vault",
+   "cells_unvisited": 25,
+   "portals_attempted": 0
+  }
+ ],
+ "map_lump": "MAP03",
+ "wad": "qa_scenarios_buggy.wad",
+ "raw_findings": 199,
+ "temperature": 1.0
+}
