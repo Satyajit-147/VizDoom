@@ -63,7 +63,13 @@ the hand-made MAP01-MAP06 (MAP01 has no bugs). About 100k steps per map; 66 plan
 |---|---|---|---|---|---|---|
 | T1 Random | 65 | 1 | 98% | 51 / 66 | 77% | 69% |
 | T2 Scripted | 59 | 1 | 98% | 48 / 66 | 73% | 60% |
-| T4 Go-Explore + patience | *run in progress* | | | | | |
+| T4 Go-Explore + patience, 7 hand-made maps only | 15 | 1* | 93% | 10 / 11 | 91% | 90% |
+
+\* The one counted false alarm (MAP06) is the planted one-way lift itself, reported at its
+exact place by the *unreachable* family ("the lift fails from the pit, 9 failed presses")
+instead of the expected *softlock* family; the scoring rule counts the family strictly.
+Go-Explore + patience on the 32 generated maps was still running on Kaggle at the time of
+writing (`configs/unseen_goexplore_patience_gen.yaml`).
 
 By type (random / scripted): trap pits 11/12 and 11/12, broken locks 11/11 and 10/11,
 teleport loops 9/10 and 9/10, one-way lifts 6/7 and 5/7, bad pickups 6/8 and 6/8, leaky

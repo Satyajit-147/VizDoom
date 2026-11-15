@@ -28,7 +28,7 @@ level, QA re-tests, and a fix is kept only if the bug is gone and nothing else b
 |---|---|
 | Bug detectors | **0 false alarms** on 104 bug-free maps over 1.76M steps. All 90 recorded bug reports from training replay deterministically (89 of 90 exactly). |
 | Go-Explore on MAP07 (12 rooms, 4 planted bugs) | **92% of the map explored, 3 of 4 bugs found, 0 false alarms, on all 5 seeds**, against 40-64% explored for the other testers (one-sided Mann-Whitney p = 0.004). With *patience*: **4 of 4** on every seed. Milestone M8 passed. |
-| 39 maps no tester was tuned on (66 planted bugs) | Random and scripted testers find **73-77% of planted bugs at 98% precision**. Go-Explore + patience on the same maps: run in progress. |
+| 39 maps no tester was tuned on (66 planted bugs) | Random and scripted testers find **73-77% of planted bugs at 98% precision**. Go-Explore + patience on the 7 hand-made maps among them: **10 of 11**. |
 | Fixer loop (non-learned Fixer, 8 generated levels, 16 planted bugs) | **13 of 16 bugs repaired** (engine-verified), every level still finishable. |
 | Trained PPO tester (curriculum, 71 maps) | Precision 100% (51 of 51 reports real), recall 17-24%: it judges well, but doesn't reach most bugs. |
 | Curiosity bonus (M7) | Did **not** significantly improve exploration over plain PPO (p = 0.50). An honest negative result, explained in [docs/STATUS.md](docs/STATUS.md). |
