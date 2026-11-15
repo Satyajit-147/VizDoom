@@ -29,19 +29,25 @@ it with `env -u PYTHONPATH .venv/bin/streamlit run scripts/qa_lab.py`.)
 **1. The idea (30 s).** "We plant known bugs in a level, keep the answer key hidden from
 the tester, let it play, and then check its reports against the key."
 
-**2. The big map: what Go-Explore does (2 min).**
-- Left panel → Map: **Hand-made map → MAP07 — SPRAWL** → **Build level**. The header
-  says how many bugs are planted (4), never which ones or where.
-- Tester: **Go-Explore**. Steps to play: **40,000**. Click **Start / continue**.
+**2. Go-Explore finds the hard bugs (3 min).**
+- Left panel → Map: **Hand-made map → MAP06 — SOFTLOCK** → **Build level**. The header
+  says how many bugs are planted (2), never which ones or where.
+- Tester: **Go-Explore**. Steps to play: **30,000**. Click **Start / continue** (about 2-3
+  minutes).
 - What to point at while it plays:
   - the **path on the map** jumps: each jump is Go-Explore reloading a saved spot and
     exploring onward from it;
   - **saved states** climbs: one save per new place reached;
-  - **area explored** climbs past what the other testers manage (they plateau around
-    40-65% on this map; Go-Explore reaches about 90%);
   - detections appear in the table as they happen.
-- Click **Finish and reveal the answer key**: found / missed, false alarms (expect 0),
-  precision and recall, and the map with the planted bugs drawn in red.
+- Click **Finish and reveal the answer key**. Checked before the demo (2 seeds): **both
+  bugs found** (a one-way lift and a teleport loop, the hardest kind: confirming "stuck
+  forever" needs patience), 0 false alarms, 70-80% of the map explored.
+- Equally reliable at 30,000 steps (2 of 2 bugs, 0 false alarms, both seeds): **MAP05**
+  (a broken lock and an over-cap health pickup, ~95% explored) and **MAP02** (two trap
+  pits, 80-100% explored).
+- Don't use MAP07 live: Go-Explore needs about 150,000 steps to get past its first door.
+  Its 92% figure comes from 1M-step runs: show `docs/results/map07_coverage.png`
+  instead.
 
 **3. A random level nobody has seen (2 min).**
 - Map: **Surprise me** → **Build level**: a brand-new generated level with 2-3 random
@@ -51,10 +57,11 @@ the tester, let it play, and then check its reports against the key."
   it was in a room the tester never reached (exploring is the hard part; judging what it
   sees is reliable).
 
-**4. Close (30 s).** "On 39 maps none of our testers were tuned on, the simple testers
-find about three quarters of the planted bugs with 98% precision. On the big map,
-Go-Explore explores 92% and finds 3-4 of 4 bugs, while the trained neural agents
-explore about 60%."
+**4. Close (30 s), with the MAP07 chart on screen.** "On the big 12-room map, in 1M-step
+runs, Go-Explore explores 92% and finds 3 to 4 of the 4 bugs on every seed, while the
+trained neural agents explore about 60%. On 39 maps none of our testers were tuned on,
+even the simple testers find about three quarters of the planted bugs with 98%
+precision."
 
 ## What the testers are
 
@@ -77,8 +84,9 @@ explore about 60%."
 | Bad pickup | health goes above the maximum | often |
 | Dead switch | a switch that opens nothing | hard: the tester must press it, then check the door |
 
-For a guaranteed result on stage, use **Generate a new map** and pick *Broken lock +
-Trap pit*, or the hand-made **MAP03** (leaky wall) or **MAP02** (trap pits).
+For a dependable result on stage, use the hand-made **MAP06**, **MAP05** or **MAP02** with
+Go-Explore and 30,000 steps (each found all its bugs, with no false alarm, in our checks),
+or **Generate a new map** and pick *Broken lock + Trap pit*.
 
 ## Troubleshooting
 
