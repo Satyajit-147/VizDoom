@@ -12,13 +12,15 @@ level, QA re-tests, and a fix is kept only if the bug is gone and nothing else b
 
 **New to the project? Read in this order:**
 1. This README: what it is, how to run it.
-2. [docs/DEMO.md](docs/DEMO.md): run the demo app and a 5-minute demo script.
-3. [docs/STATUS.md](docs/STATUS.md): what is done, the results, what is missing.
-4. [docs/results/RESULTS.md](docs/results/RESULTS.md): the result tables and figures,
+2. [docs/PROJECT_EXPLAINED.md](docs/PROJECT_EXPLAINED.md): the whole project in plain
+   language: every concept, how it was built, the results, and what we couldn't conclude.
+3. [docs/DEMO.md](docs/DEMO.md): run the demo app and a 5-minute demo script.
+4. [docs/STATUS.md](docs/STATUS.md): what is done, the results, what is missing.
+5. [docs/results/RESULTS.md](docs/results/RESULTS.md): the result tables and figures,
    generated from `results/`.
-5. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how every part works, module by module.
-6. [CONTRIBUTING.md](CONTRIBUTING.md): how to make changes without breaking anything.
-7. [docs/decisions.md](docs/decisions.md): the log of every deviation from the plan
+6. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how every part works, module by module.
+7. [CONTRIBUTING.md](CONTRIBUTING.md): how to make changes without breaking anything.
+8. [docs/decisions.md](docs/decisions.md): the log of every deviation from the plan
    (D1–D51), and why. [docs/PLAN.md](docs/PLAN.md) is the original build specification;
    [docs/FIXER_PLAN.md](docs/FIXER_PLAN.md) is the plan for the Fixer.
 
